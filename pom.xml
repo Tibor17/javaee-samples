@@ -55,6 +55,21 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>javaee.samples.frameworks</groupId>
+                <artifactId>junit-rule-jpa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaee.samples.frameworks</groupId>
+                <artifactId>resource-local-transactional-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaee.samples.frameworks</groupId>
+                <artifactId>mockito-interceptors</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
