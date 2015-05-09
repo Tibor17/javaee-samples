@@ -196,6 +196,20 @@
                         <useEditMode>true</useEditMode>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>tidy-maven-plugin</artifactId>
+                    <version>1.0-alpha-2</version>
+                    <executions>
+                        <execution>
+                            <id>canonical-ordering-of-pom-elements</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>pom</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -261,4 +275,18 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>fix-canonical-order</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <inherited>true</inherited>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>tidy-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
