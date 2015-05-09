@@ -21,20 +21,31 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <modules>
-        <module>junit-rule-jpa</module>
-        <module>resource-local-transactional-context</module>
-        <module>mockito-interceptors</module>
-    </modules>
 
     <parent>
-        <groupId>javaee.samples</groupId>
-        <artifactId>javaee-samples-project</artifactId>
+        <groupId>javaee.samples.frameworks</groupId>
+        <artifactId>javaee-frameworks-project</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>javaee.samples.frameworks</groupId>
-    <artifactId>javaee-frameworks-project</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>resource-local-transactional-context</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>persistence-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.ejb</groupId>
+            <artifactId>ejb-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>javax.transaction-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 
 </project>
