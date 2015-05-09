@@ -104,6 +104,49 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.18.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-junit47</artifactId>
+                            <version>2.18.1</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.6</version>
+                    <configuration>
+                        <archive>
+                            <index>true</index>
+                            <manifestEntries>
+                                <Sealed>true</Sealed>
+                            </manifestEntries>
+                            <manifest>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                                <useUniqueVersions>true</useUniqueVersions>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                    <dependencies>
+                        <!-- Preview release: Plexus Archiver multithreaded Zip edition -->
+                        <!-- http://maven.40175.n5.nabble.com/Preview-release-Plexus-Archiver-multithreaded-Zip-edition-td5822942.html -->
+                        <!-- @TODO Ask Kristian when release of multithreaded org.apache.commons:commons-compress:(3.0,). -->
+                        <dependency>
+                            <groupId>org.codehaus.plexus</groupId>
+                            <artifactId>plexus-archiver</artifactId>
+                            <version>2.10-beta-1</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.codehaus.plexus</groupId>
+                            <artifactId>plexus-io</artifactId>
+                            <version>2.4.1</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.5.2</version>
                     <configuration>
