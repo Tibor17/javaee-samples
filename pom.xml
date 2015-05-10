@@ -70,6 +70,16 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>javaee.samples.frameworks</groupId>
+                <artifactId>test-support-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaee.samples.frameworks</groupId>
+                <artifactId>junit-notifier-rule</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
@@ -115,6 +125,11 @@
                 <groupId>com.github.stephenc.jcip</groupId>
                 <artifactId>jcip-annotations</artifactId>
                 <version>1.0-1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>1.4.186</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

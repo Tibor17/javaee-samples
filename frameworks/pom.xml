@@ -36,6 +36,8 @@
         <module>junit-rule-jpa</module>
         <module>resource-local-transactional-context</module>
         <module>mockito-interceptors</module>
+        <module>junit-notifier-rule</module>
+        <module>test-support-h2</module>
     </modules>
 
 </project>
