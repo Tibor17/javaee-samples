@@ -19,6 +19,22 @@
 package javaee.samples.frameworks.junitjparule;
 
 enum Mode {
-    DEFAULT_MODE,
-    ORACLE
+    DEFAULT_MODE(null),
+    ORACLE("Oracle"),
+    MYSQL("MySQL"),
+    DB2("DB2"),
+    DERBY("Derby"),
+    HSQLDB("HSQLDB"),
+    MSSQL("MSSQLServer"),
+    PostgreSQL("PostgreSQL");
+
+    private final String mode;
+
+    private Mode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getModeAsString() {
+        return mode;
+    }
 }

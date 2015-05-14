@@ -20,9 +20,11 @@ package javaee.samples.frameworks.tcontext;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import java.io.File;
 
 public interface UnitEntityManager extends EntityManager {
     String getUnitName();
+    File getDatabaseStorage();
 
     /**
      * {@inheritDoc}

@@ -32,7 +32,11 @@ public final class H2Utils {
   }
 
   public static void shutdownH2(File dbPath) throws IOException, SQLException {
-    shutdownH2(dbPath.getCanonicalPath());
+    shutdownH2(dbPath, "sa", "");
+  }
+
+  public static void shutdownH2(File dbPath, String user, String password) throws IOException, SQLException {
+    shutdownH2(dbPath.getCanonicalPath(), user, password);
   }
 
   public static void shutdownH2(String dbPath) throws SQLException {
@@ -40,11 +44,8 @@ public final class H2Utils {
   }
 
   public static void shutdownH2(String url, String user, String password) throws SQLException {
-    org.h2.Driver.load();
-    try (Connection conn = DriverManager.getConnection(url, user, password); Statement stat = conn.createStatement()) {
-      // Don't use SHUTDOWN IMMEDIATELY. It results in thrown exception saying that the connection is already closed.
-      stat.execute("SHUTDOWN");
-    }
+    // Don't use SHUTDOWN IMMEDIATELY. It results in thrown exception saying that the connection is already closed.
+    execute(url, user, password, "SHUTDOWN");
   }
 
   public static void dropAllObjects(File dbPath) throws IOException, SQLException {
@@ -56,9 +57,13 @@ public final class H2Utils {
   }
 
   public static void dropAllObjects(String url, String user, String password) throws SQLException {
+    execute(url, user, password, "DROP ALL OBJECTS");
+  }
+
+  public static boolean execute(String url, String user, String password, String command) throws SQLException {
     org.h2.Driver.load();
     try (Connection conn = DriverManager.getConnection(url, user, password); Statement stat = conn.createStatement()) {
-      stat.execute("DROP ALL OBJECTS");
+      return stat.execute(command);
     }
   }
 

@@ -18,14 +18,9 @@
  */
 package javaee.samples.frameworks.tcontext;
 
-import javax.persistence.EntityTransaction;
-
-public interface TransactionalEntityManager extends TransactionalState, UnitEntityManager {
-
-    /**
-     * {@inheritDoc}
-     * @throws IllegalStateException always thrown. The transaction is managed.
-     */
-    @Override
-    EntityTransaction getTransaction();
+public interface TransactionalState {
+    boolean isJointToContainerTransaction();
+    void joinToContainerTransaction(boolean joinToContainerTransaction);
+    boolean hasOwnTransaction();
+    void setHasOwnTransaction(boolean hasOwnTransaction);
 }

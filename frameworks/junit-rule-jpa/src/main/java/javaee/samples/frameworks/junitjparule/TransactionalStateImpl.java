@@ -16,16 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package javaee.samples.frameworks.tcontext;
+package javaee.samples.frameworks.junitjparule;
 
-import javax.persistence.EntityTransaction;
+import javaee.samples.frameworks.tcontext.TransactionalState;
 
-public interface TransactionalEntityManager extends TransactionalState, UnitEntityManager {
+final class TransactionalStateImpl implements TransactionalState {
+    private boolean isJointToContainerTransaction, hasOwnTransaction;
 
-    /**
-     * {@inheritDoc}
-     * @throws IllegalStateException always thrown. The transaction is managed.
-     */
     @Override
-    EntityTransaction getTransaction();
+    public boolean isJointToContainerTransaction() {
+        return isJointToContainerTransaction;
+    }
+
+    @Override
+    public void joinToContainerTransaction(boolean joinToContainerTransaction) {
+        isJointToContainerTransaction = joinToContainerTransaction;
+    }
+
+    @Override
+    public boolean hasOwnTransaction() {
+        return hasOwnTransaction;
+    }
+
+    @Override
+    public void setHasOwnTransaction(boolean hasOwnTransaction) {
+        this.hasOwnTransaction = hasOwnTransaction;
+    }
 }
