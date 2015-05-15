@@ -265,11 +265,8 @@ public final class JPARule extends TestWatcher {
     }
 
     public <T> T $(final Commitable<T> blok) {
-        return $(new Callable<T>() {
-            @Override
-            public T call(EntityManager e) throws Exception {
-                return blok.commit();
-            }
+        return $(e -> {
+            return blok.commit();
         });
     }
 
@@ -287,6 +284,10 @@ public final class JPARule extends TestWatcher {
         if (transaction.isActive()) {
             throw new TransactionalException("Transactional block must not be called within current transaction.",
                     new InvalidTransactionException("transaction in " + Thread.currentThread()));
+        }
+
+        if (doNotCommitOwnTransaction) {
+            transaction.setRollbackOnly();
         }
 
         Throwable t = null;

@@ -52,7 +52,7 @@ public class DummyTest {
 
     @Test
     public void shouldReloadStoredEntityWithManagedTransaction() {
-        A expected = rule.$((em) -> {
+        A expected = rule.$(em -> {
             A a = new A();
             a.s = "my string";
             em.persist(a);
