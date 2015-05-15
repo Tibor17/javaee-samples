@@ -22,22 +22,22 @@ import javaee.samples.frameworks.tcontext.TransactionalEntityManager;
 import javaee.samples.frameworks.tcontext.TransactionalState;
 import javaee.samples.frameworks.tcontext.UnitEntityManager;
 import javaee.samples.frameworks.tsupporth2.H2Utils;
+import org.hamcrest.Matcher;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TransactionRequiredException;
+import javax.persistence.*;
+import javax.transaction.InvalidTransactionException;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 import javax.transaction.TransactionalException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.SQLException;
@@ -47,6 +47,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static javax.ejb.TransactionAttributeType.*;
 import static javaee.samples.frameworks.tsupporth2.H2Utils.shutdownH2;
@@ -98,14 +100,16 @@ public final class JPARule extends TestWatcher {
             if (JPARule.this.transactional && "getTransaction".equals(m.getName())) {
                 throw new IllegalStateException("The transaction is managed.");
             }
-            PersistenceKey key = new PersistenceKey(JPARule.this.unitName, JPARule.this.dbPath, JPARule.this.transactional);
-            ThreadLocal<UnitEntityManager> local = JPARule.currentEntityManagers.get(key);
-            UnitEntityManager em = local == null ? null : local.get();
+            UnitEntityManager em = JPARule.this.getCurrentEM();
             /*if (JPARule.this.transactional && em != null) {
                 TransactionalEntityManager tem = (TransactionalEntityManager) em;
                 if (!tem.hasOwnTransaction())//todo continue in mockito interceptor
             }*/
-            return em == null ? null : m.invoke(em, a);
+            try {
+                return em == null ? null : m.invoke(em, a);
+            } catch (InvocationTargetException e) {
+                throw e.getTargetException();
+            }
         };
         final Class<EntityManager> c = EntityManager.class;
         return c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
@@ -115,10 +119,10 @@ public final class JPARule extends TestWatcher {
     protected void starting(Description description) {
         final String desc = buildDatabaseFileName(description);
         dbPath = dbPath(desc);
-        if (currentEntityManagers.containsKey(new PersistenceKey(unitName, dbPath, transactional))) {
+        if (getLocalEM() != null) {
             fail("Such @Rule already defined {unitName=" + unitName + ", dbPath=" + dbPath + ", transactional=" + transactional + "}.");
         }
-        deleteFile(dbPath);
+        shutdownAndDeleteDatabase(dbPath);
         final Map<String, String> properties = new HashMap<>();
         properties.put("javax.persistence.jdbc.driver", "org.h2.Driver");
         final String storage = resolveH2Storage();
@@ -166,78 +170,153 @@ public final class JPARule extends TestWatcher {
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory(JPARule.this.unitName, properties);
 
         InvocationHandler handler = (Object o, Method m, Object[] a) -> {
-            Object ret = m.invoke(emf, a);
-            if ("createEntityManager".equals(m.getName())) {
-                JPARule.this.entityManagers.add((EntityManager) ret);
+            try {
+                Object ret = m.invoke(emf, a);
+                if ("createEntityManager".equals(m.getName())) {
+                    JPARule.this.entityManagers.add((EntityManager) ret);
+                }
+                return ret;
+            } catch (InvocationTargetException e) {
+                throw e.getTargetException();
             }
-            return ret;
         };
-        Class<?>[] c = {EntityManagerFactory.class};
-        factory = (EntityManagerFactory) Proxy.newProxyInstance(getClassLoader(c[0]), c, handler);
+        Class<EntityManagerFactory> c = EntityManagerFactory.class;
+        factory = c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
 
         if (isTransactionalTest(description)) {
-            getLocalEM().getTransaction().begin();
+            EntityTransaction et = getCurrentEM().getTransaction();
+            if (doNotCommitOwnTransaction) {
+                et.setRollbackOnly();
+            }
+            et.begin();
         }
     }
 
     @Override
     protected void finished(Description description) {
+        RuntimeException e = null;
         try {
-            // Don't use native H2 SHUTDOWN, it fails in JTA.
-            // http://www.h2database.com/html/grammar.html#shutdown
-            shutdownH2(dbPath, USER, PASS);
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        } finally {
-            entityManagers.stream().filter(EntityManager::isOpen).forEach(em -> {
-                try {
-                    em.close();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            ThreadLocal<UnitEntityManager> local = currentEntityManagers.get(new PersistenceKey(unitName, dbPath, transactional));
-            if (local != null) {
-                EntityManager em = local.get();
-                if (em != null && em.isOpen()) {
-                    try {
-                        em.close();
-                    } catch (IllegalStateException e) {
-                        System.err.println("closed container-managed EntityManager?");
-                    }
-                }
-            }
+            entityManagers.stream()
+                    .filter(EntityManager::isOpen)
+                    .forEach(em -> {
+                        try {
+                            em.close();
+                        } catch (IllegalStateException e3) {
+                            e3.printStackTrace();
+                        }
+                    });
 
             if (factory != null && factory.isOpen()) {
                 factory.close();
             }
+        } catch (IllegalStateException e1) {
+            e = e1;
+        } finally {
+            try {
+                // Don't use native H2 SHUTDOWN, it fails in JTA.
+                // http://www.h2database.com/html/grammar.html#shutdown
+                shutdownH2(dbPath, USER, PASS);
+            } catch (SQLException | IOException e2) {
+                if (e == null) {
+                    e = new RuntimeException(e2.getLocalizedMessage(), e2);
+                } else {
+                    e.addSuppressed(e2);
+                }
+            }
+        }
+
+        if (e != null) {
+            throw e;
         }
     }
 
     @Override
     protected final void failed(Throwable e, Description description) {
         if (isTransactionalTest(description) && canRollback(e, description)) {
-            getLocalEM().getTransaction().rollback();
+            EntityTransaction et = getCurrentEM().getTransaction();
+            if (et.isActive()) {
+                et.rollback();
+            }
         }
     }
 
     @Override
     protected final void skipped(AssumptionViolatedException e, Description description) {
         if (transactional && !doNotCommitOwnTransaction && isTransactionalTest(description)) {
-            getLocalEM().getTransaction().commit();
+            EntityTransaction et = getCurrentEM().getTransaction();
+            if (et.isActive()) {
+                et.commit();
+            }
         }
     }
 
     @Override
     protected final void succeeded(Description description) {
         if (transactional && !doNotCommitOwnTransaction && isTransactionalTest(description)) {
-            getLocalEM().getTransaction().commit();
+            EntityTransaction et = getCurrentEM().getTransaction();
+            if (et.isActive()) {
+                et.commit();
+            }
         }
     }
 
     public boolean execute(String command) throws SQLException {
         return H2Utils.execute(URL_PREFIX + dbPath, USER, PASS, command);
+    }
+
+    public <T> T $(final Commitable<T> blok) {
+        return $(new Callable<T>() {
+            @Override
+            public T call(EntityManager e) throws Exception {
+                return blok.commit();
+            }
+        });
+    }
+
+    public <T> T $(Callable<T> block, boolean close) {
+        return $(block, nullValue(Throwable.class), close);
+    }
+
+    public <T> T $(Callable<T> block) {
+        return $(block, nullValue(Throwable.class), true);
+    }
+
+    public <T> T $(Callable<T> block, Matcher<Throwable> exception, boolean close) {
+        final UnitEntityManager em = getCurrentEM();
+        final EntityTransaction transaction = em.getTransaction();
+        if (transaction.isActive()) {
+            throw new TransactionalException("Transactional block must not be called within current transaction.",
+                    new InvalidTransactionException("transaction in " + Thread.currentThread()));
+        }
+
+        Throwable t = null;
+
+        try {
+            transaction.begin();
+            return block.call(em);
+        } catch (InvocationTargetException e) {
+            t = e.getCause();
+            t.printStackTrace();
+        } catch (Throwable e) {
+            t = e;
+            t.printStackTrace();
+        } finally {
+            if (transaction.isActive()) {
+                if (t == null) {
+                    transaction.commit();
+                } else {
+                    transaction.rollback();
+                }
+            }
+
+            if (close && em.isOpen()) {
+                em.close();
+            }
+
+            assertThat(t, exception);
+        }
+
+        throw new AssertionError("unreachable statement");
     }
 
     private boolean isTransactionalTest(Description description) {
@@ -271,31 +350,20 @@ public final class JPARule extends TestWatcher {
         if (transactional == null) {
             return true;
         } else {
-            Class[] rollbackOn = transactional.rollbackOn();
-            Class[] dontRollbackOn = transactional.dontRollbackOn();
-            if (dontRollbackOn.length != 0) {
-                Class<?> exc = e.getClass();
-                for (Class<?> dontRollback : dontRollbackOn) {
-                    if (dontRollback.isAssignableFrom(exc)) {
-                        return false;
-                    }
-                }
-                return true;
-            } else if (rollbackOn.length != 0) {
-                Class<?> exc = e.getClass();
-                for (Class<?> rollback : rollbackOn) {
-                    if (rollback.isAssignableFrom(exc)) {
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                return true;
-            }
+            Class<?> exc = e.getClass();
+            Class[] r = transactional.rollbackOn();
+            Class[] d = transactional.dontRollbackOn();
+            boolean rollbackOn = isClassAssignableTo(exc, r);
+            boolean dontRollbackOn = isClassAssignableTo(exc, d);
+            return !dontRollbackOn && (r.length == 0 || rollbackOn);
         }
     }
 
-    private EntityManager getLocalEM() {
+    private ThreadLocal<UnitEntityManager> getLocalEM() {
+        return currentEntityManagers.get(new PersistenceKey(unitName, dbPath, transactional));
+    }
+
+    private UnitEntityManager getCurrentEM() {
         PersistenceKey key = new PersistenceKey(unitName, dbPath, transactional);
         ThreadLocal<UnitEntityManager> local = currentEntityManagers.get(key);
         if (local == null) {
@@ -331,14 +399,24 @@ public final class JPARule extends TestWatcher {
                 final EntityManager em = JPARule.this.factory.createEntityManager();
                 final TransactionalStateImpl state = new TransactionalStateImpl();
                 InvocationHandler handler = (Object o, Method m, Object[] a) -> {
-                    if ("getUnitName".equals(m.getName())) {
-                        return key.getUnitName();
-                    } else if ("getDatabaseStorage".equals(m.getName())) {
-                        return key.getDatabaseStorage();
-                    } else if (m.getDeclaringClass() == TransactionalState.class) {
-                        return m.invoke(state, a);
-                    } else {
-                        return m.invoke(em, a);
+                    try {
+                        if ("getUnitName".equals(m.getName())) {
+                            return key.getUnitName();
+                        } else if ("getDatabaseStorage".equals(m.getName())) {
+                            return key.getDatabaseStorage();
+                        } else if (m.getDeclaringClass() == TransactionalState.class) {
+                            return m.invoke(state, a);
+                        } else if ("getTransaction".equals(m.getName())) {
+                            EntityTransaction et = em.getTransaction();
+                            if (JPARule.this.doNotCommitOwnTransaction) {
+                                et.setRollbackOnly();
+                            }
+                            return et;
+                        } else {
+                            return m.invoke(em, a);
+                        }
+                    } catch (InvocationTargetException e) {
+                        throw e.getTargetException();
                     }
                 };
                 return c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[] {c}, handler));
@@ -354,6 +432,15 @@ public final class JPARule extends TestWatcher {
                 return em;
             }
         };
+    }
+
+    private static boolean isClassAssignableTo(Class<?> from, Class<?>... to) {
+        for (Class<?> clazz : to) {
+            if (clazz.isAssignableFrom(from)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
@@ -386,9 +473,15 @@ public final class JPARule extends TestWatcher {
         }
     }
 
-    private static void deleteFile(File f) {
+    private void shutdownAndDeleteDatabase(File f) {
         if (f.isFile()) {
-            f.delete();
+            try {
+                shutdownH2(dbPath, USER, PASS);
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+            } finally {
+                f.delete();
+            }
         }
     }
 

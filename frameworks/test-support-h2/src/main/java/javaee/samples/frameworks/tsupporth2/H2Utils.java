@@ -36,7 +36,7 @@ public final class H2Utils {
   }
 
   public static void shutdownH2(File dbPath, String user, String password) throws IOException, SQLException {
-    shutdownH2(dbPath.getCanonicalPath(), user, password);
+    shutdownH2("jdbc:h2:file:" + dbPath.getCanonicalPath(), user, password);
   }
 
   public static void shutdownH2(String dbPath) throws SQLException {

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:weld="http://jboss.org/schema/weld/beans"
+       xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+       version="1.1" bean-discovery-mode="all">
+       <!-- Used by tests. -->
+       <interceptors>
+              <class>com.scheidtbachmann.shared.common.business.audit.interceptor.AuditLogInterceptor</class>
+              <!--<class>org.apache.deltaspike.jpa.impl.transaction.TransactionalInterceptor</class>-->
+       </interceptors>
+       <!--<alternatives>
+           <class>org.apache.deltaspike.jpa.impl.transaction.BeanManagedUserTransactionStrategy</class>
+       </alternatives>-->
+       <weld:scan>
+              <weld:exclude name="org.hibernate.**"/>
+              <weld:exclude name="org.slf4j.**"/>
+              <weld:exclude name="org.apache.**"/>
+              <weld:exclude name="org.jboss.**"/>
+              <weld:exclude name="junit.**"/>
+              <weld:exclude name="org.junit.**"/>
+              <weld:exclude name="org.h2.**"/>
+              <weld:exclude name="org.hamcrest.**"/>
+              <weld:exclude name="net.jcip.annotations.**"/>
+       </weld:scan>
+</beans>
