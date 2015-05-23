@@ -33,6 +33,7 @@ public final class JPARuleBuilder {
     boolean transactional;
     boolean doNotCommitOwnTransaction;
     boolean joinTransaction;
+    boolean perClass;
     H2Storage storage;
     Mode mode;
 
@@ -45,6 +46,14 @@ public final class JPARuleBuilder {
 
     public static JPARuleBuilder unitName(String unitName) {
         return new JPARuleBuilder(unitName);
+    }
+
+    /**
+     * The {@link javax.persistence.EntityManagerFactory} is closed in shutdown hoot.
+     */
+    public JPARuleBuilder perClass() {
+        perClass = true;
+        return this;
     }
 
     public JPARuleBuilder properties(Map<String, String> properties) {

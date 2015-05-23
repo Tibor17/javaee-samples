@@ -16,6 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package javaee.samples.frameworks.junitjparule;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;

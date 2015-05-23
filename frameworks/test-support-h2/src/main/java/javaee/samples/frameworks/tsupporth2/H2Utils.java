@@ -20,10 +20,9 @@ package javaee.samples.frameworks.tsupporth2;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public final class H2Utils {
 
@@ -49,7 +48,7 @@ public final class H2Utils {
   }
 
   public static void dropAllObjects(File dbPath) throws IOException, SQLException {
-    dropAllObjects(dbPath.getCanonicalPath());
+    dropAllObjects("file:" + dbPath.getCanonicalPath());
   }
 
   public static void dropAllObjects(String dbPath) throws SQLException {
@@ -64,6 +63,55 @@ public final class H2Utils {
     org.h2.Driver.load();
     try (Connection conn = DriverManager.getConnection(url, user, password); Statement stat = conn.createStatement()) {
       return stat.execute(command);
+    }
+  }
+
+  public static boolean execute(File dbPath, String user, String password, String command)
+          throws SQLException, IOException {
+    return execute("jdbc:h2:file:" + dbPath.getCanonicalPath(), user, password, command);
+  }
+
+  public static Collection<String> tables(File dbPath, String user, String password) throws SQLException, IOException {
+    return tables("jdbc:h2:file:" + dbPath.getCanonicalPath(), user, password);
+  }
+
+  public static Collection<String> tables(String url, String user, String password) throws SQLException {
+    org.h2.Driver.load();
+    Collection<String> tables = new ArrayList<>();
+    try (Connection conn = DriverManager.getConnection(url, user, password)) {
+      ResultSet resultSet = conn.getMetaData().getTables(null, null, "%", new String[]{});
+      while (resultSet.next()) {
+        if ("TABLE".equals(resultSet.getString(4)))
+          tables.add(resultSet.getString(3));
+      }
+    }
+    return tables;
+  }
+
+  public static void deleteRowsFromTables(File dbPath, String user, String password) throws SQLException, IOException {
+    deleteRowsFromTables("jdbc:h2:file:" + dbPath.getCanonicalPath(), user, password);
+  }
+
+  public static void deleteRowsFromTables(String url, String user, String password) throws SQLException {
+    SQLException e = null;
+    try {
+      execute(url, user, password, "SET REFERENTIAL_INTEGRITY FALSE");
+      for (String table : tables(url, user, password)) {
+        execute(url, user, password, "TRUNCATE TABLE " + table);
+      }
+    } catch (SQLException suppressed) {
+      e = suppressed;
+    } finally {
+      try {
+        execute(url, user, password, "SET REFERENTIAL_INTEGRITY TRUE");
+      } catch (SQLException thrown) {
+        if (e != null) thrown.addSuppressed(e);
+        e = thrown;
+      }
+    }
+
+    if (e != null) {
+      throw e;
     }
   }
 

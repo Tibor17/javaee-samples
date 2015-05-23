@@ -12,7 +12,7 @@
         <validation-mode>CALLBACK</validation-mode>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
-            <property name="javax.persistence.jdbc.url" value="jdbc:h2:./target/AuditTest" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:h2:file:./target/AuditTest" />
             <property name="javax.persistence.jdbc.user" value="sa" />
             <property name="javax.persistence.jdbc.password" value="" />
 
@@ -29,7 +29,9 @@
         </properties>
     </persistence-unit>
     <persistence-unit name="containerless-test-pu" transaction-type="RESOURCE_LOCAL">
-        <class>A</class>
-        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+        <class>javaee.samples.frameworks.junitjparule.A</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <shared-cache-mode>NONE</shared-cache-mode>
+        <validation-mode>NONE</validation-mode>
     </persistence-unit>
 </persistence>

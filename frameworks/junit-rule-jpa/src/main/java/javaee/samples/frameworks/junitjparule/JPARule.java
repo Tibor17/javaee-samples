@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,23 +49,33 @@ import java.util.regex.Pattern;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+import static java.lang.reflect.Proxy.newProxyInstance;
 import static javax.ejb.TransactionAttributeType.*;
-import static javaee.samples.frameworks.tsupporth2.H2Utils.shutdownH2;
+import static javax.persistence.Persistence.createEntityManagerFactory;
+import static javaee.samples.frameworks.tsupporth2.H2Utils.*;
+import static javaee.samples.frameworks.junitjparule.UnitPerClass.unitPerClass;
 
 public final class JPARule extends TestWatcher {
     private static final String USER = "sa";
     private static final String PASS = "";
-    private static final String URL_PREFIX = "jdbc:h2:";
-    private static final AtomicInteger COUNTER = new AtomicInteger();
+    private static final String URL_PREFIX = "jdbc:h2:file:";
+    private static final AtomicInteger counter = new AtomicInteger();
     private static final Map<PersistenceKey, ThreadLocal<UnitEntityManager>> currentEntityManagers
             = new ConcurrentHashMap<>();
 
-    final Map<String, String> properties = new HashMap<>();
+    private static final Map<UnitPerClass, EntityManagerFactory> factories = new ConcurrentHashMap<>();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {JPARule.factories.forEach((s, f) -> close(f));}));
+    }
+
+    private final Map<String, String> properties = new HashMap<>();
     private final Queue<EntityManager> entityManagers = new ConcurrentLinkedQueue<>();
     private final String unitName;
     private final boolean transactional;
     private final boolean doNotCommitOwnTransaction;
     private final boolean joinTransaction;
+    private final boolean perClass;
     private final H2Storage storage;
     private final Mode mode;
     private volatile EntityManagerFactory factory;
@@ -74,16 +83,21 @@ public final class JPARule extends TestWatcher {
 
     JPARule(JPARuleBuilder builder) {
         properties.putAll(builder.properties);
-        this.unitName = builder.unitName;
-        this.transactional = builder.transactional;
-        this.doNotCommitOwnTransaction = builder.doNotCommitOwnTransaction;
-        this.joinTransaction = builder.joinTransaction;
-        this.storage = builder.storage;
-        this.mode = builder.mode;
+        unitName = builder.unitName;
+        transactional = builder.transactional;
+        doNotCommitOwnTransaction = builder.doNotCommitOwnTransaction;
+        joinTransaction = builder.joinTransaction;
+        perClass = builder.perClass;
+        storage = builder.storage;
+        mode = builder.mode;
     }
 
     public boolean isTransactional() {
         return transactional;
+    }
+
+    public boolean isPerClass() {
+        return perClass;
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
@@ -112,62 +126,26 @@ public final class JPARule extends TestWatcher {
             }
         };
         final Class<EntityManager> c = EntityManager.class;
-        return c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
+        return c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
     }
 
     @Override
-    protected void starting(Description description) {
-        final String desc = buildDatabaseFileName(description);
-        dbPath = dbPath(desc);
+    protected void starting(Description d) {
+        dbPath = dbPath(buildDatabaseFileName(d, !perClass));
         if (getLocalEM() != null) {
-            fail("Such @Rule already defined {unitName=" + unitName + ", dbPath=" + dbPath + ", transactional=" + transactional + "}.");
+            fail("Such @Rule already defined {unitName=" + unitName
+                    + ", dbPath=" + dbPath.getAbsolutePath()
+                    + ", transactional=" + transactional
+                    + "}.");
         }
-        shutdownAndDeleteDatabase(dbPath);
-        final Map<String, String> properties = new HashMap<>();
-        properties.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-        final String storage = resolveH2Storage();
-        properties.put("javax.persistence.jdbc.url", URL_PREFIX + dbPath
-                        // Don't use MULTI_THREADED: it's experimental and old configuration + ";MULTI_THREADED=1"
-                        + (storage == null ? "" : ";" + storage)
-                        //;FILE_LOCK=NO does not work together with AUTO_SERVER
-                        + ";AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=TRUE;DB_CLOSE_DELAY=-1"//DB_CLOSE_ON_EXIT=FALSE breaks the commits
-                        + ";LOCK_TIMEOUT=60000" // in millis
-                        + ";QUERY_TIMEOUT=0" // in millis, default:0 means no-timeout
-                        + ";EARLY_FILTER=TRUE" // performance increase in 53%
-                        + ";PAGE_SIZE=2048" // in bytes, default:2048
-                        + ";CACHE_SIZE=256" // in KB
-                        + ";CACHE_TYPE=SOFT_LRU"
-                        + ";MAX_MEMORY_ROWS=16384"
-                        + concatenateWithMode()
-                //+ ";MAX_MEMORY_ROWS_DISTINCT =16384" // workaround: https://groups.google.com/forum/#!topic/h2-database/xt8BW5fp1eI
-        );
-        // How to disable Experimental MV Storage - concatenate with string ";MV_STORE=FALSE;MVCC=FALSE"
-        // http://stackoverflow.com/questions/23806471/why-is-my-embedded-h2-program-writing-to-a-mv-db-file
-        // See the H2 RELEASE_NOTES http://www.h2database.com/html/changelog.html
-        // See the H2 performance tuning http://www.iliachemodanov.ru/en/blog-en/21-databases/42-h2-performance-en
 
-        properties.put("javax.persistence.jdbc.user", USER);
-        properties.put("javax.persistence.jdbc.password", PASS);
-//    Unable to build EMF throwing javax.naming.NoInitialContextException if jtaDataSource is used
-//    properties.put("javax.persistence.jtaDataSource", "");
-        properties.put("javax.persistence.transactionType", "RESOURCE_LOCAL"); //doesn't have to be used, as it is defined in persistence.xml
-        properties.put("javax.persistence.provider", "org.hibernate.jpa.HibernatePersistenceProvider");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        properties.put("hibernate.current_session_context_class", "thread");
-        properties.put("hibernate.cache.use_second_level_cache", "false");
-        properties.put("hibernate.archive.autodetection", "class");
-        // org.jboss.jbossts:jbossjta:4.9.0.GA not necessary, otherwise use JBossStandAloneJtaPlatform for arjuna JTA
-        // properties.put("hibernate.transaction.jta.platform", "org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform");
-        // JdbcTransactionFactory on RESOURCE_LOCAl, otherwise JtaTransactionFactory on JTA
-        properties.put("hibernate.transaction.factory_class", "org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory");
-        // If the entity manager factory name is already registered, defaults to "org.jbpm.persistence.jpa".
-        // If entity manager will be clustered or passivated, specify a unique value for property 'hibernate.ejb.entitymanager_factory_name'
-        properties.put("hibernate.ejb.entitymanager_factory_name", "EMF_" + desc);
-        properties.put("hibernate.hbm2ddl.auto", "create");
-        properties.put("hibernate.show_sql", "true");
-        properties.put("hibernate.format_sql", "true");
-        properties.putAll(this.properties);
-        final EntityManagerFactory emf = Persistence.createEntityManagerFactory(JPARule.this.unitName, properties);
+        if (!perClass) {
+            shutdownAndDeleteDatabase(dbPath);
+        }
+
+        final EntityManagerFactory emf = perClass
+                ? factories.computeIfAbsent(unitPerClass(unitName, d, properties), u -> createFactory(true, true, d))
+                : createFactory(true, false, d);
 
         InvocationHandler handler = (Object o, Method m, Object[] a) -> {
             try {
@@ -181,9 +159,9 @@ public final class JPARule extends TestWatcher {
             }
         };
         Class<EntityManagerFactory> c = EntityManagerFactory.class;
-        factory = c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
+        factory = c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
 
-        if (isTransactionalTest(description)) {
+        if (isTransactionalTest(d)) {
             EntityTransaction et = getCurrentEM().getTransaction();
             if (doNotCommitOwnTransaction) {
                 et.setRollbackOnly();
@@ -194,39 +172,28 @@ public final class JPARule extends TestWatcher {
 
     @Override
     protected void finished(Description description) {
-        RuntimeException e = null;
-        try {
-            entityManagers.stream()
-                    .filter(EntityManager::isOpen)
-                    .forEach(em -> {
-                        try {
-                            em.close();
-                        } catch (IllegalStateException e3) {
-                            e3.printStackTrace();
-                        }
-                    });
-
-            if (factory != null && factory.isOpen()) {
-                factory.close();
-            }
-        } catch (IllegalStateException e1) {
-            e = e1;
-        } finally {
+        if (!perClass) {
+            RuntimeException e = null;
             try {
-                // Don't use native H2 SHUTDOWN, it fails in JTA.
-                // http://www.h2database.com/html/grammar.html#shutdown
-                shutdownH2(dbPath, USER, PASS);
-            } catch (SQLException | IOException e2) {
-                if (e == null) {
-                    e = new RuntimeException(e2.getLocalizedMessage(), e2);
-                } else {
-                    e.addSuppressed(e2);
+                entityManagers.forEach(JPARule::close);
+            } catch (IllegalStateException suppressed) {
+                e = suppressed;
+            } finally {
+                try {
+                    factory.close();
+                    // Don't use native H2 SHUTDOWN, it fails in JTA.
+                    // http://www.h2database.com/html/grammar.html#shutdown
+                    shutdownH2(dbPath, USER, PASS);
+                } catch (SQLException | IOException | IllegalStateException thrown) {
+                    if (e != null)
+                        thrown.addSuppressed(e);
+                    e = new RuntimeException(thrown.getLocalizedMessage(), thrown);
                 }
             }
-        }
 
-        if (e != null) {
-            throw e;
+            if (e != null) {
+                throw e;
+            }
         }
     }
 
@@ -260,14 +227,20 @@ public final class JPARule extends TestWatcher {
         }
     }
 
-    public boolean execute(String command) throws SQLException {
-        return H2Utils.execute(URL_PREFIX + dbPath, USER, PASS, command);
+    public boolean execute(String command) throws SQLException, IOException {
+        return H2Utils.execute(dbPath, USER, PASS, command);
+    }
+
+    public void deleteRowsFromTables() throws IOException, SQLException {
+        H2Utils.deleteRowsFromTables(dbPath, USER, PASS);
+    }
+
+    public void dropAllObjects() throws IOException, SQLException {
+        H2Utils.dropAllObjects(dbPath);
     }
 
     public <T> T $(final Commitable<T> blok) {
-        return $(e -> {
-            return blok.commit();
-        });
+        return $(e -> blok.commit());
     }
 
     public <T> T $(Callable<T> block, boolean close) {
@@ -310,14 +283,61 @@ public final class JPARule extends TestWatcher {
                 }
             }
 
-            if (close && em.isOpen()) {
-                em.close();
-            }
+            if (close)
+                close(em);
 
             assertThat(t, exception);
         }
 
         throw new AssertionError("unreachable statement");
+    }
+
+    private EntityManagerFactory createFactory(boolean createNew, boolean isGlobal, Description d) {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+        final String storage = resolveH2Storage();
+        properties.put("javax.persistence.jdbc.url", URL_PREFIX + dbPath.getAbsolutePath()
+                        // Don't use MULTI_THREADED: it's experimental and old configuration + ";MULTI_THREADED=1"
+                        + (storage == null ? "" : ";" + storage)
+                        //;FILE_LOCK=NO does not work together with AUTO_SERVER
+                        + ";AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=TRUE;DB_CLOSE_DELAY=-1"//DB_CLOSE_ON_EXIT=FALSE breaks the commits
+                        + ";LOCK_TIMEOUT=60000" // in millis
+                        + ";QUERY_TIMEOUT=0" // in millis, default:0 means no-timeout
+                        + ";EARLY_FILTER=TRUE" // performance increase in 53%
+                        + ";PAGE_SIZE=2048" // in bytes, default:2048
+                        + ";CACHE_SIZE=256" // in KB
+                        + ";CACHE_TYPE=SOFT_LRU"
+                        + ";MAX_MEMORY_ROWS=16384"
+                        + concatenateWithMode()
+                //+ ";MAX_MEMORY_ROWS_DISTINCT =16384" // workaround: https://groups.google.com/forum/#!topic/h2-database/xt8BW5fp1eI
+        );
+        // How to disable Experimental MV Storage - concatenate with string ";MV_STORE=FALSE;MVCC=FALSE"
+        // http://stackoverflow.com/questions/23806471/why-is-my-embedded-h2-program-writing-to-a-mv-db-file
+        // See the H2 RELEASE_NOTES http://www.h2database.com/html/changelog.html
+        // See the H2 performance tuning http://www.iliachemodanov.ru/en/blog-en/21-databases/42-h2-performance-en
+
+        properties.put("javax.persistence.jdbc.user", USER);
+        properties.put("javax.persistence.jdbc.password", PASS);
+//    Unable to build EMF throwing javax.naming.NoInitialContextException if jtaDataSource is used
+//    properties.put("javax.persistence.jtaDataSource", "");
+        properties.put("javax.persistence.transactionType", "RESOURCE_LOCAL"); //doesn't have to be used, as it is defined in persistence.xml
+        properties.put("javax.persistence.provider", "org.hibernate.jpa.HibernatePersistenceProvider");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        properties.put("hibernate.current_session_context_class", "thread");
+        properties.put("hibernate.cache.use_second_level_cache", "false");
+        properties.put("hibernate.archive.autodetection", "class");
+        // org.jboss.jbossts:jbossjta:4.9.0.GA not necessary, otherwise use JBossStandAloneJtaPlatform for arjuna JTA
+        // properties.put("hibernate.transaction.jta.platform", "org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform");
+        // JdbcTransactionFactory on RESOURCE_LOCAl, otherwise JtaTransactionFactory on JTA
+        properties.put("hibernate.transaction.factory_class", "org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory");
+        // If the entity manager factory name is already registered, defaults to "org.jbpm.persistence.jpa".
+        // If entity manager will be clustered or passivated, specify a unique value for property 'hibernate.ejb.entitymanager_factory_name'
+        properties.put("hibernate.ejb.entitymanager_factory_name", "EMF_" + (isGlobal ? d.getClassName() : unitName));
+        properties.put("hibernate.hbm2ddl.auto", createNew ? "create" : "validate");
+        properties.put("hibernate.show_sql", "true");
+        properties.put("hibernate.format_sql", "true");
+        properties.putAll(this.properties);
+        return createEntityManagerFactory(unitName, properties);
     }
 
     private boolean isTransactionalTest(Description description) {
@@ -420,7 +440,7 @@ public final class JPARule extends TestWatcher {
                         throw e.getTargetException();
                     }
                 };
-                return c.cast(Proxy.newProxyInstance(getClassLoader(c), new Class<?>[] {c}, handler));
+                return c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
             }
 
             @Override
@@ -433,6 +453,26 @@ public final class JPARule extends TestWatcher {
                 return em;
             }
         };
+    }
+
+    private static void close(EntityManagerFactory factory) {
+        if (factory != null && factory.isOpen()) {
+            try {
+                factory.close();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void close(EntityManager manager) {
+        if (manager != null && manager.isOpen()) {
+            try {
+                manager.close();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static boolean isClassAssignableTo(Class<?> from, Class<?>... to) {
@@ -452,17 +492,20 @@ public final class JPARule extends TestWatcher {
         return cl;
     }
 
-    static String buildDatabaseFileName(Description description) {
-        String method = description.getMethodName();
-        int index = method.indexOf("[");
-        if (index != -1) {
-            method = method.substring(0, index);
-        }
+    static String buildDatabaseFileName(Description description, boolean useMethodName) {
         String desc = description.getClassName()
                 .trim()
                 .replaceAll("\\.", "_");
-        desc +=  "__";
-        desc += method;
+
+        if (useMethodName) {
+            String method = description.getMethodName();
+            int index = method.indexOf("[");
+            if (index != -1) {
+                method = method.substring(0, index);
+            }
+            desc +=  "__";
+            desc += method;
+        }
         sanityCheckMethodName(desc);
         return desc.replaceAll(" ", "")
                 .replaceAll("\\$", "_");
@@ -488,7 +531,7 @@ public final class JPARule extends TestWatcher {
 
     private static File dbPath(String desc) {
         try {
-            return new File("./target/h2/", desc + "_" + COUNTER.getAndIncrement())
+            return new File("./target/h2/", desc + "_" + counter.getAndIncrement())
                     .getCanonicalFile();
         } catch (IOException e) {
             throw new RuntimeException(e);

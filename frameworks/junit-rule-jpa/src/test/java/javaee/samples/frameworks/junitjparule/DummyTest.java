@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package javaee.samples.frameworks.junitjparule;
 
-import javaee.samples.frameworks.junitjparule.JPARule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -25,7 +25,6 @@ import static javaee.samples.frameworks.junitjparule.JPARuleBuilder.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
 public class DummyTest {
