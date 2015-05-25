@@ -30,6 +30,7 @@
     <modules>
         <module>frameworks</module>
         <module>utils</module>
+        <module>features</module>
     </modules>
 
     <properties>
