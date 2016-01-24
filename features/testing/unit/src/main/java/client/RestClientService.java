@@ -23,14 +23,15 @@ import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.StatusType;
 import java.net.URI;
 import java.util.List;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.util.Locale.ENGLISH;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
+import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.client.Entity.xml;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -54,37 +55,94 @@ public class RestClientService {
     }
 
     public ResourcesType findIssueById(int issueId) {
-        return client.target(connection)
+        Response response = client.target(connection)
                 .path("/rest/api/2.0-alpha1/issues/id/{id}")
                 .resolveTemplate("id", issueId)
                 .request(APPLICATION_XML)
                 .header("Accept-Charset", "UTF-8")
-                .get(ResourcesType.class);
+                .get();
+        try {
+            // cache and restore the same entity object
+            // in case of multiple calls of readEntity() or getEntity()
+            response.bufferEntity();
+
+            return response.getLength() == 0 ? null : response.readEntity(ResourcesType.class);
+        } finally {
+            response.close();
+        }
     }
 
     public List<ResourceType> findIssueByIdAsList(int issueId) {
-        return client.target(connection)
+        Response response = client.target(connection)
                 .path("/rest/api/2.0-alpha1/issues/id/{id}")
                 .resolveTemplate("id", issueId)
                 .request(APPLICATION_XML_TYPE)
+                //.acceptEncoding("gzip")
+                //.acceptLanguage(ENGLISH)
                 .header("Accept-Charset", "UTF-8")
-                .get(new GenericType<List<ResourceType>>() {});
+                .get();
+
+        try {
+            return response.readEntity(new GenericType<List<ResourceType>>() {});
+        } finally {
+            response.close();
+        }
     }
 
-    public void overwriteIssue(int issueId, ResourcesType resource) {
+    public void updateIssueWithoutCharset(int issueId, ResourcesType resource) {
         Response response = client.target(connection)
                 .path("/rest/api/2.0-alpha1/issues/id/{id}")
                 .resolveTemplate("id", issueId)
                 .request()
-                //.acceptEncoding("gzip")
-                .header("Accept-Charset", "UTF-8")
-                .acceptLanguage(ENGLISH)
+                // overrides previous headers: Content-Type, Content-Language, Content-Encoding
                 .put(xml(resource));
+
+        response.close();
 
         if (response.getStatus() >= HTTP_BAD_REQUEST) {
             StatusType stat = response.getStatusInfo();
             throw new IllegalStateException(stat.getStatusCode() + "/" + stat.getFamily().name()
                     + " " + stat.getReasonPhrase());
         }
+    }
+
+    public void updateIssue(int issueId, ResourcesType resource) {
+        Response response = client.target(connection)
+                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .resolveTemplate("id", issueId)
+                .request()
+                // overrides previous headers: Content-Type, Content-Language, Content-Encoding
+                .put(entity(resource, MediaType.valueOf(APPLICATION_XML + "; charset=UTF-8")));
+
+        response.close();
+
+        if (response.getStatus() >= HTTP_BAD_REQUEST) {
+            StatusType stat = response.getStatusInfo();
+            throw new IllegalStateException(stat.getStatusCode() + "/" + stat.getFamily().name()
+                    + " " + stat.getReasonPhrase());
+        }
+    }
+
+    public boolean updateIssueIfLast(int issueId, ResourcesType resource, String md5) {
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putSingle("If-Match", md5);
+
+        Response response = client.target(connection)
+                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .resolveTemplate("id", issueId)
+                .request()
+                .headers(headers)
+                // overrides previous headers: Content-Type, Content-Language, Content-Encoding
+                .put(entity(resource, MediaType.valueOf(APPLICATION_XML + "; charset=UTF-8")));
+
+        response.close();
+
+        if (response.getStatus() != HTTP_OK && response.getStatus() != HTTP_NOT_MODIFIED) {
+            StatusType stat = response.getStatusInfo();
+            throw new IllegalStateException(stat.getStatusCode() + "/" + stat.getFamily().name()
+                    + " " + stat.getReasonPhrase());
+        }
+
+        return response.getStatus() == HTTP_OK;
     }
 }

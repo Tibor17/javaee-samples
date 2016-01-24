@@ -31,8 +31,10 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.lang.Integer.getInteger;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 
 public class RestfulClientTest {
@@ -50,12 +52,13 @@ public class RestfulClientTest {
     public void resetServer() {
         resetToDefault();
         wireMockRule.addMockServiceRequestListener((request, response) -> {
-            System.out.println("request:");
+            System.out.println("=== REQUEST ===");
             System.out.println(request.getMethod().value() + " " + request.getUrl() + " HTTP/1.1");
             request.getHeaders().all().forEach(System.out::print);
-            System.out.println(request.getBodyAsString());
+            String body = request.getBodyAsString().trim();
+            if (!body.isEmpty()) System.out.println(body);
 
-            System.out.println("response:");
+            System.out.println("=== RESPONSE ===");
             System.out.println("HTTP/1.1 " + response.getStatus());
             response.getHeaders().all().forEach(System.out::print);
             System.out.println(response.getBodyAsString());
@@ -124,7 +127,7 @@ public class RestfulClientTest {
                 .setGender("M")
                 .setContent("Any content"));
 
-        client.overwriteIssue(5, resources);
+        client.updateIssue(5, resources);
 
         serverPutRequestVerification();
     }
@@ -157,6 +160,21 @@ public class RestfulClientTest {
         serverGetRequestVerification();
     }
 
+    @Test
+    public void shouldUpdateLastChange() {
+        String oldMD5 = "54ad4554bd58348e0f48a87c078e8a77";
+        String lastMD5 = "737060cd8c284d8af7ad3082f209582d";
+        serverMockWithPUT(lastMD5);
+
+        boolean updated = client.updateIssueIfLast(5, new ResourcesType(), lastMD5);
+        assertThat(updated, is(true));
+
+        updated = client.updateIssueIfLast(5, new ResourcesType(), oldMD5);
+        assertThat(updated, is(false));
+
+        serverPutRequestVerification(lastMD5, oldMD5);
+    }
+
     private void serverMockWithGET(String bodyXml) {
         givenThat(get(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
                 .withHeader("Accept", containing(APPLICATION_XML))
@@ -169,10 +187,20 @@ public class RestfulClientTest {
 
     private void serverMockWithPUT() {
         givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
-                .withHeader("Content-Type", equalTo(APPLICATION_XML))
+                .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8"))
                 .withRequestBody(matchingXPath("/resources[x = 4]"))
                 .withRequestBody(matchingXPath("/resources[count(resource) = 2]"))
                 .willReturn(aResponse().withStatus(HTTP_OK)));
+    }
+
+    private void serverMockWithPUT(String lastMD5) {
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+                .withHeader("If-Match", equalTo(lastMD5))
+                .willReturn(aResponse().withStatus(HTTP_OK)));
+
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+                .withHeader("If-Match", notMatching(lastMD5))
+                .willReturn(aResponse().withStatus(HTTP_NOT_MODIFIED)));
     }
 
     private static void serverGetRequestVerification() {
@@ -182,6 +210,16 @@ public class RestfulClientTest {
 
     private static void serverPutRequestVerification() {
         verify(putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/[0-9]*"))
-                .withHeader("Content-Type", equalTo(APPLICATION_XML)));
+                .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8")));
+    }
+
+    private static void serverPutRequestVerification(String lastMD5, String oldMD5) {
+        verify(2, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5")));
+
+        verify(1, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5"))
+                .withHeader("If-Match", equalTo(lastMD5)));
+
+        verify(1, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5"))
+                .withHeader("If-Match", equalTo(oldMD5)));
     }
 }
