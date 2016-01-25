@@ -56,7 +56,7 @@ public class RestClientService {
 
     public ResourcesType findIssueById(int issueId) {
         Response response = client.target(connection)
-                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request(APPLICATION_XML)
                 .header("Accept-Charset", "UTF-8")
@@ -74,7 +74,7 @@ public class RestClientService {
 
     public List<ResourceType> findIssueByIdAsList(int issueId) {
         Response response = client.target(connection)
-                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request(APPLICATION_XML_TYPE)
                 //.acceptEncoding("gzip")
@@ -91,7 +91,7 @@ public class RestClientService {
 
     public void updateIssueWithoutCharset(int issueId, ResourcesType resource) {
         Response response = client.target(connection)
-                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request()
                 // overrides previous headers: Content-Type, Content-Language, Content-Encoding
@@ -108,7 +108,7 @@ public class RestClientService {
 
     public void updateIssue(int issueId, ResourcesType resource) {
         Response response = client.target(connection)
-                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request()
                 // overrides previous headers: Content-Type, Content-Language, Content-Encoding
@@ -128,7 +128,7 @@ public class RestClientService {
         headers.putSingle("If-Match", md5);
 
         Response response = client.target(connection)
-                .path("/rest/api/2.0-alpha1/issues/id/{id}")
+                .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request()
                 .headers(headers)

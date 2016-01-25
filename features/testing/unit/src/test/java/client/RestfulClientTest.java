@@ -176,7 +176,7 @@ public class RestfulClientTest {
     }
 
     private void serverMockWithGET(String bodyXml) {
-        givenThat(get(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        givenThat(get(urlPathMatching("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("Accept", containing(APPLICATION_XML))
                 .withHeader("Accept-Charset", equalTo("UTF-8"))
                 .willReturn(aResponse()
@@ -186,7 +186,7 @@ public class RestfulClientTest {
     }
 
     private void serverMockWithPUT() {
-        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8"))
                 .withRequestBody(matchingXPath("/resources[x = 4]"))
                 .withRequestBody(matchingXPath("/resources[count(resource) = 2]"))
@@ -194,32 +194,32 @@ public class RestfulClientTest {
     }
 
     private void serverMockWithPUT(String lastMD5) {
-        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("If-Match", equalTo(lastMD5))
                 .willReturn(aResponse().withStatus(HTTP_OK)));
 
-        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("If-Match", notMatching(lastMD5))
                 .willReturn(aResponse().withStatus(HTTP_NOT_MODIFIED)));
     }
 
     private static void serverGetRequestVerification() {
-        verify(getRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/[0-9]*"))
+        verify(getRequestedFor(urlPathMatching("/rest/api/2.0-alpha1/issues/[0-9]*"))
                 .withHeader("Accept", containing(APPLICATION_XML)));
     }
 
     private static void serverPutRequestVerification() {
-        verify(putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/[0-9]*"))
+        verify(putRequestedFor(urlPathMatching("/rest/api/2.0-alpha1/issues/[0-9]*"))
                 .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8")));
     }
 
     private static void serverPutRequestVerification(String lastMD5, String oldMD5) {
-        verify(2, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5")));
+        verify(2, putRequestedFor(urlPathEqualTo("/rest/api/2.0-alpha1/issues/5")));
 
-        verify(1, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        verify(1, putRequestedFor(urlPathEqualTo("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("If-Match", equalTo(lastMD5)));
 
-        verify(1, putRequestedFor(urlMatching("/rest/api/2.0-alpha1/issues/id/5"))
+        verify(1, putRequestedFor(urlPathEqualTo("/rest/api/2.0-alpha1/issues/5"))
                 .withHeader("If-Match", equalTo(oldMD5)));
     }
 }
