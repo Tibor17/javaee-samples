@@ -33,6 +33,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.lang.Integer.getInteger;
 import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
@@ -133,6 +134,30 @@ public class RestfulClientTest {
     }
 
     @Test
+    public void shouldPutJson() {
+        serverMockWithJsonPUT();
+
+        ResourcesType resources = new ResourcesType()
+                .setX(4);
+
+        resources.getResource().add(
+                new ResourceType()
+                        .setFrom("marry@smith.com")
+                        .setGender("W")
+                        .setContent("Some content"));
+
+        resources.getResource().add(
+                new ResourceType()
+                        .setFrom("john@smith.com")
+                        .setGender("M")
+                        .setContent("Any content"));
+
+        client.updateIssueAsJson(5, resources);
+
+        serverJsonPutRequestVerification();
+    }
+
+    @Test
     public void shouldGetCollection() {
         serverMockWithGET(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
@@ -190,6 +215,19 @@ public class RestfulClientTest {
                 .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8"))
                 .withRequestBody(matchingXPath("/resources[x = 4]"))
                 .withRequestBody(matchingXPath("/resources[count(resource) = 2]"))
+                .withRequestBody(matchingXPath("/resources/resource[1][content = 'Some content']"))
+                .withRequestBody(matchingXPath("/resources/resource[2][content = 'Any content']"))
+                .willReturn(aResponse().withStatus(HTTP_OK)));
+    }
+
+    private void serverMockWithJsonPUT() {
+        givenThat(put(urlPathMatching("/rest/api/2.0-alpha1/issues/5"))
+                .withHeader("Content-Type", equalTo(APPLICATION_JSON))
+                .withRequestBody(matchingJsonPath("$.resources"))
+                .withRequestBody(matchingJsonPath("$.resources.x"))
+                .withRequestBody(matchingJsonPath("$.resources..[?(@.x == '4')]"))
+                .withRequestBody(matchingJsonPath("$.resources.resource[0]..[?(@.content == 'Some content')]"))
+                .withRequestBody(matchingJsonPath("$.resources.resource[1]..[?(@.content == 'Any content')]"))
                 .willReturn(aResponse().withStatus(HTTP_OK)));
     }
 
@@ -211,6 +249,11 @@ public class RestfulClientTest {
     private static void serverPutRequestVerification() {
         verify(putRequestedFor(urlPathMatching("/rest/api/2.0-alpha1/issues/[0-9]*"))
                 .withHeader("Content-Type", equalTo(APPLICATION_XML + ";charset=UTF-8")));
+    }
+
+    private static void serverJsonPutRequestVerification() {
+        verify(putRequestedFor(urlPathMatching("/rest/api/2.0-alpha1/issues/[0-9]*"))
+                .withHeader("Content-Type", equalTo(APPLICATION_JSON)));
     }
 
     private static void serverPutRequestVerification(String lastMD5, String oldMD5) {

@@ -33,6 +33,7 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.client.Entity.xml;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 
@@ -111,8 +112,25 @@ public class RestClientService {
                 .path("/rest/api/2.0-alpha1/issues/{id}")
                 .resolveTemplate("id", issueId)
                 .request()
-                // overrides previous headers: Content-Type, Content-Language, Content-Encoding
+                        // overrides previous headers: Content-Type, Content-Language, Content-Encoding
                 .put(entity(resource, MediaType.valueOf(APPLICATION_XML + "; charset=UTF-8")));
+
+        response.close();
+
+        if (response.getStatus() >= HTTP_BAD_REQUEST) {
+            StatusType stat = response.getStatusInfo();
+            throw new IllegalStateException(stat.getStatusCode() + "/" + stat.getFamily().name()
+                    + " " + stat.getReasonPhrase());
+        }
+    }
+
+    public void updateIssueAsJson(int issueId, ResourcesType resource) {
+        Response response = client.target(connection)
+                .path("/rest/api/2.0-alpha1/issues/{id}")
+                .resolveTemplate("id", issueId)
+                .request()
+                // overrides previous headers: Content-Type, Content-Language, Content-Encoding
+                .put(entity(resource, MediaType.valueOf(APPLICATION_JSON)));
 
         response.close();
 
