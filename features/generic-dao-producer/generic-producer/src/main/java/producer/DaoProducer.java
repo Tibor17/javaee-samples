@@ -45,7 +45,7 @@ public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Long> produceDaoWithLong(InjectionPoint ip, BeanManager bm) {
+    public <T> IDAO<T, Long> produceDaoWithLong(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
