@@ -41,18 +41,19 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 
 @ApplicationScoped
+@SuppressWarnings("unused")
 public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Long> produceDaoWithLong(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
+    public <T> IDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Integer> produceDaoWithInteger(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
+    public <T> IDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
