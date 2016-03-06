@@ -59,9 +59,9 @@ public class DaoProducer {
 
     @SuppressWarnings("unchecked")
     private static <T, PK extends Number & Comparable<PK>> IDAO<T, PK> buildDao(InjectionPoint ip, BeanManager bm) {
-        Type t1 = ip.getType();
-        if (t1 instanceof ParameterizedType) {
-            ParameterizedType type = (ParameterizedType) t1;
+        Type daoType = ip.getType();
+        if (daoType instanceof ParameterizedType) {
+            ParameterizedType type = (ParameterizedType) daoType;
             Type[] types = type.getActualTypeArguments();
             Class<T> entity = (Class<T>) types[0];
             Class<PK> id = (Class<PK>) types[1];
@@ -73,7 +73,9 @@ public class DaoProducer {
                 }
             };
         } else {
-            throw new IllegalArgumentException("Annotation @Dao is required when injecting BaseDao");
+            throw new IllegalArgumentException("Use Generic Type in the interface "
+                    + IDAO.class.getSimpleName()
+                    + " in the injection point " + ip.toString());
         }
     }
 
