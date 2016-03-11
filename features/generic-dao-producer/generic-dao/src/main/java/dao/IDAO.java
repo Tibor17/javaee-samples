@@ -214,40 +214,40 @@ public interface IDAO<E, PK extends Number & Comparable<PK>> {
     long deleteAll();
 
     @Min(0)
-    int updateNativeSQL(String sqlStatement);
+    int updateByNamedQuery(String sqlStatement);
 
     @Min(0)
-    int updateNativeSQL(@NotNull String sqlStatement, Object... attributes);
+    int updateByNamedQuery(@NotNull String sqlStatement, Object... attributes);
 
     @Min(0)
-    int updateNativeSQL(@Size String sqlStatement, @Size String attributeName, Object attributeValue);
+    int updateByNamedQuery(@Size String sqlStatement, @Size String attributeName, Object attributeValue);
 
     @Min(0)
-    int updateNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes);
+    int updateByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes);
 
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement);
 
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Class<T> resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass);
 
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, Object... attributes);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, Object... attributes);
 
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Class<T> resultClass, Object... attributes);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass, Object... attributes);
 
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue);
 
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass);
 
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes);
 
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass);
 
     @NotNull
     List<E> findByAttributeAsPattern(@NotNull String attributeName, @NotNull String pattern);

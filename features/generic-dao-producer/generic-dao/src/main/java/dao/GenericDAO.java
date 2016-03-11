@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.querydsl.core.alias.Alias.alias;
+import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 
 public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implements IDAO<E,PK> {
@@ -52,7 +53,7 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     private final Class<PK> primaryKeyType;
 
     @SuppressWarnings("unchecked")
-    public GenericDAO() {
+    protected GenericDAO() {
         ParameterizedType parameterizedType = null;
         for (Class<?> parent = getClass(); parent != GenericDAO.class; parent = parent.getSuperclass()) {
             Type type = parent.getGenericSuperclass();
@@ -66,7 +67,7 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
         primaryKeyType = (Class<PK>) genericTypes[1];
     }
 
-    public GenericDAO(Class<E> entityType, Class<PK> primaryKeyType) {
+    protected GenericDAO(Class<E> entityType, Class<PK> primaryKeyType) {
         this.entityType = entityType;
         this.primaryKeyType = primaryKeyType;
     }
@@ -510,113 +511,89 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     @Override
     public
     @Min(0)
-    int updateNativeSQL(String sqlStatement) {
-        return updateNativeSQL(sqlStatement, new Object[0]);
+    int updateByNamedQuery(String sqlStatement) {
+        return updateByNamedQuery(sqlStatement, new Object[0]);
     }
 
     @Override
     public
     @Min(0)
-    int updateNativeSQL(@NotNull String sqlStatement, Object... attributes) {
-        TypedQuery<E> query = em().createNamedQuery(sqlStatement, entityType);
-        if (attributes == null) {
-            attributes = new Object[0];
-        }
-        for (int i = 0; i < attributes.length; ++i) {
-            query.setParameter(i + 1, attributes[i]);
-        }
-        return query.executeUpdate();
+    int updateByNamedQuery(@NotNull String sqlStatement, Object... attributes) {
+        return buildNamedQuery(Integer.class, sqlStatement, attributes)
+                .executeUpdate();
     }
 
     @Override
     public
     @Min(0)
-    int updateNativeSQL(@Size String sqlStatement, @Size String attributeName, Object attributeValue) {
-        return updateNativeSQL(sqlStatement, Collections.singletonMap(attributeName, attributeValue));
+    int updateByNamedQuery(@Size String sqlStatement, @Size String attributeName, Object attributeValue) {
+        return updateByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue));
     }
 
     @Override
     public
     @Min(0)
-    int updateNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
-        TypedQuery<E> query = em().createNamedQuery(sqlStatement, entityType);
-        if (attributes == null) {
-            attributes = Collections.emptyMap();
-        }
-        for (Map.Entry<String, ?> e : attributes.entrySet()) {
-            query.setParameter(e.getKey(), e.getValue());
-        }
-        return query.executeUpdate();
+    int updateByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
+        return buildNamedQuery(Integer.class, sqlStatement, attributes)
+                .executeUpdate();
     }
 
     @Override
     public
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement) {
-        return selectNativeSQL(sqlStatement, new Object[0]);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement) {
+        return selectByNamedQuery(sqlStatement, new Object[0]);
     }
 
     @Override
     public
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Class<T> resultClass) {
-        return selectNativeSQL(sqlStatement, resultClass, new Object[0]);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass) {
+        return selectByNamedQuery(sqlStatement, resultClass, new Object[0]);
     }
 
     @Override
     public
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, Object... attributes) {
-        return selectNativeSQL(sqlStatement, entityType, attributes);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, Object... attributes) {
+        return selectByNamedQuery(sqlStatement, entityType, attributes);
     }
 
     @Override
     public
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Class<T> resultClass, Object... attributes) {
-        TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
-        if (attributes == null) {
-            attributes = new Object[0];
-        }
-        for (int i = 0; i < attributes.length; ++i) {
-            query.setParameter(i + 1, attributes[i]);
-        }
-        return query.getResultList();
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass, Object... attributes) {
+        return buildNamedQuery(resultClass, sqlStatement, attributes)
+                .getResultList();
     }
 
     @Override
     public
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue) {
-        return selectNativeSQL(sqlStatement, Collections.singletonMap(attributeName, attributeValue));
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue) {
+        return selectByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue));
     }
 
     @Override
     public
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass) {
-        return selectNativeSQL(sqlStatement, Collections.singletonMap(attributeName, attributeValue), resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass) {
+        return selectByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue), resultClass);
     }
 
     @Override
     public
     @NotNull
-    List<E> selectNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
-        return selectNativeSQL(sqlStatement, attributes, entityType);
+    List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
+        return selectByNamedQuery(sqlStatement, attributes, entityType);
     }
 
     @Override
     public
     @NotNull
-    <T> List<T> selectNativeSQL(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass) {
-        TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
-        if (attributes == null) {
-            attributes = Collections.emptyMap();
-        }
-        for (Map.Entry<String, ?> e : attributes.entrySet()) {
-            query.setParameter(e.getKey(), e.getValue());
-        }
-        return query.getResultList();
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass) {
+        return buildNamedQuery(resultClass, sqlStatement, attributes)
+                .getResultList();
     }
 
     @Override
@@ -626,7 +603,6 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
         CriteriaBuilder b = em().getCriteriaBuilder();
         CriteriaQuery<E> c = b.createQuery(entityType);
         Root<E> selection = c.from(entityType);
-
         return em()
                 .createQuery(c.select(selection).where(b.like(selection.<String>get(attributeName), pattern)))
                 .getResultList();
@@ -769,5 +745,24 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
             default:
                 return SQLTemplates.DEFAULT;
         }
+    }
+
+    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
+        TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
+        if (attributes != null) {
+            attributes.entrySet()
+                    .forEach(e -> query.setParameter(e.getKey(), e.getValue()));
+        }
+        return query;
+    }
+
+    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement, @NotNull Object... attributes) {
+        TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
+        if (attributes != null) {
+            for (int i = 0; i < attributes.length; ++i) {
+                query.setParameter(i + 1, attributes[i]);
+            }
+        }
+        return query;
     }
 }
