@@ -30,9 +30,8 @@ import javax.persistence.Persistence;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static java.util.UUID.randomUUID;
 import static org.assertj.core.groups.Tuple.tuple;
+import static java.util.UUID.randomUUID;
 
 public class AuditTest {
     private static EntityManagerFactory emf;
