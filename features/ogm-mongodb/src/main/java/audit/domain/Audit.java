@@ -18,31 +18,38 @@
  */
 package audit.domain;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.FetchType.EAGER;
 
-@Entity
+@Entity(name = "AUDIT")
 @Access(FIELD)
-public class Audit {
-    @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    private String id;
-
+public class Audit extends BaseEntity {
     @Column(name = "UUID", columnDefinition = "varchar(36)", nullable = false, updatable = false)
     //@Convert(converter = UuidConverter.class)
     @NotNull
     @Basic
     private UUID request;
 
-    public String getId() {
-        return id;
-    }
+    @Column(precision = 19, nullable = false, updatable = false)
+    @NotNull
+    private long initiator;
+
+    @Column(length = 31, nullable = false, updatable = false)
+    @NotNull
+    private String module;
+
+    @OneToMany(fetch = EAGER)
+    @JoinColumn(name = "FK_AUDIT", nullable = false, updatable = false)
+    @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT__FLOW")
+    @Size(min = 1)
+    private List<AuditFlow> flows;
 
     public UUID getRequest() {
         return request;
@@ -50,5 +57,28 @@ public class Audit {
 
     public void setRequest(UUID request) {
         this.request = request;
+    }
+
+    public long getInitiator() {
+        return initiator;
+    }
+
+    public void setInitiator(long initiator) {
+        this.initiator = initiator;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
+    }
+
+    public List<AuditFlow> getFlows() {
+        if (flows == null) {
+            flows = new ArrayList<>();
+        }
+        return flows;
     }
 }

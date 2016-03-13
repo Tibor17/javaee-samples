@@ -24,11 +24,17 @@
     <persistence-unit name="audit-jpa" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>
         <class>audit.domain.Audit</class>
+        <class>audit.domain.AuditFlow</class>
+        <class>audit.domain.AuditHeader</class>
+        <class>audit.domain.AuditChange</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
+            <property name="hibernate.dialect" value="org.hibernate.ogm.dialect.impl.OgmDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+            <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.ogm.datastore.provider" value="mongodb"/>
-            <property name="hibernate.ogm.datastore.database" value="AuditDB"/>
+            <property name="hibernate.ogm.datastore.database" value="audit-db"/>
             <property name="hibernate.ogm.datastore.create_database" value="true"/>
-            <!--<property name="hibernate.hbm2ddl.auto" value="create"/>-->
         </properties>
     </persistence-unit>
 </persistence>

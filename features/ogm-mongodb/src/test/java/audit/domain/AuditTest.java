@@ -32,6 +32,7 @@ import java.util.function.Function;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static java.util.UUID.randomUUID;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class AuditTest {
     private static EntityManagerFactory emf;
@@ -47,11 +48,32 @@ public class AuditTest {
     }
 
     @Test
-    public void canPersistAndLoadPersonAndHikes() {
+    public void canPersistAndLoad() {
         Audit expected = $(em -> {
+            AuditHeader header = new AuditHeader();
+            header.setKey("hk");
+            header.setValue("hv");
+            em.persist(header);
+
+            AuditChange change = new AuditChange();
+            change.setKey("k");
+            change.setOldValue("o");
+            change.setNewValue("n");
+            em.persist(change);
+
+            AuditFlow flow = new AuditFlow();
+            flow.setError("some error");
+            flow.getHeaders().add(header);
+            flow.getChanges().add(change);
+            em.persist(flow);
+
             Audit a = new Audit();
             a.setRequest(randomUUID());
+            a.setInitiator(1);
+            a.setModule("audit-module");
+            a.getFlows().add(flow);
             em.persist(a);
+
             return a;
         });
 
@@ -62,6 +84,35 @@ public class AuditTest {
 
         assertThat(actual.getRequest())
                 .isEqualTo(expected.getRequest());
+
+        assertThat(actual.getInitiator())
+                .isEqualTo(1L);
+
+        assertThat(actual.getModule())
+                .isEqualTo("audit-module");
+
+        assertThat(actual.getFlows())
+                .hasSize(1);
+
+        assertThat(actual.getFlows())
+                .extracting("error", String.class)
+                .containsExactly("some error");
+
+        AuditFlow flow = actual.getFlows().get(0);
+
+        assertThat(flow.getHeaders())
+                .hasSize(1);
+
+        assertThat(flow.getHeaders())
+                .extracting(AuditHeader::getKey, AuditHeader::getValue)
+                .containsSequence(tuple("hk", "hv"));
+
+        assertThat(flow.getChanges())
+                .hasSize(1);
+
+        assertThat(flow.getChanges())
+                .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
+                .containsSequence(tuple("k", "o", "n"));
     }
 
     private static <R> R $(Function<EntityManager, R> fun) {
