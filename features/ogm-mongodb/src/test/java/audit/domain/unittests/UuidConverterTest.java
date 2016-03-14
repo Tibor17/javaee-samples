@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.domain;
+package audit.domain.unittests;
 
+import audit.domain.UuidConverter;
 import org.junit.Test;
 
 import java.util.UUID;

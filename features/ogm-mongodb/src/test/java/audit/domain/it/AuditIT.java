@@ -16,8 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.domain;
+package audit.domain.it;
 
+import audit.domain.Audit;
+import audit.domain.AuditChange;
+import audit.domain.AuditFlow;
+import audit.domain.AuditHeader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static java.util.UUID.randomUUID;
 
-public class AuditTest {
+public class AuditIT {
     private static EntityManagerFactory emf;
 
     @BeforeClass

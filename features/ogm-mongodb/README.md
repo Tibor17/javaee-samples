@@ -1,0 +1,12 @@
+http://mongodb.github.io/mongo-java-driver
+https://github.com/mongodb/mongo-java-driver
+https://docs.mongodb.org/manual/reference/connection-string/#connection-string-options
+https://docs.mongodb.org/manual/reference/program/mongod/#bin.mongod
+https://github.com/Syncleus/maven-mongodb-plugin
+https://github.com/mongodb/mongo/blob/master/rpm/mongod.conf
+https://docs.mongodb.org/manual/reference/configuration-options/#configuration-file
+http://docs.jboss.org/hibernate/ogm/4.2/reference/en-US/html_single/#ogm-configuration
+http://hibernate.org/ogm/
+https://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html/ogm-mongodb.html#ogm-mongodb-programmatic-configuration
+http://mapstruct.org/documentation/1.0/reference/html/index.html
+http://docs.jboss.org/hibernate/ogm/4.0/reference/en-US/html_single/#_configuring_mongodb

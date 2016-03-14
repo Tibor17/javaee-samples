@@ -18,6 +18,7 @@
  */
 package audit.domain;
 
+import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -28,6 +29,7 @@ import java.util.UUID;
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
 
+@Vetoed
 @Entity(name = "AUDIT")
 @Access(FIELD)
 public class Audit extends BaseEntity {

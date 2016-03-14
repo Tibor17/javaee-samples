@@ -35,6 +35,16 @@
             <property name="hibernate.ogm.datastore.provider" value="mongodb"/>
             <property name="hibernate.ogm.datastore.database" value="audit-db"/>
             <property name="hibernate.ogm.datastore.create_database" value="true"/>
+
+            <!-- although official but not working -->
+            <property name="hibernate.ogm.mongodb.host" value="localhost"/>
+            <property name="hibernate.ogm.mongodb.port" value="${db.port}"/>
+
+            <!-- working since OGM 4.1 or higher -->
+            <property name="hibernate.ogm.datastore.host" value="localhost"/>
+            <property name="hibernate.ogm.datastore.port" value="${embedmongo.port}"/>
+
+            <property name="hibernate.ogm.mongodb.connection_timeout" value="1000"/>
         </properties>
     </persistence-unit>
 </persistence>

@@ -20,12 +20,14 @@ package audit.domain;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.enterprise.inject.Vetoed;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
 
+@Vetoed
 @Converter
 public class UuidConverter implements AttributeConverter<UUID, String> {
 

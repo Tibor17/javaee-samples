@@ -22,15 +22,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!--<parent>
+    <parent>
         <groupId>javaee.samples</groupId>
         <artifactId>features</artifactId>
         <version>1.0-SNAPSHOT</version>
-    </parent>-->
+    </parent>
 
-    <groupId>javaee.samples</groupId>
     <artifactId>ogm-mongodb</artifactId>
-    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -105,6 +107,18 @@
     </dependencies>
 
     <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/persistence.xml</include>
+                </includes>
+            </testResource>
+        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -116,23 +130,104 @@
                         <target>1.8</target>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Dependencies>org.hibernate:ogm services, org.hibernate.ogm.mongodb services</Dependencies>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
-    </build>
-
-   <!-- <build>
         <plugins>
             <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Dependencies>org.hibernate:ogm services, org.hibernate.ogm.mongodb services</Dependencies>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>reserve-database-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>embedmongo.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.syncleus.maven.plugins</groupId>
+                <artifactId>maven-mongodb-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <port>${embedmongo.port}</port>
+                            <!-- filtering of persistence.xml does not work well => use build-helper-maven-plugin instead -->
+                            <randomPort>false</randomPort>
+
+                            <version>3.0.3</version>
+                            <!-- optional, defaults to latest production release -->
+
+                            <databaseDirectory>${project.build.directory}/mongotest</databaseDirectory>
+                            <!-- optional, default is a new dir in java.io.tmpdir -->
+
+                            <artifactDirectory>${project.build.directory}/mongoartifact</artifactDirectory>
+                            <!-- optional, set directory where MongoDB artifacts are stores,
+                                 default is ~/.embedmongo -->
+
+                            <logging>console</logging>
+                            <!-- optional (file|console|none), default is console -->
+
+                            <logFile>${project.build.directory}/mongodblog/mongodb.log</logFile>
+                            <!-- optional, can be used when logging=file, default is
+                                 ./mongod.log -->
+
+                            <logFileEncoding>utf-8</logFileEncoding>
+                            <!-- optional, can be used when logging=file, default is utf-8 -->
+
+                            <bindIp>127.0.0.1</bindIp>
+                            <!-- optional, default is to listen on all interfaces -->
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>integration-tests-verification</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
-    </build>-->
+    </build>
 
 </project>
