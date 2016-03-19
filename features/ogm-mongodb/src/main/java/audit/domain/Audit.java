@@ -30,7 +30,8 @@ import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
 
 @Vetoed
-@Entity(name = "AUDIT")
+@Entity
+@Table(name = "AUDIT")
 @Access(FIELD)
 public class Audit extends BaseEntity {
     @Column(name = "UUID", columnDefinition = "varchar(36)", nullable = false, updatable = false)

@@ -22,6 +22,7 @@ import javax.enterprise.inject.Vetoed;
 import javax.persistence.Access;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import java.util.Objects;
@@ -30,7 +31,8 @@ import static java.util.Objects.hash;
 import static javax.persistence.AccessType.FIELD;
 
 @Vetoed
-@Entity(name = "AUDIT_CHANGE")
+@Entity
+@Table(name = "AUDIT_CHANGE")
 @Access(FIELD)
 public class AuditChange extends BaseEntity {
     @Column(name = "KEY", nullable = false, updatable = false)

@@ -28,7 +28,8 @@ import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
 
 @Vetoed
-@Entity(name = "AUDIT_FLOW")
+@Entity
+@Table(name = "AUDIT_FLOW")
 @Access(FIELD)
 public class AuditFlow extends BaseEntity {
     @Column(name = "ERROR", updatable = false)

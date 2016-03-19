@@ -22,6 +22,7 @@ import javax.enterprise.inject.Vetoed;
 import javax.persistence.Access;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 import java.util.Objects;
 
@@ -29,7 +30,8 @@ import static java.util.Objects.hash;
 import static javax.persistence.AccessType.FIELD;
 
 @Vetoed
-@Entity(name = "AUDIT_HEADER")
+@Entity
+@Table(name = "AUDIT_HEADER")
 @Access(FIELD)
 public class AuditHeader extends BaseEntity {
     @Column(name = "KEY", updatable = false)
