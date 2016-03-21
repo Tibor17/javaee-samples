@@ -41,6 +41,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -471,12 +472,34 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     }
 
     @Override
+    public
+    @NotNull
+    List<E> loadAll(@NotNull BiConsumer<JPAQuery, E> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+
+        JPAQuery<E> q = newQuery().from(entity);
+
+        predicate.accept(q, alias(entityType, entity));
+        return q.fetch();
+    }
+
+    @Override
     public E load(@NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
         JPAQuery<E> q = newQuery().from(entity);
 
         predicate.where(q, entity, alias(entityType, entity));
+        return q.fetchFirst();
+    }
+
+    @Override
+    public E load(@NotNull BiConsumer<JPAQuery, E> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+
+        JPAQuery<E> q = newQuery().from(entity);
+
+        predicate.accept(q, alias(entityType, entity));
         return q.fetchFirst();
     }
 

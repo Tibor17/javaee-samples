@@ -19,6 +19,7 @@
 package dao;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -27,6 +28,7 @@ import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -192,7 +194,11 @@ public interface IDAO<E, PK extends Number & Comparable<PK>> {
     @NotNull
     List<E> loadAll(@NotNull Where<E> predicate);
 
+    List<E> loadAll(@NotNull BiConsumer<JPAQuery, E> predicate);
+
     E load(@NotNull Where<E> predicate);
+
+    E load(@NotNull BiConsumer<JPAQuery, E> predicate);
 
     /**
      * Remove an object from persistent storage in the database.
