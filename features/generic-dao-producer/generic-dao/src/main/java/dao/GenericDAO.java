@@ -18,6 +18,7 @@
  */
 package dao;
 
+import com.querydsl.core.FilteredClause;
 import com.querydsl.jpa.JPAQueryBase;
 import com.querydsl.jpa.impl.JPADeleteClause;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -335,6 +336,16 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     }
 
     /**
+     * Persists the <tt>newInstance</tt> object into database.
+     * Primary key is stored in <tt>newInstance</tt>.
+     * Fail-Fast.
+     */
+    @Override
+    public void save(@NotNull Supplier<E> newInstance) {
+        em().persist(newInstance.get());
+    }
+
+    /**
      * Merges given changes to the returned object.
      *
      * @param mergeFrom entity attached or detached to the persistence context. The entity object is returned detached.
@@ -509,6 +520,16 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     @Override
     public void delete(@NotNull PK id) {
         em().remove(load(id));
+    }
+
+    @Override
+    public long delete(@NotNull BiConsumer<FilteredClause<?>, E> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+
+        JPADeleteClause q = newDeleteClause(entity);
+
+        predicate.accept(q, alias(entityType, entity));
+        return q.execute();
     }
 
     /**

@@ -18,6 +18,7 @@
  */
 package dao;
 
+import com.querydsl.core.FilteredClause;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 
@@ -136,6 +137,13 @@ public interface IDAO<E, PK extends Number & Comparable<PK>> {
     void save(@NotNull E newInstance);
 
     /**
+     * Persists the <tt>newInstance</tt> object into database.
+     * Primary key is stored in <tt>newInstance</tt>.
+     * Fail-Fast.
+     */
+    void save(@NotNull Supplier<E> newInstance);
+
+    /**
      * Merges given changes to the returned object.
      *
      * @param mergeFrom entity attached or detached to the persistence context. The entity object is returned detached.
@@ -204,6 +212,8 @@ public interface IDAO<E, PK extends Number & Comparable<PK>> {
      * Remove an object from persistent storage in the database.
      */
     void delete(@NotNull PK id);
+
+    long delete(@NotNull BiConsumer<FilteredClause<?>, E> predicate);
 
     /**
      * Remove an object from persistent storage in the database.
