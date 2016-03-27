@@ -62,11 +62,6 @@
             </dependency>
             <dependency>
                 <groupId>javaee.samples.frameworks</groupId>
-                <artifactId>resource-local-transactional-context</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaee.samples.frameworks</groupId>
                 <artifactId>mockito-interceptors</artifactId>
                 <version>${project.version}</version>
             </dependency>

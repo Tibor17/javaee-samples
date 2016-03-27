@@ -36,10 +36,6 @@
             <artifactId>test-support-h2</artifactId>
         </dependency>
         <dependency>
-            <groupId>javaee.samples.frameworks</groupId>
-            <artifactId>resource-local-transactional-context</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.18.2-GA</version>
