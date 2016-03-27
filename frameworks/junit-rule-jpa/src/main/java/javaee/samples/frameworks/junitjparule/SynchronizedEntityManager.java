@@ -18,36 +18,18 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
-import static javaee.samples.frameworks.junitjparule.JPARuleBuilder.unitName;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+interface SynchronizedEntityManager extends EntityManager {
+    /**
+     * {@inheritDoc}
+     * @throws IllegalStateException if invoked on a transactions managed by micro-container
+     */
+    @Override
+    EntityTransaction getTransaction();
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PerClassTest {
-    @Rule
-    public final JPARule rule = unitName("containerless-test-pu")
-            .perClass()
-            .build();
+    EntityTransaction unwrapTransaction();
 
-    private static EntityManager em;
-
-    @Test
-    public void firstOpenExtendedEntityManager() {
-        em = rule.createEntityManager();
-        assertNotNull(em);
-        assertTrue(em.isOpen());
-    }
-
-    @Test
-    public void secondCheckStillOpenExtendedEntityManager() {
-        assertNotNull(em);
-        assertTrue(em.isOpen());
-    }
+    boolean closeSafely();
 }

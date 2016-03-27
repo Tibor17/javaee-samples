@@ -16,10 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package javaee.samples.frameworks.junitjparule;
+package javaee.samples.frameworks.junitjparule.transactional.injection.constructor;
 
-import javax.persistence.EntityManager;
+import javaee.samples.frameworks.junitjparule.entities.MyEntity;
 
-public interface Callable<T> {
-  T call(EntityManager e) throws Exception;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import static javax.transaction.Transactional.TxType.MANDATORY;
+
+public class MandatoryOuterService {
+    private @Inject
+    InnerService service;
+
+    @Transactional(MANDATORY)
+    public void saveOuter(String name) {
+        MyEntity e = new MyEntity();
+        e.setName(name + "-outer");
+        service.saveInner(e);
+    }
 }

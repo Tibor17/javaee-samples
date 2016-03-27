@@ -36,7 +36,7 @@ public class DaoWithConstructorTest {
     public final JPARule rule = unitName("containerless-test-pu")
             .build();
 
-    private EntityManager em = rule.currentEntityManager();
+    private EntityManager em = rule.getEntityManager();
 
     private final DaoWithConstructor dao = new DaoWithConstructor(em);
 
@@ -47,7 +47,7 @@ public class DaoWithConstructorTest {
         expected.setName("John Smith");
         dao.persist(expected);
         em.getTransaction().commit();
-        em.close();
+        rule.getCurrentEntityManager().close();
 
         long id = expected.getId();
         assertThat(id, is(not(0)));
@@ -69,7 +69,7 @@ public class DaoWithConstructorTest {
         assertNotSame(actual1, actual2);
         assertThat(actual2.getId(), is(expected.getId()));
         assertThat(actual2.getName(), is(expected.getName()));
-        em.close();
+        rule.getCurrentEntityManager().close();
 
         MyEntity actual3 = dao.findByName("John Smith");
         assertNotNull(actual3);
@@ -81,7 +81,7 @@ public class DaoWithConstructorTest {
 
     @Test
     public void shouldReloadWithCurrentEntityManager() {
-        MyEntity expected = rule.$(em -> {
+        MyEntity expected = rule.$$(em -> {
             MyEntity entity = new MyEntity();
             entity.setName("John Smith");
             dao.persist(entity);
@@ -92,14 +92,14 @@ public class DaoWithConstructorTest {
         assertThat(id, is(not(0)));
         assertThat(id, is(greaterThan(0L)));
 
-        MyEntity actual1 = rule.currentEntityManager().find(MyEntity.class, id);
+        MyEntity actual1 = rule.getEntityManager().find(MyEntity.class, id);
         assertNotNull(actual1);
         assertNotSame(expected, actual1);
         assertThat(actual1.getId(), is(expected.getId()));
         assertThat(actual1.getName(), is(expected.getName()));
-        rule.currentEntityManager().close();
+        rule.getCurrentEntityManager().close();
 
-        MyEntity actual2 = rule.currentEntityManager()
+        MyEntity actual2 = rule.getEntityManager()
                 .createNamedQuery("myentity.byName", MyEntity.class)
                 .setParameter("name", "John Smith")
                 .getSingleResult();
@@ -108,7 +108,7 @@ public class DaoWithConstructorTest {
         assertNotSame(actual1, actual2);
         assertThat(actual2.getId(), is(expected.getId()));
         assertThat(actual2.getName(), is(expected.getName()));
-        rule.currentEntityManager().close();
+        rule.getCurrentEntityManager().close();
 
         MyEntity actual3 = dao.findByName("John Smith");
         assertNotNull(actual3);

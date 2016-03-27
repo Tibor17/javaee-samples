@@ -33,15 +33,15 @@ public class DummyTest {
 
     @Test
     public void shouldReloadStoredEntityWithUserTransaction() {
-        rule.currentEntityManager().getTransaction().begin();
+        rule.getEntityManager().getTransaction().begin();
         A expected = new A();
         expected.s = "my string";
-        rule.currentEntityManager().persist(expected);
+        rule.getEntityManager().persist(expected);
         assertNotNull(expected.id);
         assertThat(expected.id, is(greaterThan(0L)));
-        rule.currentEntityManager().getTransaction().commit();
-        rule.currentEntityManager().close();
-        A actual = rule.currentEntityManager().find(A.class, expected.id);
+        rule.getEntityManager().getTransaction().commit();
+        rule.getCurrentEntityManager().close();
+        A actual = rule.getEntityManager().find(A.class, expected.id);
         assertNotNull(actual);
         assertNotSame(expected, actual);
         assertThat(actual.id, is(greaterThan(0L)));
@@ -51,7 +51,7 @@ public class DummyTest {
 
     @Test
     public void shouldReloadStoredEntityWithManagedTransaction() {
-        A expected = rule.$(em -> {
+        A expected = rule.$$(em -> {
             A a = new A();
             a.s = "my string";
             em.persist(a);
@@ -59,7 +59,7 @@ public class DummyTest {
         });
         assertNotNull(expected.id);
         assertThat(expected.id, is(greaterThan(0L)));
-        A actual = rule.currentEntityManager().find(A.class, expected.id);
+        A actual = rule.getEntityManager().find(A.class, expected.id);
         assertNotNull(actual);
         assertNotSame(expected, actual);
         assertThat(actual.id, is(greaterThan(0L)));

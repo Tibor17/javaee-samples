@@ -18,11 +18,7 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-import javaee.samples.frameworks.tcontext.TransactionalEntityManager;
-import javaee.samples.frameworks.tcontext.TransactionalState;
-import javaee.samples.frameworks.tcontext.UnitEntityManager;
 import javaee.samples.frameworks.tsupporth2.H2Utils;
-import org.hamcrest.Matcher;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -36,163 +32,343 @@ import javax.transaction.Transactional.TxType;
 import javax.transaction.TransactionalException;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static javaee.samples.frameworks.junitjparule.DB.H2;
+import static javaee.samples.frameworks.junitjparule.DBLock.*;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static javax.ejb.TransactionAttributeType.*;
+import static java.lang.String.format;
 import static javax.persistence.Persistence.createEntityManagerFactory;
-import static javaee.samples.frameworks.tsupporth2.H2Utils.*;
-import static javaee.samples.frameworks.junitjparule.UnitPerClass.unitPerClass;
 
 public final class JPARule extends TestWatcher {
+    static final ThreadLocal<JPARule> CURRENT_JPA_RULE = new InheritableThreadLocal<>();
+
+    private static final String H2_STORAGE_PATH = "./target/h2/";
+    private static final Class<?>[] EMF = {EntityManagerFactory.class};
+    private static final Class<?>[] EM = {SynchronizedEntityManager.class};
     private static final String USER = "sa";
     private static final String PASS = "";
     private static final String URL_PREFIX = "jdbc:h2:file:";
-    private static final AtomicInteger counter = new AtomicInteger();
-    private static final Map<PersistenceKey, ThreadLocal<UnitEntityManager>> currentEntityManagers
-            = new ConcurrentHashMap<>();
+    private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    private static final Map<UnitPerClass, EntityManagerFactory> factories = new ConcurrentHashMap<>();
-
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {JPARule.factories.forEach((s, f) -> close(f));}));
-    }
-
-    private final Map<String, String> properties = new HashMap<>();
-    private final Queue<EntityManager> entityManagers = new ConcurrentLinkedQueue<>();
+    private final Queue<Class<?>> preferableDomains = new ConcurrentLinkedQueue<>();
+    private final Collection<EntityManager> entityManagers = new ArrayList<>();
+    private final Map<String, String> properties = new ConcurrentHashMap<>();
     private final String unitName;
-    private final boolean transactional;
-    private final boolean doNotCommitOwnTransaction;
-    private final boolean joinTransaction;
-    private final boolean perClass;
     private final H2Storage storage;
     private final Mode mode;
-    private volatile EntityManagerFactory factory;
-    private volatile File dbPath;
+
+    private volatile BeanManager beanManager = new BeanManager();
+    private volatile EntityManagerFactory factoryProxy;
+    private volatile String dbPath;
+
+    private boolean useAutoServerMode;
+
+    /**
+     * When using this feature, by default the server uses any free TCP port.
+     * The port can be set manually using AUTO_SERVER_PORT=9090.
+     */
+    private boolean closeSessionOnExitJVM;
+
+    private boolean useProperties = true;
+
+    /**
+     * SET DB_CLOSE_DELAY <seconds>
+     */
+    private int closeDbDelayInSeconds = -1;
+
+    private DBLock lock = NO;
+
+    private DB db;
+
+    private volatile boolean useManagedTransactions;
 
     JPARule(JPARuleBuilder builder) {
         properties.putAll(builder.properties);
         unitName = builder.unitName;
-        transactional = builder.transactional;
-        doNotCommitOwnTransaction = builder.doNotCommitOwnTransaction;
-        joinTransaction = builder.joinTransaction;
-        perClass = builder.perClass;
         storage = builder.storage;
         mode = builder.mode;
+        useAutoServerMode = builder.useAutoServerMode;
+        closeDbDelayInSeconds = builder.closeDbDelayInSeconds;
+        closeSessionOnExitJVM = builder.closeSessionOnExitJVM;
+        useProperties = builder.useProperties;
+        db = builder.db;
     }
 
-    public boolean isTransactional() {
-        return transactional;
+    JPARule(PersistenceContext unit, DB db, H2Storage storage, Mode mode) {
+        for (PersistenceProperty property : unit.properties()) {
+            properties.put(property.name(), property.value());
+        }
+        unitName = unit.unitName();
+        this.storage = storage;
+        this.mode = mode;
+        this.db = db;
     }
 
-    public boolean isPerClass() {
-        return perClass;
+    final void setBeanManager(BeanManager beanManager) {
+        this.beanManager = beanManager;
+    }
+
+    /**
+     * use annotation {@link WithManagedTransactions} on the same level as RunWith.
+     */
+    final void useManagedTransactions() {
+        useManagedTransactions = true;
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
-        return factory;
+        return factoryProxy;
     }
 
     public EntityManager createEntityManager() {
-        EntityManagerFactory emf = getEntityManagerFactory();
-        return emf == null ? null : emf.createEntityManager();
+        return getEntityManagerFactory().createEntityManager();
     }
 
-    public EntityManager currentEntityManager() {
-        InvocationHandler handler = (Object o, Method m, Object[] a) -> {
-            if (JPARule.this.transactional && "getTransaction".equals(m.getName())) {
-                throw new IllegalStateException("The transaction is managed.");
-            }
-            UnitEntityManager em = JPARule.this.getCurrentEM();
-            /*if (JPARule.this.transactional && em != null) {
-                TransactionalEntityManager tem = (TransactionalEntityManager) em;
-                if (!tem.hasOwnTransaction())//todo continue in mockito interceptor
-            }*/
+    protected EntityManager getCurrentEntityManager() {
+        return beanManager.getCurrentEntityManager();
+    }
+
+    public EntityManager getEntityManager() {
+        return (EntityManager) newProxyInstance(context(), EM, (proxy, method, args) -> {
+            EntityManager em = JPARule.this.getCurrentEntityManager();
             try {
-                return em == null ? null : m.invoke(em, a);
+                switch (method.getName()) {
+                    case "getTransaction":
+                        if (JPARule.this.useManagedTransactions) {
+                            throw new IllegalStateException("Method EntityManager.getTransaction() cannot be" +
+                                    " called with managed transaction.");
+                        }
+                    case "unwrapTransaction":
+                        return em.getTransaction();
+                    case "close":
+                        throw new IllegalStateException("the entity manager is managed");
+                    case "closeSafely":
+                        boolean isOpen = em.isOpen();
+                        if (isOpen) em.close();
+                        return isOpen;
+                    default:
+                        return method.invoke(em, args);
+                }
+            } catch (PersistenceException e) {
+                String msg = e.getLocalizedMessage();
+                if (!preferableDomains.isEmpty() && msg != null && msg.contains("Unable to build Hibernate SessionFactory")) {
+                    Throwable t = e.getCause();
+                    if (t != null) {
+                        msg = t.getLocalizedMessage();
+                        if (msg != null && msg.contains("references an unknown entity:")) {
+                            printPersistenceXmlEntities();
+                        }
+                    }
+                }
+                throw e;
             } catch (InvocationTargetException e) {
-                throw e.getTargetException();
+                Throwable t = e.getCause();
+                if (t == null) {
+                    t = e;
+                }
+
+                if (!preferableDomains.isEmpty()) {
+                    String msg = t.getLocalizedMessage();
+                    if (msg != null && msg.contains("is not mapped")) {
+                        printPersistenceXmlEntities();
+                    }
+                }
+                throw t;
             }
-        };
-        final Class<EntityManager> c = EntityManager.class;
-        return c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
+        });
     }
 
     @Override
-    protected void starting(Description d) {
-        dbPath = dbPath(buildDatabaseFileName(d, !perClass));
-        if (getLocalEM() != null) {
-            fail("Such @Rule already defined {unitName=" + unitName
-                    + ", dbPath=" + dbPath.getAbsolutePath()
-                    + ", transactional=" + transactional
-                    + "}.");
+    final protected void starting(Description description) {
+        CURRENT_JPA_RULE.set(this);
+
+        String desc = buildDatabaseFileName(description);
+
+        if (db == H2) {
+            dbPath = createDbPath(desc);
+            deleteFile(dbPath);
         }
 
-        if (!perClass) {
-            shutdownAndDeleteDatabase(dbPath);
+        Map<String, String> properties = new HashMap<>();
+        if (useProperties) {
+            if (db == H2) {
+                String storage = resolveH2Storage();
+                String lock = this.lock == null ? "" : ";FILE_LOCK=" + (useAutoServerMode ? SOCKET : this.lock).name();
+                String closer = format(";AUTO_SERVER=%s;DB_CLOSE_ON_EXIT=%s;DB_CLOSE_DELAY=%d",
+                        asString(useAutoServerMode), asString(closeSessionOnExitJVM), closeDbDelayInSeconds);
+
+                properties.putIfAbsent("javax.persistence.jdbc.driver", "org.h2.Driver");
+                properties.putIfAbsent("javax.persistence.jdbc.url", URL_PREFIX + dbPath
+                                // Don't use MULTI_THREADED: it's experimental and old configuration + ";MULTI_THREADED=1"
+                                + (storage == null ? "" : ";" + storage)
+                                + lock // ;FILE_LOCK=NO does not work together with AUTO_SERVER
+                                + closer // DB_CLOSE_ON_EXIT=FALSE breaks the commits
+                                + ";LOCK_TIMEOUT=60000" // in millis
+                                + ";QUERY_TIMEOUT=0" // in millis, default:0 means no-timeout
+                                + ";EARLY_FILTER=TRUE" // performance increase in 53%
+                                + ";PAGE_SIZE=2048" // in bytes, default:2048
+                                + ";CACHE_SIZE=256" // in KB
+                                + ";CACHE_TYPE=SOFT_LRU"
+                                + ";MAX_MEMORY_ROWS=16384"
+                                + databaseMode()
+                        //+ ";MAX_MEMORY_ROWS_DISTINCT =16384" // workaround: https://groups.google.com/forum/#!topic/h2-database/xt8BW5fp1eI
+                );
+                // How to disable Experimental MV Storage - concatenate with string ";MV_STORE=FALSE;MVCC=FALSE"
+                // http://stackoverflow.com/questions/23806471/why-is-my-embedded-h2-program-writing-to-a-mv-db-file
+                // See the H2 RELEASE_NOTES http://www.h2database.com/html/changelog.html
+                // See the H2 performance tuning http://www.iliachemodanov.ru/en/blog-en/21-databases/42-h2-performance-en
+
+                properties.putIfAbsent("javax.persistence.jdbc.user", USER);
+                properties.putIfAbsent("javax.persistence.jdbc.password", PASS);
+                properties.putIfAbsent("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+            }
+
+//    Unable to build EMF throwing javax.naming.NoInitialContextException if jtaDataSource is used
+//    properties.putIfAbsent("javax.persistence.jtaDataSource", "");
+            properties.putIfAbsent("javax.persistence.transactionType", "RESOURCE_LOCAL"); //doesn't have to be used, as it is defined in persistence.xml
+            properties.putIfAbsent("javax.persistence.provider", "org.hibernate.jpa.HibernatePersistenceProvider");
+            properties.putIfAbsent("hibernate.current_session_context_class", "thread");
+            properties.putIfAbsent("hibernate.cache.use_second_level_cache", "false");
+
+            // To scan entities in classpat use "class" or "hbm" or both "class,hbm".
+            // To disable the scan and accept only those entities listed in persistence.xml use other string, e.g. "false"
+            properties.putIfAbsent("hibernate.archive.autodetection", beanManager.scanEntities() ? "class" : "false");
+
+            // org.jboss.jbossts:jbossjta:4.9.0.GA not necessary, otherwise use JBossStandAloneJtaPlatform for arjuna JTA
+            // properties.putIfAbsent("hibernate.transaction.jta.platform", "org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform");
+            // JdbcTransactionFactory on RESOURCE_LOCAl, otherwise JtaTransactionFactory on JTA
+            properties.putIfAbsent("hibernate.transaction.factory_class", "org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory");
+            // If the entity manager factory name is already registered, defaults to "org.jbpm.persistence.jpa".
+            // If entity manager will be clustered or passivated, specify a unique value for property 'hibernate.ejb.entitymanager_factory_name'
+            properties.putIfAbsent("hibernate.ejb.entitymanager_factory_name", "EMF_" + desc);
+            properties.putIfAbsent("hibernate.hbm2ddl.auto", "create");
+            properties.putIfAbsent("hibernate.show_sql", "true");
+            properties.putIfAbsent("hibernate.format_sql", "true");
         }
+        properties.putAll(this.properties);
 
-        final EntityManagerFactory emf = perClass
-                ? factories.computeIfAbsent(unitPerClass(unitName, d, properties), u -> createFactory(true, true, d))
-                : createFactory(true, false, d);
+        final EntityManagerFactory factory = createEntityManagerFactory(unitName, properties);
 
-        InvocationHandler handler = (Object o, Method m, Object[] a) -> {
+        factoryProxy = (EntityManagerFactory) newProxyInstance(context(), EMF, (proxy, method, args) -> {
             try {
-                Object ret = m.invoke(emf, a);
-                if ("createEntityManager".equals(m.getName())) {
-                    JPARule.this.entityManagers.add((EntityManager) ret);
+                Object result = method.invoke(factory, args);
+                switch (method.getName()) {
+                    case "createEntityManager":
+                        entityManagers.add((EntityManager) result);
+                        break;
                 }
-                return ret;
+                return result;
             } catch (InvocationTargetException e) {
-                throw e.getTargetException();
+                Throwable t = e.getCause();
+                if (t == null) {
+                    t = e;
+                }
+                throw t;
             }
-        };
-        Class<EntityManagerFactory> c = EntityManagerFactory.class;
-        factory = c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
+        });
 
-        if (isTransactionalTest(d)) {
-            EntityTransaction et = getCurrentEM().getTransaction();
-            if (doNotCommitOwnTransaction) {
-                et.setRollbackOnly();
-            }
-            et.begin();
+        beanManager.setEntityManagerFactory(getEntityManagerFactory(), properties);
+
+        if (description.getAnnotation(Transactional.class) != null) {
+            getCurrentEntityManager().getTransaction().begin();
         }
+    }
+
+    public void $(final Consumer<EntityManager> block) {
+        $$(e -> {
+            block.accept(e);
+            return null;
+        });
+    }
+
+    public <T> T $(final Supplier<T> block) {
+        return $$(e -> block.get());
+    }
+
+    @SuppressWarnings("unused")
+    public void $(final Runnable block) {
+        $$(e -> {
+            block.run();
+            return null;
+        });
+    }
+
+    public <T> T $$(Function<EntityManager, T> block) {
+        if (beanManager.isEntityManagerExistsOpen()) {
+            beanManager.getCurrentEntityManager().close();
+        }
+        final EntityManager em = beanManager.getCurrentEntityManager();
+        final EntityTransaction transaction = em.getTransaction();
+        if (transaction.isActive()) {
+            throw new TransactionalException("Transactional block must not be called within current transaction.",
+                    new InvalidTransactionException("transaction in " + Thread.currentThread()));
+        }
+
+        Throwable t = null;
+
+        try {
+            transaction.begin();
+            return block.apply(em);
+        } catch (Throwable e) {
+            t = e;
+            t.printStackTrace();
+        } finally {
+            try {
+                if (t == null) {
+                    t = performAndAddSuppressedException(transaction::commit, null);
+                    if (t != null) t.printStackTrace();
+                } else {
+                    t = performAndAddSuppressedException(transaction::rollback, t);
+                }
+            } finally {
+                boolean noException = t == null;
+                t = performAndAddSuppressedException(em::close, t);
+                if (noException & t != null) t.printStackTrace();
+            }
+            throwTransactionError(t);
+        }
+
+        throw new AssertionError("unreachable statement");
     }
 
     @Override
     protected void finished(Description description) {
-        if (!perClass) {
-            RuntimeException e = null;
-            try {
-                entityManagers.forEach(JPARule::close);
-            } catch (IllegalStateException suppressed) {
-                e = suppressed;
-            } finally {
+        CURRENT_JPA_RULE.remove();
+        beanManager.clear();
+        TransactionManager.clean();
+        try {
+            if (db == H2) {
+                System.out.println("H2 database appears in " + new File(dbPath).getCanonicalPath());
+            }
+            entityManagers.stream()
+                    .filter(EntityManager::isOpen)
+                    .forEach(EntityManager::close);
+            entityManagers.clear();
+
+            if (factoryProxy != null && factoryProxy.isOpen()) {
+                factoryProxy.close();
+            }
+        } catch (PersistenceException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (db == H2) {
                 try {
-                    factory.close();
                     // Don't use native H2 SHUTDOWN, it fails in JTA.
                     // http://www.h2database.com/html/grammar.html#shutdown
-                    shutdownH2(dbPath, USER, PASS);
-                } catch (SQLException | IOException | IllegalStateException thrown) {
-                    if (e != null)
-                        thrown.addSuppressed(e);
-                    e = new RuntimeException(thrown.getLocalizedMessage(), thrown);
+                    H2Utils.shutdownH2(URL_PREFIX + dbPath, USER, PASS);
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-            }
-
-            if (e != null) {
-                throw e;
             }
         }
     }
@@ -200,150 +376,195 @@ public final class JPARule extends TestWatcher {
     @Override
     protected final void failed(Throwable e, Description description) {
         if (isTransactionalTest(description) && canRollback(e, description)) {
-            EntityTransaction et = getCurrentEM().getTransaction();
+            EntityManager em = getCurrentEntityManager();
+            EntityTransaction et = em.getTransaction();
             if (et.isActive()) {
                 et.rollback();
+            }
+
+            if (em.isOpen()) {
+                em.close();
             }
         }
     }
 
     @Override
     protected final void skipped(AssumptionViolatedException e, Description description) {
-        if (transactional && !doNotCommitOwnTransaction && isTransactionalTest(description)) {
-            EntityTransaction et = getCurrentEM().getTransaction();
+        if (isTransactionalTest(description)) {
+            EntityManager em = getCurrentEntityManager();
+            EntityTransaction et = em.getTransaction();
             if (et.isActive()) {
                 et.commit();
+            }
+
+            if (em.isOpen()) {
+                em.close();
             }
         }
     }
 
     @Override
     protected final void succeeded(Description description) {
-        if (transactional && !doNotCommitOwnTransaction && isTransactionalTest(description)) {
-            EntityTransaction et = getCurrentEM().getTransaction();
+        if (isTransactionalTest(description)) {
+            EntityManager em = getCurrentEntityManager();
+            EntityTransaction et = em.getTransaction();
             if (et.isActive()) {
                 et.commit();
+            }
+
+            if (em.isOpen()) {
+                em.close();
             }
         }
     }
 
     public boolean execute(String command) throws SQLException, IOException {
+        if (db != H2) {
+            throw new IllegalStateException("can be called only for H2 database");
+        }
         return H2Utils.execute(dbPath, USER, PASS, command);
     }
 
     public void deleteRowsFromTables() throws IOException, SQLException {
+        if (db != H2) {
+            throw new IllegalStateException("can be called only for H2 database");
+        }
         H2Utils.deleteRowsFromTables(dbPath, USER, PASS);
     }
 
     public void dropAllObjects() throws IOException, SQLException {
+        if (db != H2) {
+            throw new IllegalStateException("can be called only for H2 database");
+        }
         H2Utils.dropAllObjects(dbPath);
     }
 
-    public <T> T $(final Commitable<T> blok) {
-        return $(e -> blok.commit());
+    private void printPersistenceXmlEntities() {
+        System.err.println("*************************** Expected Classes in persistence.xml ***************************");
+        DomainUtils.printPersistenceXmlEntities(System.err, preferableDomains);
+        System.err.println("*******************************************************************************************");
     }
 
-    public <T> T $(Callable<T> block, boolean close) {
-        return $(block, nullValue(Throwable.class), close);
-    }
-
-    public <T> T $(Callable<T> block) {
-        return $(block, nullValue(Throwable.class), true);
-    }
-
-    public <T> T $(Callable<T> block, Matcher<Throwable> exception, boolean close) {
-        final UnitEntityManager em = getCurrentEM();
-        final EntityTransaction transaction = em.getTransaction();
-        if (transaction.isActive()) {
-            throw new TransactionalException("Transactional block must not be called within current transaction.",
-                    new InvalidTransactionException("transaction in " + Thread.currentThread()));
-        }
-
-        if (doNotCommitOwnTransaction) {
-            transaction.setRollbackOnly();
-        }
-
-        Throwable t = null;
-
-        try {
-            transaction.begin();
-            return block.call(em);
-        } catch (InvocationTargetException e) {
-            t = e.getCause();
-            t.printStackTrace();
-        } catch (Throwable e) {
-            t = e;
-            t.printStackTrace();
-        } finally {
-            if (transaction.isActive()) {
-                if (t == null) {
-                    transaction.commit();
-                } else {
-                    transaction.rollback();
-                }
+    private String resolveH2Storage() {
+        if (storage == null) {
+            return null;
+        } else {
+            switch (storage) {
+                case ENABLE_MV_STORE:
+                    return "MV_STORE=TRUE";
+                case DISABLE_MV_STORE:
+                    return "MV_STORE=FALSE";
+                case ENABLE_MVCC:
+                    return "MVCC=TRUE";
+                case MULTI_THREADED_1:
+                    return "MULTI_THREADED=1";
+                case DEFAULT_STORAGE:
+                default:
+                    return null;
             }
-
-            if (close)
-                close(em);
-
-            assertThat(t, exception);
         }
-
-        throw new AssertionError("unreachable statement");
     }
 
-    private EntityManagerFactory createFactory(boolean createNew, boolean isGlobal, Description d) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-        final String storage = resolveH2Storage();
-        properties.put("javax.persistence.jdbc.url", URL_PREFIX + dbPath.getAbsolutePath()
-                        // Don't use MULTI_THREADED: it's experimental and old configuration + ";MULTI_THREADED=1"
-                        + (storage == null ? "" : ";" + storage)
-                        //;FILE_LOCK=NO does not work together with AUTO_SERVER
-                        + ";AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=TRUE;DB_CLOSE_DELAY=-1"//DB_CLOSE_ON_EXIT=FALSE breaks the commits
-                        + ";LOCK_TIMEOUT=60000" // in millis
-                        + ";QUERY_TIMEOUT=0" // in millis, default:0 means no-timeout
-                        + ";EARLY_FILTER=TRUE" // performance increase in 53%
-                        + ";PAGE_SIZE=2048" // in bytes, default:2048
-                        + ";CACHE_SIZE=256" // in KB
-                        + ";CACHE_TYPE=SOFT_LRU"
-                        + ";MAX_MEMORY_ROWS=16384"
-                        + concatenateWithMode()
-                //+ ";MAX_MEMORY_ROWS_DISTINCT =16384" // workaround: https://groups.google.com/forum/#!topic/h2-database/xt8BW5fp1eI
-        );
-        // How to disable Experimental MV Storage - concatenate with string ";MV_STORE=FALSE;MVCC=FALSE"
-        // http://stackoverflow.com/questions/23806471/why-is-my-embedded-h2-program-writing-to-a-mv-db-file
-        // See the H2 RELEASE_NOTES http://www.h2database.com/html/changelog.html
-        // See the H2 performance tuning http://www.iliachemodanov.ru/en/blog-en/21-databases/42-h2-performance-en
+    static String buildDatabaseFileName(Description description) {
+        String method = description.getMethodName();
+        int index = method.indexOf("[");
+        if (index != -1) {
+            method = method.substring(0, index);
+        }
+        String desc = description.getClassName()
+                .trim()
+                .replaceAll("\\.", "_");
+        desc +=  "__";
+        desc += method;
+        sanityCheckMethodName(desc);
+        return desc.replaceAll(" ", "")
+                .replaceAll("\\$", "_");
+    }
 
-        properties.put("javax.persistence.jdbc.user", USER);
-        properties.put("javax.persistence.jdbc.password", PASS);
-//    Unable to build EMF throwing javax.naming.NoInitialContextException if jtaDataSource is used
-//    properties.put("javax.persistence.jtaDataSource", "");
-        properties.put("javax.persistence.transactionType", "RESOURCE_LOCAL"); //doesn't have to be used, as it is defined in persistence.xml
-        properties.put("javax.persistence.provider", "org.hibernate.jpa.HibernatePersistenceProvider");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        properties.put("hibernate.current_session_context_class", "thread");
-        properties.put("hibernate.cache.use_second_level_cache", "false");
-        properties.put("hibernate.archive.autodetection", "class");
-        // org.jboss.jbossts:jbossjta:4.9.0.GA not necessary, otherwise use JBossStandAloneJtaPlatform for arjuna JTA
-        // properties.put("hibernate.transaction.jta.platform", "org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform");
-        // JdbcTransactionFactory on RESOURCE_LOCAl, otherwise JtaTransactionFactory on JTA
-        properties.put("hibernate.transaction.factory_class", "org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory");
-        // If the entity manager factory name is already registered, defaults to "org.jbpm.persistence.jpa".
-        // If entity manager will be clustered or passivated, specify a unique value for property 'hibernate.ejb.entitymanager_factory_name'
-        properties.put("hibernate.ejb.entitymanager_factory_name", "EMF_" + (isGlobal ? d.getClassName() : unitName));
-        properties.put("hibernate.hbm2ddl.auto", createNew ? "create" : "validate");
-        properties.put("hibernate.show_sql", "true");
-        properties.put("hibernate.format_sql", "true");
-        properties.putAll(this.properties);
-        return createEntityManagerFactory(unitName, properties);
+    static void sanityCheckMethodName(String methodName) {
+        if (!Pattern.matches("^[\\w _\\$]+$", methodName)) {
+            throw new IllegalArgumentException("Cannot create file name for DB file - wrong class/method name!");
+        }
+    }
+
+    @SuppressWarnings("all")
+    private static void deleteFile(String f) {
+        try {
+            File file = new File(f);
+            file = file.getCanonicalFile();
+            if (file.isFile()) {
+                file.delete();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String databaseMode() {
+        if (mode == null) {
+            return "";
+        } else {
+            switch (mode) {
+                case DEFAULT_MODE:
+                    return "";
+                default:
+                    return ";MODE=" + mode.getModeAsString();
+            }
+        }
+    }
+
+    @SuppressWarnings("all")
+    private static String createDbPath(String relPath) {
+        new File(H2_STORAGE_PATH).mkdirs();
+        String dbPath;
+        do {
+            dbPath = H2_STORAGE_PATH + relPath + "_" + COUNTER.getAndIncrement();
+        } while (new File(dbPath + ".h2.db").exists() || new File(dbPath + ".mv.db").exists());
+
+        return dbPath;
+    }
+
+    private static String asString(boolean b) {
+        return Boolean.toString(b).toUpperCase(Locale.ENGLISH);
+    }
+
+    private static ClassLoader context() {
+        return Thread.currentThread().getContextClassLoader();
+    }
+
+    private static Throwable performAndAddSuppressedException(Runnable r, Throwable t) {
+        try {
+            r.run();
+            return t;
+        } catch (IllegalStateException | RollbackException e) {
+            if (t == null) {
+                return e;
+            } else {
+                t.addSuppressed(e);
+                return t;
+            }
+        }
+    }
+
+    private static boolean isClassAssignableTo(Class<?> from, Class<?>... to) {
+        for (Class<?> clazz : to) {
+            if (clazz.isAssignableFrom(from)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void throwTransactionError(Throwable t) {
+        if (t != null) {
+            throw new TransactionalException(t.getLocalizedMessage(), t);
+        }
     }
 
     private boolean isTransactionalTest(Description description) {
         Transactional transactional = description.getAnnotation(Transactional.class);
         if (transactional != null) {
-            Transactional.TxType type = transactional.value();
+            TxType type = transactional.value();
             if (type == TxType.REQUIRED || type == TxType.REQUIRES_NEW) {
                 return true;
             }
@@ -366,7 +587,7 @@ public final class JPARule extends TestWatcher {
         return false;
     }
 
-    private boolean canRollback(Throwable e, Description description) {
+    static boolean canRollback(Throwable e, Description description) {
         Transactional transactional = description.getAnnotation(Transactional.class);
         if (transactional == null) {
             return true;
@@ -377,177 +598,6 @@ public final class JPARule extends TestWatcher {
             boolean rollbackOn = isClassAssignableTo(exc, r);
             boolean dontRollbackOn = isClassAssignableTo(exc, d);
             return !dontRollbackOn && (r.length == 0 || rollbackOn);
-        }
-    }
-
-    private ThreadLocal<UnitEntityManager> getLocalEM() {
-        return currentEntityManagers.get(new PersistenceKey(unitName, dbPath, transactional));
-    }
-
-    private UnitEntityManager getCurrentEM() {
-        PersistenceKey key = new PersistenceKey(unitName, dbPath, transactional);
-        ThreadLocal<UnitEntityManager> local = currentEntityManagers.get(key);
-        if (local == null) {
-            local = newLocalEntityManager(key);
-            ThreadLocal<UnitEntityManager> previous = currentEntityManagers.putIfAbsent(key, local);
-            if (previous != null)
-                local = previous;
-        }
-        return local.get();
-    }
-
-    private String resolveH2Storage() {
-        if (storage == null) {
-            return null;
-        } else {
-            switch (storage) {
-                case ENABLE_MV_STORE: return "MV_STORE=TRUE";
-                case DISABLE_MV_STORE: return "MV_STORE=FALSE";
-                case ENABLE_MVCC: return "MVCC=TRUE";
-                case MULTI_THREADED_1: return "MULTI_THREADED=1";
-                case DEFAULT_STORAGE:
-                default: return null;
-            }
-        }
-    }
-
-    private ThreadLocal<UnitEntityManager> newLocalEntityManager(final PersistenceKey key) {
-        return new ThreadLocal<UnitEntityManager>() {
-            @Override
-            protected UnitEntityManager initialValue() {
-                final Class<? extends UnitEntityManager> c =
-                        key.isTransactional() ? TransactionalEntityManager.class : UnitEntityManager.class;
-                final EntityManager em = JPARule.this.factory.createEntityManager();
-                final TransactionalStateImpl state = new TransactionalStateImpl();
-                InvocationHandler handler = (Object o, Method m, Object[] a) -> {
-                    try {
-                        if ("getUnitName".equals(m.getName())) {
-                            return key.getUnitName();
-                        } else if ("getDatabaseStorage".equals(m.getName())) {
-                            return key.getDatabaseStorage();
-                        } else if (m.getDeclaringClass() == TransactionalState.class) {
-                            return m.invoke(state, a);
-                        } else if ("getTransaction".equals(m.getName())) {
-                            EntityTransaction et = em.getTransaction();
-                            if (JPARule.this.doNotCommitOwnTransaction) {
-                                et.setRollbackOnly();
-                            }
-                            return et;
-                        } else {
-                            return m.invoke(em, a);
-                        }
-                    } catch (InvocationTargetException e) {
-                        throw e.getTargetException();
-                    }
-                };
-                return c.cast(newProxyInstance(getClassLoader(c), new Class<?>[]{c}, handler));
-            }
-
-            @Override
-            public UnitEntityManager get() {
-                UnitEntityManager em = super.get();
-                if (!em.isOpen()) {
-                    em = initialValue();
-                    super.set(em);
-                }
-                return em;
-            }
-        };
-    }
-
-    private static void close(EntityManagerFactory factory) {
-        if (factory != null && factory.isOpen()) {
-            try {
-                factory.close();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static void close(EntityManager manager) {
-        if (manager != null && manager.isOpen()) {
-            try {
-                manager.close();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static boolean isClassAssignableTo(Class<?> from, Class<?>... to) {
-        for (Class<?> clazz : to) {
-            if (clazz.isAssignableFrom(from)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static ClassLoader getClassLoader(Class<?> clazz) {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (cl == null) {
-            cl = clazz.getClassLoader();
-        }
-        return cl;
-    }
-
-    static String buildDatabaseFileName(Description description, boolean useMethodName) {
-        String desc = description.getClassName()
-                .trim()
-                .replaceAll("\\.", "_");
-
-        if (useMethodName) {
-            String method = description.getMethodName();
-            int index = method.indexOf("[");
-            if (index != -1) {
-                method = method.substring(0, index);
-            }
-            desc +=  "__";
-            desc += method;
-        }
-        sanityCheckMethodName(desc);
-        return desc.replaceAll(" ", "")
-                .replaceAll("\\$", "_");
-    }
-
-    static void sanityCheckMethodName(String methodName) {
-        if (!Pattern.matches("^[\\w _\\$]+$", methodName)) {
-            throw new IllegalArgumentException("Cannot create file name for DB file - wrong class/method name!");
-        }
-    }
-
-    private void shutdownAndDeleteDatabase(File f) {
-        if (f.isFile()) {
-            try {
-                shutdownH2(dbPath, USER, PASS);
-            } catch (IOException | SQLException e) {
-                e.printStackTrace();
-            } finally {
-                f.delete();
-            }
-        }
-    }
-
-    private static File dbPath(String desc) {
-        try {
-            return new File("./target/h2/", desc + "_" + counter.getAndIncrement())
-                    .getCanonicalFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String concatenateWithMode() {
-        if (mode == null) {
-            return "";
-        } else {
-            switch (mode) {
-                case DEFAULT_MODE:
-                    return "";
-                default:
-                    return ";MODE=" + mode.getModeAsString();
-            }
         }
     }
 }

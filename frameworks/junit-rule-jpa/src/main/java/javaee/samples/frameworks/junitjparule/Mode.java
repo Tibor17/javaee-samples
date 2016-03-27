@@ -18,7 +18,10 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-enum Mode {
+/**
+ * H2 Mode setting
+ */
+public enum Mode {
     DEFAULT_MODE(null),
     ORACLE("Oracle"),
     MYSQL("MySQL"),
@@ -30,7 +33,7 @@ enum Mode {
 
     private final String mode;
 
-    private Mode(String mode) {
+    Mode(String mode) {
         this.mode = mode;
     }
 

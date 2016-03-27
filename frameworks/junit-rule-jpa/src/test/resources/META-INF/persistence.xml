@@ -55,4 +55,8 @@
         <shared-cache-mode>NONE</shared-cache-mode>
         <validation-mode>NONE</validation-mode>
     </persistence-unit>
+    <persistence-unit name="table-generator-pu" transaction-type="RESOURCE_LOCAL">
+        <class>javaee.samples.frameworks.junitjparule.tablegenerator.EntityWithTableGenerator</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    </persistence-unit>
 </persistence>

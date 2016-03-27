@@ -22,37 +22,30 @@ import audit.domain.Audit;
 import audit.domain.AuditChange;
 import audit.domain.AuditFlow;
 import audit.domain.AuditHeader;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import javaee.samples.frameworks.junitjparule.DB;
+import javaee.samples.frameworks.junitjparule.DatabaseConfiguration;
+import javaee.samples.frameworks.junitjparule.InjectionRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
+import javax.inject.Inject;
+import javax.persistence.*;
 
-import java.util.function.Function;
-
+import static javaee.samples.frameworks.junitjparule.Transactions.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static java.util.UUID.randomUUID;
 
+@RunWith(InjectionRunner.class)
+@DatabaseConfiguration(DB.UNDEFINED)
+@PersistenceContext(unitName = "audit-jpa")
 public class AuditIT {
-    private static EntityManagerFactory emf;
-
-    @BeforeClass
-    public static void setUpEntityManagerFactory() {
-        emf = Persistence.createEntityManagerFactory("audit-jpa");
-    }
-
-    @AfterClass
-    public static void closeEntityManagerFactory() {
-        emf.close();
-    }
+    @Inject
+    EntityManager em;
 
     @Test
     public void canPersistAndLoad() {
-        Audit expected = $(em -> {
+        Audit expected = $$(em -> {
             AuditHeader header = new AuditHeader();
             header.setKey("hk");
             header.setValue("hv");
@@ -116,30 +109,5 @@ public class AuditIT {
         assertThat(flow.getChanges())
                 .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
                 .containsSequence(tuple("k", "o", "n"));
-    }
-
-    private static <R> R $(Function<EntityManager, R> fun) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tr = em.getTransaction();
-        tr.begin();
-        try {
-            R ret = fun.apply(em);
-            tr.commit();
-            return ret;
-        } catch (RuntimeException e){
-            tr.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
-    }
-
-    private static <R> R $$(Function<EntityManager, R> fun) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            return fun.apply(em);
-        } finally {
-            em.close();
-        }
     }
 }

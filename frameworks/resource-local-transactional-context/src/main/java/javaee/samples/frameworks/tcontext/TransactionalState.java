@@ -19,7 +19,7 @@
 package javaee.samples.frameworks.tcontext;
 
 public interface TransactionalState {
-    boolean isJointToContainerTransaction();
+    boolean isJoinedToContainerTransaction();
     void joinToContainerTransaction(boolean joinToContainerTransaction);
     boolean hasOwnTransaction();
     void setHasOwnTransaction(boolean hasOwnTransaction);

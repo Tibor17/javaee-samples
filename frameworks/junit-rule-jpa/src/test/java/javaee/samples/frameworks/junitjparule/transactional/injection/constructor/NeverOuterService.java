@@ -16,8 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package javaee.samples.frameworks.junitjparule;
+package javaee.samples.frameworks.junitjparule.transactional.injection.constructor;
 
-public interface Commitable<T> {
-  T commit() throws Exception;
+import javaee.samples.frameworks.junitjparule.entities.MyEntity;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import static javax.transaction.Transactional.TxType.NEVER;
+
+public class NeverOuterService {
+    private @Inject
+    InnerService service;
+
+    @Transactional(NEVER)
+    public void saveOuter(String name) {
+        MyEntity e = new MyEntity();
+        e.setName(name + "-outer");
+        service.saveInner(e);
+    }
 }

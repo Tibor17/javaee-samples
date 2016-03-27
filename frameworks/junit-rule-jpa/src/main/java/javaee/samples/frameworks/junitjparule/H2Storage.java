@@ -18,7 +18,10 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-enum H2Storage {
+/**
+ * H2 database setting
+ */
+public enum H2Storage {
     DEFAULT_STORAGE,
 
     /*

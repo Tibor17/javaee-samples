@@ -48,6 +48,10 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
+            <groupId>javaee.samples.frameworks</groupId>
+            <artifactId>junit-rule-jpa</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>

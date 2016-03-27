@@ -18,24 +18,22 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TransactionRequiredException;
+import java.util.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import static java.util.Collections.addAll;
+import static javaee.samples.frameworks.junitjparule.DB.H2;
 import static javaee.samples.frameworks.junitjparule.H2Storage.*;
 import static javaee.samples.frameworks.junitjparule.Mode.*;
 
 public final class JPARuleBuilder {
+    final Collection<Class<?>> preferableDomains = new ArrayList<>();
     final Map<String, String> properties;
     String unitName;
-    boolean transactional;
-    boolean doNotCommitOwnTransaction;
-    boolean joinTransaction;
-    boolean perClass;
     H2Storage storage;
     Mode mode;
+    boolean useProperties = true, useAutoServerMode, closeSessionOnExitJVM;
+    int closeDbDelayInSeconds = -1;
+    DB db = H2;
 
     private JPARuleBuilder(String unitName) {
         properties = new HashMap<>();
@@ -48,11 +46,33 @@ public final class JPARuleBuilder {
         return new JPARuleBuilder(unitName);
     }
 
-    /**
-     * The {@link javax.persistence.EntityManagerFactory} is closed in shutdown hoot.
-     */
-    public JPARuleBuilder perClass() {
-        perClass = true;
+    public JPARuleBuilder database(DB db) {
+        this.db = db;
+        return this;
+    }
+
+    public JPARuleBuilder preferableDomain(Class<?>... domains) {
+        addAll(preferableDomains, domains);
+        return this;
+    }
+
+    public JPARuleBuilder useAutoServerMode() {
+        useAutoServerMode = true;
+        return this;
+    }
+
+    public JPARuleBuilder closeSessionOnExitJVM() {
+        closeSessionOnExitJVM = true;
+        return this;
+    }
+
+    public JPARuleBuilder closeDbDelayInSeconds(int closeDbDelayInSeconds) {
+        this.closeDbDelayInSeconds = closeDbDelayInSeconds;
+        return this;
+    }
+
+    public JPARuleBuilder noInternalProperties() {
+        useProperties = false;
         return this;
     }
 
@@ -60,26 +80,6 @@ public final class JPARuleBuilder {
         if (properties != null) {
             this.properties.putAll(properties);
         }
-        return this;
-    }
-
-    public JPARuleBuilder transactional() {
-        transactional = true;
-        return this;
-    }
-
-    /**
-     * (Optional) Attempts to join transaction via {@link EntityManager#joinTransaction()} on own {@link EntityManager}.
-     * The exception {@link TransactionRequiredException} is consumed and new transaction is created by the
-     * entity manager itself if {@link #transactional()} is enabled while calling a transactional method.
-     */
-    public JPARuleBuilder joinTransaction() {
-        joinTransaction = true;
-        return this;
-    }
-
-    public JPARuleBuilder doNotCommitOwnTransaction() {
-        doNotCommitOwnTransaction = true;
         return this;
     }
 

@@ -21,31 +21,24 @@ package javaee.samples.frameworks.junitjparule;
 import org.junit.Test;
 import org.junit.runner.Description;
 
+import static javaee.samples.frameworks.junitjparule.JPARule.buildDatabaseFileName;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.runner.Description.createTestDescription;
 
 public class DescriptionDatabaseTest {
-    @Test
-    public void shouldParseClassOnly() {
-        Description description = Description.createTestDescription("pkg.Test", "test5_Method$10[2]");
-        String db = JPARule.buildDatabaseFileName(description, false);
-        assertThat(db, is("pkg_Test"));
-        description = Description.createTestDescription("pkg.Test", " test5_ Method$10[2]");
-        db = JPARule.buildDatabaseFileName(description, false);
-        assertThat(db, is("pkg_Test"));
-    }
 
     @Test
     public void shouldParseLegalDescription() {
-        Description description = Description.createTestDescription("pkg.Test", "test5_Method$10[2]");
-        String db = JPARule.buildDatabaseFileName(description, true);
+        Description description = createTestDescription("pkg.Test", "test5_Method$10[2]");
+        String db = buildDatabaseFileName(description);
         assertThat(db, is("pkg_Test__test5_Method_10"));
     }
 
     @Test
     public void shouldParseDescriptionWithWhitespaces() {
-        Description description = Description.createTestDescription("pkg.Test", " test5_ Method$10[2]");
-        String db = JPARule.buildDatabaseFileName(description, true);
+        Description description = createTestDescription("pkg.Test", " test5_ Method$10[2]");
+        String db = buildDatabaseFileName(description);
         assertThat(db, is("pkg_Test__test5_Method_10"));
     }
 

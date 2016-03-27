@@ -16,30 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package javaee.samples.frameworks.junitjparule;
+package javaee.samples.frameworks.junitjparule.injections.gconstructor;
 
-import javaee.samples.frameworks.tcontext.TransactionalState;
-
-final class TransactionalStateImpl implements TransactionalState {
-    private boolean isJointToContainerTransaction, hasOwnTransaction;
-
+public class B {
     @Override
-    public boolean isJointToContainerTransaction() {
-        return isJointToContainerTransaction;
-    }
-
-    @Override
-    public void joinToContainerTransaction(boolean joinToContainerTransaction) {
-        isJointToContainerTransaction = joinToContainerTransaction;
-    }
-
-    @Override
-    public boolean hasOwnTransaction() {
-        return hasOwnTransaction;
-    }
-
-    @Override
-    public void setHasOwnTransaction(boolean hasOwnTransaction) {
-        this.hasOwnTransaction = hasOwnTransaction;
+    public String toString() {
+        return "b";
     }
 }

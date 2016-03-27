@@ -18,35 +18,7 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import javax.persistence.EntityManager;
-
-import static javaee.samples.frameworks.junitjparule.JPARuleBuilder.unitName;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PerMethodTest {
-    @Rule
-    public final JPARule rule = unitName("containerless-test-pu").build();
-
-    private static EntityManager em;
-
-    @Test
-    public void firstOpenEntityManager() {
-        em = rule.createEntityManager();
-        assertNotNull(em);
-        assertTrue(em.isOpen());
-    }
-
-    @Test
-    public void secondCheckClosedEntityManager() {
-        assertNotNull(em);
-        assertFalse(em.isOpen());
-    }
+@FunctionalInterface
+public interface TripleFunction<S, T, U, R> {
+    R apply(S s, T t, U u);
 }

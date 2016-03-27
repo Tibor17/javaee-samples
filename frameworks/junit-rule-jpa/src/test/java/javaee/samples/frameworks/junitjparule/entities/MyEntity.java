@@ -18,12 +18,20 @@
  */
 package javaee.samples.frameworks.junitjparule.entities;
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 @Entity
 @Access(AccessType.FIELD)
 @NamedQueries({
-    @NamedQuery(name = "myentity.byName", query = "select e from MyEntity e where e.name = :name")
+        @NamedQuery(name = "myentity.byName", query = "select e from MyEntity e where e.name = :name"),
+        @NamedQuery(name = "MyEntity.updateName", query = "update MyEntity e set e.name = ?1"),
+        @NamedQuery(name = "MyEntity.updateNameIfId", query = "update MyEntity e set e.name = ?1 where e.id = ?2"),
 })
 public class MyEntity {
   @Id
@@ -31,6 +39,13 @@ public class MyEntity {
   private Long id;
 
   private String name;
+
+  public MyEntity() {
+  }
+
+  public MyEntity(String name) {
+    this.name = name;
+  }
 
   public Long getId() {
     return id;
