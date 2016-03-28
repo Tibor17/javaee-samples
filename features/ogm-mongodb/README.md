@@ -18,7 +18,12 @@ https://github.com/hibernate/hibernate-demos/blob/master/hibernate-ogm/hiking-de
 https://github.com/ttrelle/hibernate-ogm-examples
 http://blog.eisele.net/2015/01/nosql-with-hibernate-ogm-part-one.html
 Hibernate Search
+http://hibernate.org/search/documentation/getting-started/
+http://docs.jboss.org/hibernate/search/5.5/reference/en-US/html/
+http://hibernate.org/search/documentation/
 https://docs.jboss.org/hibernate/search/3.2/reference/en/html/search-configuration.html
+https://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html/ogm-query.html#ogm-query-native
+https://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html/ogm-mongodb.html#ogm-mongodb-queries-native
 OGM for Wildfly8.2
 http://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html_single/#_packaging_hibernate_ogm_applications_for_wildfly_8_2
 https://docs.jboss.org/author/display/teiid88final/MongoDB+Data+Sources
@@ -30,5 +35,7 @@ Embedded MongoDB in Unit Tests
 https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo
 MongoDB search
 http://blog.vizuri.com/java-mongo-object-data-mappers
+https://docs.mongodb.org/manual/reference/method/js-cursor/
+https://docs.mongodb.org/manual/reference/method/cursor.sort/#cursor.sort
 News
 http://in.relation.to/hibernate-ogm/
