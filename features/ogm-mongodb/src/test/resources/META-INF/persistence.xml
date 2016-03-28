@@ -45,6 +45,9 @@
             <property name="hibernate.ogm.datastore.port" value="${embedmongo.port}"/>
 
             <property name="hibernate.ogm.mongodb.connection_timeout" value="1000"/>
+
+            <property name="hibernate.search.default.directory_provider" value="filesystem"/>
+            <property name="hibernate.search.default.indexBase" value="${project.build.directory}/lucene/indexes/port-${embedmongo.port}"/>
         </properties>
     </persistence-unit>
 </persistence>

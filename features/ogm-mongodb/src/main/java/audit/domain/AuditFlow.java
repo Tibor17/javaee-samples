@@ -18,6 +18,8 @@
  */
 package audit.domain;
 
+import org.hibernate.search.annotations.*;
+
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 
@@ -31,8 +33,10 @@ import static javax.persistence.FetchType.EAGER;
 @Entity
 @Table(name = "AUDIT_FLOW")
 @Access(FIELD)
+@Indexed
 public class AuditFlow extends BaseEntity {
     @Column(name = "ERROR", updatable = false)
+    @Field(index = org.hibernate.search.annotations.Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private String error;
 
     @OneToMany(fetch = EAGER)

@@ -18,6 +18,9 @@
  */
 package audit.domain;
 
+import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
+
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -33,19 +36,22 @@ import static javax.persistence.FetchType.EAGER;
 @Entity
 @Table(name = "AUDIT")
 @Access(FIELD)
+@Indexed
 public class Audit extends BaseEntity {
-    @Column(name = "UUID", columnDefinition = "varchar(36)", nullable = false, updatable = false)
+    @Column(name = "REQUEST_UUID", columnDefinition = "varchar(36)", nullable = false, updatable = false)
     //@Convert(converter = UuidConverter.class)
     @NotNull
     @Basic
     private UUID request;
 
-    @Column(precision = 19, nullable = false, updatable = false)
+    @Column(name = "INITIATOR", precision = 19, nullable = false, updatable = false)
     @NotNull
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private long initiator;
 
-    @Column(length = 31, nullable = false, updatable = false)
+    @Column(name = "MODULE", length = 31, nullable = false, updatable = false)
     @NotNull
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private String module;
 
     @OneToMany(fetch = EAGER)

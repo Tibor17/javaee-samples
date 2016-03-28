@@ -22,58 +22,55 @@ import audit.domain.Audit;
 import audit.domain.AuditChange;
 import audit.domain.AuditFlow;
 import audit.domain.AuditHeader;
-import javaee.samples.frameworks.junitjparule.DB;
+import audit.service.AuditService;
 import javaee.samples.frameworks.junitjparule.DatabaseConfiguration;
 import javaee.samples.frameworks.junitjparule.InjectionRunner;
+import javaee.samples.frameworks.junitjparule.WithManagedTransactions;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.persistence.*;
 
-import static javaee.samples.frameworks.junitjparule.Transactions.$$;
+import static java.util.Collections.singleton;
+import static javaee.samples.frameworks.junitjparule.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static java.util.UUID.randomUUID;
 
 @RunWith(InjectionRunner.class)
-@DatabaseConfiguration(DB.UNDEFINED)
+@DatabaseConfiguration(UNDEFINED)
 @PersistenceContext(unitName = "audit-jpa")
+@WithManagedTransactions
 public class AuditIT {
     @Inject
-    EntityManager em;
+    AuditService service;
+
+    Audit expected;
+
+    @Before
+    public void fillDatabase() {
+        AuditHeader header = new AuditHeader();
+        header.setKey("hk");
+        header.setValue("hv");
+
+        AuditChange change = new AuditChange();
+        change.setKey("k");
+        change.setOldValue("o");
+        change.setNewValue("n");
+
+        expected = new Audit();
+        expected.setRequest(randomUUID());
+        expected.setInitiator(1);
+        expected.setModule("audit-module");
+
+        service.saveFlow(expected, "some error", singleton(header), singleton(change));
+    }
 
     @Test
     public void canPersistAndLoad() {
-        Audit expected = $$(em -> {
-            AuditHeader header = new AuditHeader();
-            header.setKey("hk");
-            header.setValue("hv");
-            em.persist(header);
-
-            AuditChange change = new AuditChange();
-            change.setKey("k");
-            change.setOldValue("o");
-            change.setNewValue("n");
-            em.persist(change);
-
-            AuditFlow flow = new AuditFlow();
-            flow.setError("some error");
-            flow.getHeaders().add(header);
-            flow.getChanges().add(change);
-            em.persist(flow);
-
-            Audit a = new Audit();
-            a.setRequest(randomUUID());
-            a.setInitiator(1);
-            a.setModule("audit-module");
-            a.getFlows().add(flow);
-            em.persist(a);
-
-            return a;
-        });
-
-        Audit actual = $$(em -> em.find(Audit.class, expected.getId()));
+        Audit actual = service.findAuditById(expected.getId());
 
         assertThat(actual)
                 .isNotSameAs(expected);
@@ -109,5 +106,23 @@ public class AuditIT {
         assertThat(flow.getChanges())
                 .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
                 .containsSequence(tuple("k", "o", "n"));
+
+        assertThat(service.searchAuditPhrase("audit-module"))
+                .hasSize(1);
+
+        assertThat(service.searchAuditPhrase("audit-moduleX"))
+                .hasSize(0);
+
+        assertThat(service.searchAuditEntity("audit-moduleX"))
+                .hasSize(1);
+
+        assertThat(service.searchAuditEntity("audit"))
+                .hasSize(1);
+
+        assertThat(service.searchAuditEntity("module"))
+                .hasSize(1);
+
+        assertThat(service.searchAuditFlowPhrase("some error"))
+                .hasSize(1);
     }
 }

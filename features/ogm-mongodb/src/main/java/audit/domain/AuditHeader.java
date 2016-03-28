@@ -18,6 +18,8 @@
  */
 package audit.domain;
 
+import org.hibernate.search.annotations.*;
+
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.Access;
 import javax.persistence.Column;
@@ -33,11 +35,13 @@ import static javax.persistence.AccessType.FIELD;
 @Entity
 @Table(name = "AUDIT_HEADER")
 @Access(FIELD)
+@Indexed
 public class AuditHeader extends BaseEntity {
     @Column(name = "KEY", updatable = false)
     private String key;
 
     @Column(name = "VALUE", updatable = false)
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private String value;
 
     public String getKey() {
