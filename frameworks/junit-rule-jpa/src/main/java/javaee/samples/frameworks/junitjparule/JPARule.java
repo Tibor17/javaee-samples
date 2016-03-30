@@ -30,6 +30,7 @@ import javax.transaction.InvalidTransactionException;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 import javax.transaction.TransactionalException;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -43,6 +44,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static javaee.samples.frameworks.junitjparule.DB.H2;
 import static javaee.samples.frameworks.junitjparule.DBLock.*;
 import static java.lang.reflect.Proxy.newProxyInstance;
@@ -314,28 +317,29 @@ public final class JPARule extends TestWatcher {
                     new InvalidTransactionException("transaction in " + Thread.currentThread()));
         }
 
-        Throwable t = null;
+        Optional<Throwable> t = empty();
 
         try {
             transaction.begin();
             return block.apply(em);
         } catch (Throwable e) {
-            t = e;
-            t.printStackTrace();
+            t = of(e);
+            e.printStackTrace();
         } finally {
             try {
-                if (t == null) {
-                    t = performAndAddSuppressedException(transaction::commit, null);
-                    if (t != null) t.printStackTrace();
-                } else {
+                if (t.isPresent()) {
                     t = performAndAddSuppressedException(transaction::rollback, t);
+                } else {
+                    t = perform(transaction::commit);
+                    t.ifPresent(Throwable::printStackTrace);
                 }
             } finally {
-                boolean noException = t == null;
+                boolean noExceptionBefore = !t.isPresent();
                 t = performAndAddSuppressedException(em::close, t);
-                if (noException & t != null) t.printStackTrace();
+                t.filter(x -> noExceptionBefore).ifPresent(Throwable::printStackTrace);
             }
-            throwTransactionError(t);
+
+            t.ifPresent(x -> { throw new TransactionalException(x.getLocalizedMessage(), x); });
         }
 
         throw new AssertionError("unreachable statement");
@@ -532,17 +536,17 @@ public final class JPARule extends TestWatcher {
         return Thread.currentThread().getContextClassLoader();
     }
 
-    private static Throwable performAndAddSuppressedException(Runnable r, Throwable t) {
+    private static Optional<Throwable> perform(Runnable r) {
+        return performAndAddSuppressedException(r, empty());
+    }
+
+    private static Optional<Throwable> performAndAddSuppressedException(@NotNull Runnable r, @NotNull Optional<Throwable> t) {
         try {
             r.run();
             return t;
         } catch (IllegalStateException | RollbackException e) {
-            if (t == null) {
-                return e;
-            } else {
-                t.addSuppressed(e);
-                return t;
-            }
+            t.ifPresent(x -> x.addSuppressed(e));
+            return of(t.orElse(e));
         }
     }
 
@@ -553,12 +557,6 @@ public final class JPARule extends TestWatcher {
             }
         }
         return false;
-    }
-
-    private static void throwTransactionError(Throwable t) {
-        if (t != null) {
-            throw new TransactionalException(t.getLocalizedMessage(), t);
-        }
     }
 
     private boolean isTransactionalTest(Description description) {
