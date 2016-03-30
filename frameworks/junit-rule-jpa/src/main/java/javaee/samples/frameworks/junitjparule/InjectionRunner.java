@@ -24,6 +24,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import javax.annotation.Resource;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.PersistenceContext;
@@ -85,7 +86,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     fetchPersistenceConfig(test);
     BeanManager beanManager = new BeanManager();
     injectEntityManagerProxy(beanManager, test);
-    injectExistingObjectsIfAbsent(beanManager, test);
+    discoverExistingObjectsIfAbsent(beanManager, test);
     inject(beanManager, test.getClass(), test, path(test.getClass()));
     return test;
   }
@@ -201,7 +202,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     return false;
   }
 
-  private static void injectExistingObjectsIfAbsent(BeanManager beanManager, Object currentBean) throws IllegalAccessException {
+  private static void discoverExistingObjectsIfAbsent(BeanManager beanManager, Object currentBean) throws IllegalAccessException {
     for (Field f : currentBean.getClass().getDeclaredFields()) {
       final BeanType beanType = new BeanType(f.getType(), filterGenericTypes(f));
       if (!f.isSynthetic() && f.isAnnotationPresent(Produces.class) && !beanManager.contains(beanType)) {
@@ -217,11 +218,24 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     do {
       for (Field f : discoveredType.getDeclaredFields()) {
         final BeanType beanType = new BeanType(f.getType(), filterGenericTypes(f));//todo add annotations/qualfs
-        if (canAccess(f) && !isFinal(f.getModifiers()) && f.isAnnotationPresent(Inject.class)) {
-          f.setAccessible(true);
+
+        if (f.isSynthetic() || isFinal(f.getModifiers()))
+          continue;
+
+        f.setAccessible(true);
+
+        boolean isStat = isStatic(f.getModifiers());
+
+        if (!isStat && f.isAnnotationPresent(Inject.class)) {
           if (f.get(currentBean) == null) {
             Bean<?> newBean = beanManager.getReference(beanType);
             f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+          }
+        } else if (f.isAnnotationPresent(Resource.class)) {
+          Object target = isStat ? null : currentBean;
+          if (f.get(target) == null) {
+            Bean<?> newBean = beanManager.getReference(beanType);
+            f.set(target, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
           }
         }
       }
@@ -308,11 +322,6 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
       }
     }
     return null;
-  }
-
-  private static boolean canAccess(Field f) {
-    int modifiers = f.getModifiers();
-    return !isStatic(modifiers) && !f.isSynthetic();
   }
 
   @SuppressWarnings("unused")
