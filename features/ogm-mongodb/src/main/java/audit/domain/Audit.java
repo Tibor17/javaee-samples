@@ -25,10 +25,12 @@ import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static java.nio.ByteBuffer.allocate;
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
 
@@ -37,7 +39,13 @@ import static javax.persistence.FetchType.EAGER;
 @Table(name = "AUDIT")
 @Access(FIELD)
 @Indexed
-public class Audit extends BaseEntity {
+public class Audit extends BaseEntity implements Serializable {
+
+    private static final ObjectStreamField[] serialPersistentFields = {
+            new ObjectStreamField("initiator", Long.TYPE),
+            new ObjectStreamField("module", String.class)
+    };
+
     @Column(name = "REQUEST_UUID", columnDefinition = "varchar(36)", nullable = false, updatable = false)
     //@Convert(converter = UuidConverter.class)
     @NotNull
@@ -89,5 +97,31 @@ public class Audit extends BaseEntity {
             flows = new ArrayList<>();
         }
         return flows;
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        if (request != null) {
+            stream.writeBoolean(true);
+            stream.write(allocate(16)
+                    .putLong(request.getMostSignificantBits())
+                    .putLong(request.getLeastSignificantBits())
+                    .array());
+        } else {
+            stream.writeBoolean(false);
+        }
+        stream.writeInt(getFlows().size());
+        for (AuditFlow flow : flows) {
+            stream.writeObject(flow);
+        }
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        request = stream.readBoolean() ? new UUID(stream.readLong(), stream.readLong()) : null;
+        int flowsCount = stream.readInt();
+        flows = new ArrayList<>(flowsCount);
+        while (flowsCount-- > 0)
+            flows.add((AuditFlow) stream.readObject());
     }
 }

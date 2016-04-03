@@ -27,6 +27,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import java.io.*;
 import java.util.Objects;
 
 import static java.util.Objects.hash;
@@ -37,7 +38,14 @@ import static javax.persistence.AccessType.FIELD;
 @Table(name = "AUDIT_CHANGE")
 @Access(FIELD)
 @Indexed
-public class AuditChange extends BaseEntity {
+public class AuditChange extends BaseEntity implements Serializable {
+
+    private static final ObjectStreamField[] serialPersistentFields = {
+            new ObjectStreamField("key", String.class),
+            new ObjectStreamField("oldValue", String.class),
+            new ObjectStreamField("newValue", String.class)
+    };
+
     @Column(name = "KEY", nullable = false, updatable = false)
     @NotNull
     private String key;
@@ -87,5 +95,13 @@ public class AuditChange extends BaseEntity {
     @Override
     public int hashCode() {
         return hash(getKey(), getOldValue(), getNewValue());
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
     }
 }

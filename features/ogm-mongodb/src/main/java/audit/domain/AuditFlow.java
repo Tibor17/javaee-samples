@@ -23,6 +23,7 @@ import org.hibernate.search.annotations.*;
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,10 @@ import static javax.persistence.FetchType.EAGER;
 @Table(name = "AUDIT_FLOW")
 @Access(FIELD)
 @Indexed
-public class AuditFlow extends BaseEntity {
+public class AuditFlow extends BaseEntity implements Serializable {
+
+    private static final ObjectStreamField[] serialPersistentFields = {new ObjectStreamField("error", String.class)};
+
     @Column(name = "ERROR", updatable = false)
     @Field(index = org.hibernate.search.annotations.Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private String error;
@@ -69,5 +73,31 @@ public class AuditFlow extends BaseEntity {
             changes = new ArrayList<>();
         }
         return changes;
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        stream.writeInt(getHeaders().size());
+        for (AuditHeader header : headers) {
+            stream.writeObject(header);
+        }
+        stream.writeInt(getChanges().size());
+        for (AuditChange change : changes) {
+            stream.writeObject(change);
+        }
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+
+        int headersCount = stream.readInt();
+        headers = new ArrayList<>(headersCount);
+        while (headersCount-- > 0)
+            headers.add((AuditHeader) stream.readObject());
+
+        int changesCount = stream.readInt();
+        changes = new ArrayList<>(changesCount);
+        while (changesCount-- > 0)
+            changes.add((AuditChange) stream.readObject());
     }
 }
