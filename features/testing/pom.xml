@@ -32,7 +32,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>unit</module>
+        <module>unit-rest</module>
+        <module>unit-activemq</module>
     </modules>
 
 </project>
