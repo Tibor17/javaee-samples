@@ -27,17 +27,21 @@ import javax.ejb.MessageDriven;
 import javax.enterprise.inject.Vetoed;
 import javax.jms.*;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 @Vetoed
 @RunWith(InjectionRunner.class)
 @MessageDriven
-public class AuditMessageProducerTest implements MessageListener {
+public class JmsInjectionTest implements MessageListener {
 
-    private final Semaphore synchronizer = new Semaphore(1);
+    private final CyclicBarrier synchronizer = new CyclicBarrier(1);
 
     @Resource(mappedName = "java:/ConnectionFactory")
     private ConnectionFactory connectionFactory;
@@ -51,23 +55,22 @@ public class AuditMessageProducerTest implements MessageListener {
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         MessageProducer producer = session.createProducer(producerQueue);
         producer.send(session.createTextMessage("Test Message"));
-        synchronizer.release();
+        synchronizer.await(3, SECONDS);
     }
 
     @Override
     public void onMessage(Message message) {
-        synchronizer.acquireUninterruptibly();
-
-        assertThat(message)
-                .isInstanceOf(TextMessage.class);
-
         try {
+            synchronizer.await(3, SECONDS);
+
+            assertThat(message)
+                    .isInstanceOf(TextMessage.class);
 
             assertThat(((TextMessage) message).getText())
                     .isEqualTo("Test Message");
 
-        } catch (JMSException e) {
-            fail(e.getLocalizedMessage(), e);
+        } catch (JMSException | TimeoutException | BrokenBarrierException | InterruptedException e) {
+            fail("Too overloaded build system. Could not acquire permit within 3 seconds. " + e.getLocalizedMessage(), e);
         }
     }
 }
