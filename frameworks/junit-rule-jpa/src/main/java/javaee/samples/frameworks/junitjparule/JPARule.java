@@ -118,6 +118,10 @@ public final class JPARule extends TestWatcher {
         this.db = db;
     }
 
+    public String getUnitName() {
+        return unitName;
+    }
+
     final void setBeanManager(BeanManager beanManager) {
         this.beanManager = beanManager;
     }

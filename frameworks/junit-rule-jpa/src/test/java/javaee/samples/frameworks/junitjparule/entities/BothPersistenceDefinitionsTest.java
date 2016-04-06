@@ -55,6 +55,10 @@ public class BothPersistenceDefinitionsTest {
         assertThat(jpa)
                 .isNotNull();
 
+        assertThat(jpa)
+                .extracting(JPARule::getUnitName)
+                .containsExactly("containerless-test-pu");
+
         assertThat(em)
                 .isNotNull();
 
@@ -71,6 +75,10 @@ public class BothPersistenceDefinitionsTest {
         assertThat(jpa)
                 .isNotNull();
 
+        assertThat(jpa)
+                .extracting(JPARule::getUnitName)
+                .containsExactly("containerless-test-pu");
+
         assertThat(em)
                 .isNotNull();
 
@@ -82,6 +90,10 @@ public class BothPersistenceDefinitionsTest {
     public void shouldPreferClassPU$NegativeTest() {
         assertThat(jpa)
                 .isNotNull();
+
+        assertThat(jpa)
+                .extracting(JPARule::getUnitName)
+                .containsExactly("table-generator-pu");
 
         assertThat(em)
                 .isNotNull();
@@ -97,6 +109,10 @@ public class BothPersistenceDefinitionsTest {
     public void shouldPreferClassPU() {
         assertThat(jpa)
                 .isNotNull();
+
+        assertThat(jpa)
+                .extracting(JPARule::getUnitName)
+                .containsExactly("table-generator-pu");
 
         assertThat(em)
                 .isNotNull();

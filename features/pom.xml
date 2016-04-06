@@ -37,6 +37,7 @@
         <module>fluent-properties</module>
         <module>generic-dao-producer</module>
         <module>mail-testing</module>
+        <module>jms-audit</module>
     </modules>
 
 </project>

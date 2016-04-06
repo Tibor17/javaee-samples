@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
+import javaee.samples.frameworks.junitjparule.spi.InjectionPoint;
 import org.junit.rules.TestRule;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -33,10 +34,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static java.util.ServiceLoader.load;
 import static javaee.samples.frameworks.junitjparule.DB.H2;
 import static javaee.samples.frameworks.junitjparule.DB.UNDEFINED;
 import static javaee.samples.frameworks.junitjparule.FieldUtils.filterGenericTypes;
@@ -58,7 +58,19 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
   }
 
   private static final Object LOCK = new Object();
+
   static final ThreadLocal<PersistenceContextWrapper> PERSISTENCE_CONFIG = new ThreadLocal<>();
+
+  private static final ThreadLocal<List<InjectionPoint>> SPI = new ThreadLocal<List<InjectionPoint>>() {
+    @Override
+    protected List<InjectionPoint> initialValue() {
+      List<InjectionPoint> spi = new ArrayList<>();
+      load(InjectionPoint.class)
+              .forEach(spi::add);
+      Collections.sort(spi);
+      return spi;
+    }
+  };
 
   /**
    * Creates JUnit runner to run {@code klass}.
@@ -73,11 +85,9 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
   protected Statement methodBlock(FrameworkMethod method) {
     PERSISTENCE_CONFIG.remove();
     fetchPersistenceConfig(method);
-    try {
-      return super.methodBlock(method);
-    } finally {
-      PERSISTENCE_CONFIG.remove();
-    }
+    Statement methodBlock = super.methodBlock(method);
+    PERSISTENCE_CONFIG.remove();
+    return wrapMethodBlock(methodBlock);
   }
 
   @Override
@@ -99,6 +109,20 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
       rules.add(wrapper.rule);
     }
     return rules;
+  }
+
+  private static Statement wrapMethodBlock(Statement methodBlock) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        try {
+          methodBlock.evaluate();
+        } finally {
+          SPI.get().forEach(InjectionPoint::destroy);
+          SPI.remove();
+        }
+      }
+    };
   }
 
   /**
@@ -213,7 +237,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     }
   }
 
-  private static void inject(BeanManager beanManager, Class<?> unproxyType, Object currentBean, PathFinder pathFinder) throws Exception {
+  private void inject(BeanManager beanManager, final Class<?> unproxyType, Object currentBean, PathFinder pathFinder) throws Exception {
     Class<?> discoveredType = unproxyType;
     do {
       for (Field f : discoveredType.getDeclaredFields()) {
@@ -222,18 +246,32 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
         if (f.isSynthetic() || isFinal(f.getModifiers()))
           continue;
 
+        final boolean isStat = isStatic(f.getModifiers());
+
+        final Object target = isStat ? null : currentBean;
+
         f.setAccessible(true);
 
-        boolean isStat = isStatic(f.getModifiers());
+        if (f.get(target) != null)
+          continue;
 
         if (!isStat && f.isAnnotationPresent(Inject.class)) {
-          if (f.get(currentBean) == null) {
-            Bean<?> newBean = beanManager.getReference(beanType);
-            f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+          Bean<?> newBean = beanManager.getReference(beanType);
+          f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+        } else {
+          boolean foundSpi = false;
+          for (InjectionPoint ip : SPI.get()) {
+            @SuppressWarnings("unchecked") Class<? extends Annotation> annType = ip.getAnnotationType();
+            Annotation ann = f.getAnnotation(annType);
+            if (ann == null) continue;
+            @SuppressWarnings("unchecked") Optional<Object> inject = ip.lookupOf(beanType.getType(), ann, currentBean, unproxyType);
+            foundSpi = inject.isPresent();
+            if (foundSpi) {
+              f.set(target, inject.get());
+              break;
+            }
           }
-        } else if (f.isAnnotationPresent(Resource.class)) {
-          Object target = isStat ? null : currentBean;
-          if (f.get(target) == null) {
+          if (!foundSpi && f.isAnnotationPresent(Resource.class)) {
             Bean<?> newBean = beanManager.getReference(beanType);
             f.set(target, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
           }
@@ -242,7 +280,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     } while ((discoveredType = discoveredType.getSuperclass()) != null);
   }
 
-  private static Object newBeanUnwrapped(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
+  private Object newBeanUnwrapped(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
     pathFinder = path(pathFinder, beanType.getType());
     if (!beanManager.contains(beanType)) {
       Object newBean = newInstanceWithConstructorInjection(beanManager, beanType, pathFinder);
@@ -285,7 +323,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     }
   }
 
-  private static Object newInstanceWithConstructorInjection(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
+  private Object newInstanceWithConstructorInjection(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
     for (Constructor<?> c : beanType.getType().getDeclaredConstructors()) {
       int modifiers = c.getModifiers();
       Class<?>[] parameters = c.getParameterTypes();//todo observe annotation/qualifier and a type via c.getParameters()
