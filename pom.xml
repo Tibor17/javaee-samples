@@ -57,7 +57,7 @@
             </dependency>
             <dependency>
                 <groupId>javaee.samples.frameworks</groupId>
-                <artifactId>junit-rule-jpa</artifactId>
+                <artifactId>junit-mock-injection</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

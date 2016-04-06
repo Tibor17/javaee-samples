@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>javaee.samples.frameworks</groupId>
-            <artifactId>junit-rule-jpa</artifactId>
+            <artifactId>junit-mock-injection</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
