@@ -18,24 +18,10 @@
  */
 package javaee.samples.frameworks.junitjparule.spi;
 
-import javax.validation.constraints.NotNull;
-import java.lang.annotation.Annotation;
-import java.util.Optional;
+import javax.jms.InvalidDestinationRuntimeException;
 
-import static java.lang.Math.signum;
-import static java.util.Objects.compare;
-
-public interface InjectionPoint<A extends Annotation> extends Comparable<InjectionPoint> {
-    @NotNull Class<A> getAnnotationType();
-    @NotNull <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, A injectionAnnotation, T bean, Class<? extends T> beanType);
-    void destroy();
-
-    @Override
-    default int compareTo(InjectionPoint o) {
-        return compare(this, o, (a, b) -> (int) signum((double) priority() - o.priority()));
-    }
-
-    default int priority() {
-        return 0;
+public class InvalidDestinationLookupException extends InvalidDestinationRuntimeException {
+    public InvalidDestinationLookupException() {
+        super("@ActivationConfigProperty missing destinationLookup");
     }
 }

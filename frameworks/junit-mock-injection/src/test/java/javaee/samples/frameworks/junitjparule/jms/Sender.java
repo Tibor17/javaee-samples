@@ -16,7 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package jms.wrappers;
+package javaee.samples.frameworks.junitjparule.jms;
 
-public final class BrokerStarter {
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import javax.jms.JMSContext;
+import javax.jms.Queue;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class Sender {
+
+    @Inject
+    JMSContext ctx;
+
+    @Resource(mappedName = "java:jms/queue/test")
+    Queue queue;
+
+    public void send(String msg) {
+        assertThat(ctx)
+                .isNotNull();
+
+        assertThat(queue)
+                .isNotNull();
+
+        ctx.createProducer()
+                .send(queue, msg);
+    }
 }

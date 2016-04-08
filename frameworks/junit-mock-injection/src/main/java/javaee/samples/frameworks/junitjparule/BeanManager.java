@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
+import javaee.samples.frameworks.junitjparule.spi.ContextInjector;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
 
@@ -31,6 +32,7 @@ import javax.transaction.TransactionalException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static javaee.samples.frameworks.junitjparule.BeanUtils.*;
@@ -39,10 +41,9 @@ import static java.lang.reflect.Modifier.isFinal;
 import static javax.transaction.Transactional.TxType;
 
 final class BeanManager {
+    private static final ServiceLoader<ContextInjector> CONTEXT = ServiceLoader.load(ContextInjector.class);
     private static final LocalEntityManager CURRENT_ENTITY_MANAGER = new LocalEntityManager();
     private static final BeanType EM_BEAN_TYPE = new BeanType(EntityManager.class);
-    /*private static final Set<DiscoverableBeanType> DISCOVERED = new CopyOnWriteArraySet<>();
-    private static final ForkJoinPool WORKER = new ForkJoinPool();*/
 
     private final Map<BeanType, Bean<?>> injectionPoints = new ConcurrentHashMap<>();
 
@@ -91,7 +92,9 @@ final class BeanManager {
     @SuppressWarnings("unchecked")
     Bean<?> createBean(BeanType beanType, Object beanDelegate) {
         if (!injectionPoints.containsKey(beanType)) {
-            injectionPoints.put(beanType, new Bean<>((Class<Object>) beanType.getType(), beanDelegate, tryToProxy(beanDelegate)));
+            Object[] bd = {beanDelegate};
+            CONTEXT.forEach(spi -> bd[0] = spi.bindContext(bd[0], beanType.getType()));
+            injectionPoints.put(beanType, new Bean<>((Class<Object>) beanType.getType(), bd[0], tryToProxy(beanDelegate)));
         }
         return injectionPoints.get(beanType);
     }
@@ -119,6 +122,7 @@ final class BeanManager {
     void clear() {
         injectionPoints.clear();
         CURRENT_ENTITY_MANAGER.remove();
+        CONTEXT.forEach(ContextInjector::destroy);
     }
 
     static BeanType getEmBeanType() {

@@ -31,7 +31,6 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.MessageListener;
 import javax.jms.Queue;
-import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Optional;
 
@@ -57,7 +56,7 @@ public class JmsResource implements InjectionPoint<Resource> {
     }
 
     @Override
-    public Class<? extends Annotation> getAnnotationType() {
+    public Class<Resource> getAnnotationType() {
         return Resource.class;
     }
 

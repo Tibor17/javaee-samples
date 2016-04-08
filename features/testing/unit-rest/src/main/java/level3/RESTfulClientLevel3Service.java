@@ -28,7 +28,6 @@ import javax.ws.rs.core.Response.StatusType;
 import java.net.URI;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.client.Entity.xml;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 

@@ -255,27 +255,31 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
         if (f.get(target) != null)
           continue;
 
-        if (!isStat && f.isAnnotationPresent(Inject.class)) {
-          Bean<?> newBean = beanManager.getReference(beanType);
-          f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
-        } else {
-          boolean foundSpi = false;
-          for (InjectionPoint ip : SPI.get()) {
-            @SuppressWarnings("unchecked") Class<? extends Annotation> annType = ip.getAnnotationType();
-            Annotation ann = f.getAnnotation(annType);
-            if (ann == null) continue;
-            @SuppressWarnings("unchecked") Optional<Object> inject = ip.lookupOf(beanType.getType(), ann, currentBean, unproxyType);
-            foundSpi = inject.isPresent();
-            if (foundSpi) {
-              f.set(target, inject.get());
-              break;
-            }
-          }
-          if (!foundSpi && f.isAnnotationPresent(Resource.class)) {
-            Bean<?> newBean = beanManager.getReference(beanType);
-            f.set(target, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+        boolean foundSpi = false;
+        for (InjectionPoint ip : SPI.get()) {
+          @SuppressWarnings("unchecked") Class<? extends Annotation> annType = ip.getAnnotationType();
+          Annotation ann = f.getAnnotation(annType);
+          if (ann == null) continue;
+          @SuppressWarnings("unchecked") Optional<Object> inject = ip.lookupOf(beanType.getType(), ann, currentBean, unproxyType);
+          foundSpi = inject.isPresent();
+          if (foundSpi) {
+            f.set(target, inject.get());
+            break;
           }
         }
+
+        if (!foundSpi) {
+          if (!isStat && f.isAnnotationPresent(Inject.class)) {
+            Bean<?> newBean = beanManager.getReference(beanType);
+            f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+          } else {
+            if (f.isAnnotationPresent(Resource.class)) {
+              Bean<?> newBean = beanManager.getReference(beanType);
+              f.set(target, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
+            }
+          }
+        }
+
       }
     } while ((discoveredType = discoveredType.getSuperclass()) != null);
   }

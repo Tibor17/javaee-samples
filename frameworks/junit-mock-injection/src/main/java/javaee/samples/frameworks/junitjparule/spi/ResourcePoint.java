@@ -24,7 +24,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
-import java.lang.annotation.Annotation;
 import java.util.Hashtable;
 import java.util.Optional;
 
@@ -47,7 +46,7 @@ public final class ResourcePoint implements InjectionPoint<Resource>, InitialCon
     }
 
     @Override
-    public Class<? extends Annotation> getAnnotationType() {
+    public Class<Resource> getAnnotationType() {
         return Resource.class;
     }
 

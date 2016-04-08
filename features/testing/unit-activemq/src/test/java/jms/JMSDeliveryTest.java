@@ -26,7 +26,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.*;
-import java.util.concurrent.CountDownLatch;
+import java.net.URI;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeoutException;
 
 import static jms.wrappers.JMSConsumer.createConsumerOnQueue;
 import static jms.wrappers.JMSProducer.createProducerOnQueue;
@@ -36,7 +39,9 @@ import static org.junit.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JMSDeliveryTest implements MessageListener, ExceptionListener {
-    private final CountDownLatch messageCounter = new CountDownLatch(1);
+    private static final String SOCKET = System.getProperty("jms.broker.socket", "tcp://localhost:61616");
+
+    private final CyclicBarrier synchronizer = new CyclicBarrier(2);
 
     private JMSConsumer consumer;
     private JMSProducer<Queue> producer;
@@ -44,7 +49,7 @@ public class JMSDeliveryTest implements MessageListener, ExceptionListener {
 
     @Before
     public void startBroker() throws Exception {
-        broker = new JMSBroker(61617, true);
+        broker = new JMSBroker(new URI(SOCKET), true);
         broker.start();
     }
 
@@ -59,26 +64,25 @@ public class JMSDeliveryTest implements MessageListener, ExceptionListener {
 
     @Test
     public void shouldSendTextToQueue() throws Exception {
-        consumer = createConsumerOnQueue("tcp://127.0.0.1:61617?jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0", "jms/queue/test", of(this));
-        producer = createProducerOnQueue("tcp://127.0.0.1:61617", "jms/queue/test");
+        consumer = createConsumerOnQueue(SOCKET + "?jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0", "jms/queue/test", of(this));
+        producer = createProducerOnQueue(SOCKET, "jms/queue/test");
         producer.getConnection().start();
         TextMessage message = producer.getSession().createTextMessage(" Message ");
         producer.getMessageProducer().send(message);
-        messageCounter.await(5, SECONDS);
+        synchronizer.await(3, SECONDS);
     }
 
     @Override
     public void onMessage(Message message) {
         try {
+            synchronizer.await(3, SECONDS);
             // todo In JMS 2.0 call message.getBody(String.class)
             TextMessage textMessage = (TextMessage) message;
             assertThat(textMessage.getText())
                     .isEqualTo(" Message ");
             message.acknowledge();
-        } catch (JMSException e) {
+        } catch (JMSException | InterruptedException | TimeoutException | BrokenBarrierException e) {
             fail(e.getLocalizedMessage());
-        } finally {
-            messageCounter.countDown();
         }
     }
 
