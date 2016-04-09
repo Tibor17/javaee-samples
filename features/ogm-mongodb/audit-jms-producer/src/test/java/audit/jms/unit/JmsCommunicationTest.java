@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.it;
+package audit.jms.unit;
 
 import audit.domain.Audit;
 import audit.jms.consumer.AuditListener;
@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
 import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.Vetoed;
 import javax.inject.Inject;
 import javax.jms.ConnectionFactory;
 
@@ -36,6 +37,7 @@ import java.util.concurrent.CyclicBarrier;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Vetoed
 @RunWith(InjectionRunner.class)
 public class JmsCommunicationTest {
 
@@ -54,7 +56,7 @@ public class JmsCommunicationTest {
     AuditMessagingProducerService producerService;
 
     @Test
-    public void test() throws Exception {
+    public void shouldValidateJmsDispatch() throws Exception {
         assertThat(connectionFactory)
                 .isNotNull();
 

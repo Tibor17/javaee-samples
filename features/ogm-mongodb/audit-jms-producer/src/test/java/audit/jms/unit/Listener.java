@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.it;
+package audit.jms.unit;
 
 import audit.domain.Audit;
 import audit.jms.consumer.AuditListener;
@@ -30,7 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class Listener implements AuditListener {
-    private CyclicBarrier synchronizer;
+    private final CyclicBarrier synchronizer;
+
+    private Listener() {
+        this(null);
+    }
 
     public Listener(CyclicBarrier synchronizer) {
         this.synchronizer = synchronizer;
@@ -45,7 +49,8 @@ public class Listener implements AuditListener {
                     .isEqualTo("test");
 
         } catch (TimeoutException | BrokenBarrierException | InterruptedException e) {
-            fail("Too overloaded build system. Could not acquire permit within 3 seconds. " + e.getLocalizedMessage(), e);
+            fail("Too overloaded build system. Could not acquire permit within 3 seconds. "
+                    + e.getLocalizedMessage(), e);
         }
     }
 }

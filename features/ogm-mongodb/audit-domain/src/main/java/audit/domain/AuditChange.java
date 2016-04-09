@@ -26,6 +26,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import java.io.*;
 import java.util.Objects;
@@ -49,14 +50,17 @@ public class AuditChange extends BaseEntity implements Serializable {
 
     @Column(name = "KEY", nullable = false, updatable = false)
     @NotNull
+    @Size(min = 1, max = 255)
     private String key;
 
     @Column(name = "OLD_VALUE", updatable = false)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Size(max = 255)
     private String oldValue;
 
     @Column(name = "NEW_VALUE", updatable = false)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Size(max = 255)
     private String newValue;
 
     public String getKey() {

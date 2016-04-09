@@ -41,8 +41,33 @@ public class AuditService {
     @Inject
     EntityManager em;
 
+    public List<Audit> findAll() {
+        return em.createNamedQuery("Audit.all", Audit.class)
+                .getResultList();
+    }
+
+    public long count() {
+        return em.createNamedQuery("Audit.count", Long.class)
+                .getSingleResult();
+    }
+
     public @NotNull Audit findAuditById(@NotNull String id) {
         return em.find(Audit.class, id);
+    }
+
+    @Transactional
+    public void remove(Audit e) {
+        em.remove(e);
+    }
+
+    @Transactional
+    public void saveFlow(@NotNull Audit e) {
+        e.getFlows().forEach(f -> {
+            f.getHeaders().forEach(em::persist);
+            f.getChanges().forEach(em::persist);
+            em.persist(f);
+        });
+        em.persist(e);
     }
 
     @Transactional

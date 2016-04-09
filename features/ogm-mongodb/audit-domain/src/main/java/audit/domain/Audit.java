@@ -39,6 +39,10 @@ import static javax.persistence.FetchType.EAGER;
 @Table(name = "AUDIT")
 @Access(FIELD)
 @Indexed
+@NamedQueries({
+        @NamedQuery(name = "Audit.all", query = "select a from Audit a"),
+        @NamedQuery(name = "Audit.count", query = "select count(a) from Audit a")
+})
 public class Audit extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1;
 
@@ -54,19 +58,20 @@ public class Audit extends BaseEntity implements Serializable {
     private UUID request;
 
     @Column(name = "INITIATOR", precision = 19, nullable = false, updatable = false)
-    @NotNull
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private long initiator;
 
     @Column(name = "MODULE", length = 31, nullable = false, updatable = false)
     @NotNull
+    @Size(min = 1, max = 31)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private String module;
 
-    @OneToMany(fetch = EAGER)
+    @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT", nullable = false, updatable = false)
     @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT__FLOW")
     @Size(min = 1)
+    @NotNull
     private List<AuditFlow> flows;
 
     public UUID getRequest() {

@@ -22,6 +22,7 @@ import org.hibernate.search.annotations.*;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -42,14 +43,15 @@ public class AuditFlow extends BaseEntity implements Serializable {
 
     @Column(name = "ERROR", updatable = false)
     @Field(index = org.hibernate.search.annotations.Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Size(min = 1, max = 255)
     private String error;
 
-    @OneToMany(fetch = EAGER)
+    @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false)
     @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT_FLOW__HEADER")
     private List<AuditHeader> headers;
 
-    @OneToMany(fetch = EAGER)
+    @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false)
     @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT_FLOW__CHANGE")
     private List<AuditChange> changes;
