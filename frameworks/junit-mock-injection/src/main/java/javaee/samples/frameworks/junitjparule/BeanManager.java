@@ -22,6 +22,7 @@ import javaee.samples.frameworks.junitjparule.spi.ContextInjector;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
 
+import javax.enterprise.inject.Typed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -32,6 +33,7 @@ import javax.transaction.TransactionalException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -74,11 +76,11 @@ final class BeanManager {
     }
 
     @SuppressWarnings("unchecked")
-    <T> Bean<T> getReference(BeanType beanType, Class<T> returnType) {
+    <T> Bean<T> getReference(BeanType beanType, Class<? super T> returnType) {
         if (!beanType.getType().isAssignableFrom(returnType)) {
             throw new IllegalArgumentException();
         }
-        Bean<T> bean = (Bean<T>) injectionPoints.get(beanType);
+        Bean<T> bean = (Bean<T>) getReference(beanType);
         if (bean != null && !returnType.isAssignableFrom(bean.getProxy().getClass())) {
             throw new IllegalArgumentException();
         }
@@ -86,7 +88,21 @@ final class BeanManager {
     }
 
     Bean<?> getReference(BeanType beanType) {
-        return injectionPoints.get(beanType);
+        Bean<?> b = injectionPoints.get(beanType);
+        if (b == null) {
+            b = injectionPoints.entrySet()
+                    .stream()
+                    .filter(BeanManager::typedBean)
+                    .filter(e -> e.getKey().equalsAsTyped(beanType))
+                    .findFirst()
+                    .map(Entry::getValue)
+                    .orElse(null);
+        }
+        return b;
+    }
+
+    private static boolean typedBean(Entry<BeanType, Bean<?>> e) {
+        return e.getKey().getType().isAnnotationPresent(Typed.class);
     }
 
     @SuppressWarnings("unchecked")

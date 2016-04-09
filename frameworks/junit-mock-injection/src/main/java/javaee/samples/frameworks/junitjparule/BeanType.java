@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.junitjparule;
 
+import javax.enterprise.inject.Typed;
 import javax.inject.Named;
 import javax.inject.Qualifier;
 import java.lang.annotation.Annotation;
@@ -91,11 +92,20 @@ final class BeanType {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BeanType beanType = (BeanType) o;
-        return Objects.equals(type, beanType.type) &&
-                genericTypes.size() == beanType.genericTypes.size() &&
-                genericTypes.containsAll(beanType.genericTypes) &&
-                Objects.equals(textQualifier, beanType.textQualifier) &&
-                Arrays.equals(annotationQualifiers, beanType.annotationQualifiers);
+        return Objects.equals(type, beanType.type) && equalsWithoutType(beanType);
+    }
+
+    boolean equalsAsTyped(BeanType given) {
+        if (!equalsWithoutType(given))
+            return false;
+
+        for (Class<?> t : type.getAnnotation(Typed.class).value()) {
+            if (given.getType() == t) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -113,5 +123,12 @@ final class BeanType {
     @Override
     public String toString() {
         return type.getName();
+    }
+
+    private boolean equalsWithoutType(BeanType given) {
+        return genericTypes.size() == given.genericTypes.size() &&
+                genericTypes.containsAll(given.genericTypes) &&
+                Objects.equals(textQualifier, given.textQualifier) &&
+                Arrays.equals(annotationQualifiers, given.annotationQualifiers);
     }
 }
