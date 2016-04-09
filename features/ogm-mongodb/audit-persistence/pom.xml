@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>javaee.samples</groupId>
+        <artifactId>ogm-mongodb</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>audit-persistence</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sun.mail</groupId>
+                    <artifactId>javax.mail</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.ogm</groupId>
+            <artifactId>hibernate-ogm-mongodb</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.javax.persistence</groupId>
+                    <artifactId>hibernate-jpa-2.1-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-orm</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator-cdi</artifactId>
+            <version>5.2.4.Final</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.validation</groupId>
+                    <artifactId>validation-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>javaee.samples.frameworks</groupId>
+            <artifactId>junit-mock-injection</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjta</artifactId>
+            <version>4.16.6.Final</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/persistence.xml</include>
+                </includes>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>reserve-database-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>embedmongo.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.syncleus.maven.plugins</groupId>
+                <artifactId>maven-mongodb-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <port>${embedmongo.port}</port>
+                            <!-- filtering of persistence.xml does not work well => use build-helper-maven-plugin instead -->
+                            <randomPort>false</randomPort>
+
+                            <version>3.0.3</version>
+                            <!-- optional, defaults to latest production release -->
+
+                            <databaseDirectory>${project.build.directory}/mongotest</databaseDirectory>
+                            <!-- optional, default is a new dir in java.io.tmpdir -->
+
+                            <artifactDirectory>${project.build.directory}/mongoartifact</artifactDirectory>
+                            <!-- optional, set directory where MongoDB artifacts are stores,
+                                 default is ~/.embedmongo -->
+
+                            <logging>console</logging>
+                            <!-- optional (file|console|none), default is console -->
+
+                            <logFile>${project.build.directory}/mongodblog/mongodb.log</logFile>
+                            <!-- optional, can be used when logging=file, default is
+                                 ./mongod.log -->
+
+                            <logFileEncoding>utf-8</logFileEncoding>
+                            <!-- optional, can be used when logging=file, default is utf-8 -->
+
+                            <bindIp>127.0.0.1</bindIp>
+                            <!-- optional, default is to listen on all interfaces -->
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <trimStackTrace>false</trimStackTrace>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-tests-verification</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
