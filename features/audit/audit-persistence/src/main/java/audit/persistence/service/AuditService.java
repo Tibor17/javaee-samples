@@ -85,7 +85,7 @@ public class AuditService {
         em.persist(e);
     }
 
-    public @SuppressWarnings("unchecked") List<Audit> searchAuditPhrase(String textSearch) {
+    public @SuppressWarnings("unchecked") List<Audit> searchAuditPhrase(String textSearch, int fromRownum, int maxRownums) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -100,10 +100,12 @@ public class AuditService {
                 .createQuery();
 
         return fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class)
+                .setFirstResult(fromRownum)
+                .setMaxResults(maxRownums)
                 .getResultList();
     }
 
-    public @SuppressWarnings("unchecked") List<AuditFlow> searchAuditFlowPhrase(String textSearch) {
+    public @SuppressWarnings("unchecked") List<AuditFlow> searchAuditFlowPhrase(String textSearch, int fromRownum, int maxRownums) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -117,10 +119,12 @@ public class AuditService {
                 .createQuery();
 
         return fullTextEntityManager.createFullTextQuery(luceneQuery, AuditFlow.class)
+                .setFirstResult(fromRownum)
+                .setMaxResults(maxRownums)
                 .getResultList();
     }
 
-    public @SuppressWarnings("unchecked") List<Audit> searchAuditEntity(String textSearch) {
+    public @SuppressWarnings("unchecked") List<Audit> searchAuditEntity(String textSearch, int fromRownum, int maxRownums) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -138,6 +142,8 @@ public class AuditService {
 
 
         return fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class)
+                .setFirstResult(fromRownum)
+                .setMaxResults(maxRownums)
                 .getResultList();
     }
 }

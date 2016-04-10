@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.persistence.*;
 
+import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.singleton;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -107,22 +108,22 @@ public class AuditIT {
                 .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
                 .containsSequence(tuple("k", "o", "n"));
 
-        assertThat(service.searchAuditPhrase("audit-module"))
+        assertThat(service.searchAuditPhrase("audit-module", 0, MAX_VALUE))
                 .hasSize(1);
 
-        assertThat(service.searchAuditPhrase("audit-moduleX"))
+        assertThat(service.searchAuditPhrase("audit-moduleX", 0, MAX_VALUE))
                 .hasSize(0);
 
-        assertThat(service.searchAuditEntity("audit-moduleX"))
+        assertThat(service.searchAuditEntity("audit-moduleX", 0, MAX_VALUE))
                 .hasSize(1);
 
-        assertThat(service.searchAuditEntity("audit"))
+        assertThat(service.searchAuditEntity("audit", 0, MAX_VALUE))
                 .hasSize(1);
 
-        assertThat(service.searchAuditEntity("module"))
+        assertThat(service.searchAuditEntity("module", 0, MAX_VALUE))
                 .hasSize(1);
 
-        assertThat(service.searchAuditFlowPhrase("some error"))
+        assertThat(service.searchAuditFlowPhrase("some error", 0, MAX_VALUE))
                 .hasSize(1);
     }
 }
