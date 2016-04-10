@@ -85,7 +85,8 @@ public class JmsPersistenceIT {
         original.setRequest(randomUUID());
         original.setInitiator(5);
         original.setModule("test");
-        original.getFlows().add(new AuditFlow());
+        original.getFlows()
+                .add(new AuditFlow());
 
         producerService.send(original);
         synchronizer.await(3, SECONDS);
