@@ -24,45 +24,22 @@
 
     <parent>
         <groupId>javaee.samples</groupId>
-        <artifactId>ogm-mongodb</artifactId>
+        <artifactId>audit</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-domain</artifactId>
+    <artifactId>audit-jms-consumer</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun.mail</groupId>
-                    <artifactId>javax.mail</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

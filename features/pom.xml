@@ -33,7 +33,7 @@
 
     <modules>
         <module>testing</module>
-        <module>ogm-mongodb</module>
+        <module>audit</module>
         <module>fluent-properties</module>
         <module>generic-dao-producer</module>
         <module>mail-testing</module>

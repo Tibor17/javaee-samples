@@ -24,11 +24,12 @@
 
     <parent>
         <groupId>javaee.samples</groupId>
-        <artifactId>ogm-mongodb</artifactId>
+        <artifactId>audit</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-jms-consumer</artifactId>
+    <artifactId>audit-rest-server</artifactId>
+    <packaging>war</packaging>
 
     <dependencies>
         <dependency>
@@ -37,10 +38,31 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-persistence</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Dependencies>org.hibernate:ogm services, org.hibernate.ogm.mongodb services</Dependencies>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -24,11 +24,11 @@
 
     <parent>
         <groupId>javaee.samples</groupId>
-        <artifactId>ogm-mongodb</artifactId>
+        <artifactId>audit</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-jms-producer</artifactId>
+    <artifactId>audit-persistence</artifactId>
 
     <dependencies>
         <dependency>
@@ -40,51 +40,22 @@
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javaee.samples</groupId>
-            <artifactId>audit-jms-consumer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javaee.samples</groupId>
-            <artifactId>audit-persistence</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javaee.samples.frameworks</groupId>
-            <artifactId>junit-mock-injection</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>1.10.5</version>
-            <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
+                    <groupId>com.sun.mail</groupId>
+                    <artifactId>javax.mail</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate.ogm</groupId>
             <artifactId>hibernate-ogm-mongodb</artifactId>
-            <scope>test</scope>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.hibernate.javax.persistence</groupId>
@@ -95,13 +66,13 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-search-orm</artifactId>
-            <scope>test</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator-cdi</artifactId>
             <version>5.2.4.Final</version>
-            <scope>test</scope>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.jboss.logging</groupId>
@@ -122,65 +93,25 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>javaee.samples.frameworks</groupId>
+            <artifactId>junit-mock-injection</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.jbossts</groupId>
             <artifactId>jbossjta</artifactId>
             <version>4.16.6.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.5</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.weld.se</groupId>
-            <artifactId>weld-se</artifactId>
-            <version>2.2.16.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- WELD-SE-000014: bean discovery-mode="annotated" support is disabled.
-            Add org.jboss:jandex to the classpath to enable it. -->
-            <groupId>org.jboss</groupId>
-            <artifactId>jandex</artifactId>
-            <version>1.2.1.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.deltaspike.cdictrl</groupId>
-            <artifactId>deltaspike-cdictrl-weld</artifactId>
-            <version>1.6.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.deltaspike.modules</groupId>
-            <artifactId>deltaspike-test-control-module-impl</artifactId>
-            <version>1.6.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.deltaspike.modules</groupId>
-            <artifactId>deltaspike-jpa-module-impl</artifactId>
-            <version>1.6.0</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.deltaspike.modules</groupId>
-            <artifactId>deltaspike-data-module-impl</artifactId>
-            <version>1.6.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.web</groupId>
-            <artifactId>javax.el</artifactId>
-            <version>2.2.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -198,21 +129,6 @@
                 </includes>
             </testResource>
         </testResources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.19.1</version>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <org.apache.activemq.default.directory.prefix>${project.build.directory}/</org.apache.activemq.default.directory.prefix>
-                            <jms.broker.socket>tcp://localhost:${jms.broker.port}</jms.broker.socket>
-                            <org.apache.activemq.SERIALIZABLE_PACKAGES>audit.domain</org.apache.activemq.SERIALIZABLE_PACKAGES>
-                        </systemPropertyVariables>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -227,7 +143,6 @@
                         <phase>initialize</phase>
                         <configuration>
                             <portNames>
-                                <portName>jms.broker.port</portName>
                                 <portName>embedmongo.port</portName>
                             </portNames>
                         </configuration>
@@ -296,11 +211,6 @@
                         <configuration>
                             <redirectTestOutputToFile>true</redirectTestOutputToFile>
                             <trimStackTrace>false</trimStackTrace>
-                            <systemPropertyVariables>
-                                <org.apache.activemq.default.directory.prefix>${project.build.directory}/</org.apache.activemq.default.directory.prefix>
-                                <jms.broker.socket>tcp://localhost:${jms.broker.port}</jms.broker.socket>
-                                <org.apache.activemq.SERIALIZABLE_PACKAGES>audit.domain</org.apache.activemq.SERIALIZABLE_PACKAGES>
-                            </systemPropertyVariables>
                         </configuration>
                     </execution>
                     <execution>
