@@ -25,6 +25,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jms.JMSContext;
 import javax.jms.Topic;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @ApplicationScoped
 public class AuditMessagingProducerService {
@@ -35,7 +37,8 @@ public class AuditMessagingProducerService {
     @Resource(mappedName = "java:jms/topic/audit")
     Topic topic;
 
-    public void send(Audit audit) {
-        ctx.createProducer().send(topic, audit);
+    public void send(@NotNull @Valid Audit audit) {
+        ctx.createProducer()
+                .send(topic, audit);
     }
 }
