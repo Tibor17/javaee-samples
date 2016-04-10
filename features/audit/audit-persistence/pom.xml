@@ -150,6 +150,16 @@
                 </executions>
             </plugin>
             <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Dependencies>org.hibernate:ogm services, org.hibernate.ogm.mongodb services</Dependencies>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>com.syncleus.maven.plugins</groupId>
                 <artifactId>maven-mongodb-plugin</artifactId>
                 <version>1.1.1</version>

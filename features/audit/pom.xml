@@ -38,6 +38,8 @@
         <module>audit-jms-consumer</module>
         <module>audit-rest-server</module>
         <module>audit-rest-client</module>
+        <module>audit-endpoint</module>
+        <module>audit-jms-query-search</module>
     </modules>
 
     <properties>
@@ -67,16 +69,6 @@
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <configuration>
-                        <archive>
-                            <manifestEntries>
-                                <Dependencies>org.hibernate:ogm services, org.hibernate.ogm.mongodb services</Dependencies>
-                            </manifestEntries>
-                        </archive>
                     </configuration>
                 </plugin>
             </plugins>
