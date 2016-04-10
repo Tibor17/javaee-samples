@@ -17,5 +17,4 @@
  # under the License.
  ##
 
-javaee.samples.frameworks.junitjparule.spi.JMSResourcePoint
-javaee.samples.frameworks.junitjparule.spi.JMSContextInjectionPoint
+javaee.samples.frameworks.injection.spi.MessageDrivenContext

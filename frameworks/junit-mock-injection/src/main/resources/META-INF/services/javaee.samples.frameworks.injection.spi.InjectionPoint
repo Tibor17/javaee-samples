@@ -17,4 +17,5 @@
  # under the License.
  ##
 
-injection.spi.MessageDrivenContext
+javaee.samples.frameworks.injection.spi.JMSResourcePoint
+javaee.samples.frameworks.injection.spi.JMSContextInjectionPoint
