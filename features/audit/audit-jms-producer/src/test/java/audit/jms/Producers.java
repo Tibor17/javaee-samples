@@ -18,7 +18,7 @@
  */
 package audit.jms;
 
-import javaee.samples.frameworks.junitjparule.jms.JMSContextMock;
+import javaee.samples.frameworks.injection.jms.JMSContextMock;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
@@ -28,7 +28,7 @@ import javax.jms.JMSContext;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import static javaee.samples.frameworks.junitjparule.spi.JMSResourceCtx.CTX;
+import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
 import static javax.persistence.Persistence.createEntityManagerFactory;
 
 @ApplicationScoped

@@ -24,10 +24,10 @@ import audit.jms.consumer.AuditMessagingConsumerService;
 import audit.jms.producer.AuditMessagingProducerService;
 import audit.jms.unit.AuditStorageListener;
 import audit.persistence.service.AuditService;
-import javaee.samples.frameworks.junitjparule.DatabaseConfiguration;
-import javaee.samples.frameworks.junitjparule.InjectionPointOrdinal;
-import javaee.samples.frameworks.junitjparule.InjectionRunner;
-import javaee.samples.frameworks.junitjparule.WithManagedTransactions;
+import javaee.samples.frameworks.injection.DatabaseConfiguration;
+import javaee.samples.frameworks.injection.InjectionPointOrdinal;
+import javaee.samples.frameworks.injection.InjectionRunner;
+import javaee.samples.frameworks.injection.WithManagedTransactions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +42,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javaee.samples.frameworks.junitjparule.DB.UNDEFINED;
+import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 

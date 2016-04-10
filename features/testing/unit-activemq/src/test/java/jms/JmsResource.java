@@ -18,7 +18,7 @@
  */
 package jms;
 
-import javaee.samples.frameworks.junitjparule.spi.InjectionPoint;
+import javaee.samples.frameworks.injection.spi.InjectionPoint;
 import jms.wrappers.JMSBroker;
 import jms.wrappers.JMSConsumer;
 import jms.wrappers.JMSProducer;

@@ -16,17 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package jms;
+package javaee.samples.frameworks.injection.jms;
 
-import javaee.samples.frameworks.injection.InjectionRunner;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import javax.annotation.Resource;
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
-import javax.enterprise.inject.Vetoed;
-import javax.jms.*;
-
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.TextMessage;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeoutException;
@@ -35,27 +32,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-@Vetoed
-@RunWith(InjectionRunner.class)
-@MessageDriven
-public class JmsInjectionTest implements MessageListener {
-
-    private final CyclicBarrier synchronizer = new CyclicBarrier(2);
-
-    @Resource(mappedName = "java:/ConnectionFactory")
-    private ConnectionFactory connectionFactory;
-
-    @Resource(mappedName = "java:jms/queue/test")
-    private Queue producerQueue;
-
-    @Test
-    public void test() throws Exception {
-        Connection connection = connectionFactory.createConnection();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        MessageProducer producer = session.createProducer(producerQueue);
-        producer.send(session.createTextMessage("Test Message"));
-        synchronizer.await(3, SECONDS);
-    }
+@MessageDriven(activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:jms/queue/test"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
+})
+public class Receiver implements MessageListener {
+    CyclicBarrier synchronizer;
 
     @Override
     public void onMessage(Message message) {

@@ -16,54 +16,63 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.unit;
+package javaee.samples.frameworks.injection.resource;
 
-import audit.domain.Audit;
-import audit.jms.consumer.AuditListener;
-import audit.jms.consumer.AuditMessagingConsumerService;
-import audit.jms.producer.AuditMessagingProducerService;
 import javaee.samples.frameworks.injection.InjectionRunner;
+import javaee.samples.frameworks.injection.WithManagedTransactions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
 import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.Vetoed;
 import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
+import javax.jms.Session;
 
-import java.util.concurrent.CyclicBarrier;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Vetoed
 @RunWith(InjectionRunner.class)
-public class JmsCommunicationTest {
-
-    private final CyclicBarrier synchronizer = new CyclicBarrier(2);
-
-    @Resource(mappedName = "java:/ConnectionFactory")
-    ConnectionFactory connectionFactory;
-
+@WithManagedTransactions
+public class ResourceTest {
     @Produces
-    AuditListener listener = new Listener(synchronizer);
+    Session session = mock(Session.class);
 
     @Inject
-    AuditMessagingConsumerService consumerService;
+    Session in;
+
+    @Resource
+    static Session staticResource;
+
+    @Resource
+    static Session thisResource;
 
     @Inject
-    AuditMessagingProducerService producerService;
+    SessionService service;
 
     @Test
-    public void shouldValidateJmsDispatch() throws Exception {
-        assertThat(connectionFactory)
+    public void shouldInjectResource() {
+        assertThat(in)
                 .isNotNull();
 
-        Audit audit = new Audit();
-        audit.setModule("test");
+        assertThat(staticResource)
+                .isNotNull();
 
-        producerService.send(audit);
-        synchronizer.await(3, SECONDS);
+        assertThat(thisResource)
+                .isNotNull();
+
+        assertThat(service)
+                .isNotNull();
+
+        assertThat(service)
+                .extracting(SessionService::getSession)
+                .doesNotContainNull();
+
+        assertThat(service)
+                .extracting(SessionService::getStaticResource)
+                .doesNotContainNull();
+
+        assertThat(service)
+                .extracting(SessionService::getThisResource)
+                .doesNotContainNull();
     }
 }

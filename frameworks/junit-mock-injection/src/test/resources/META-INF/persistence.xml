@@ -25,8 +25,8 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>java:global/jdbc/plainObjectModel</jta-data-source>
         <non-jta-data-source>java:global/jdbc/nonPlainObjectModel</non-jta-data-source>
-        <class>javaee.samples.frameworks.junitjparule.A</class>
-        <class>javaee.samples.frameworks.junitjparule.entities.MyEntity</class>
+        <class>javaee.samples.frameworks.injection.A</class>
+        <class>javaee.samples.frameworks.injection.entities.MyEntity</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <shared-cache-mode>NONE</shared-cache-mode>
         <validation-mode>CALLBACK</validation-mode>
@@ -49,14 +49,14 @@
         </properties>
     </persistence-unit>
     <persistence-unit name="containerless-test-pu" transaction-type="RESOURCE_LOCAL">
-        <class>javaee.samples.frameworks.junitjparule.A</class>
-        <class>javaee.samples.frameworks.junitjparule.entities.MyEntity</class>
+        <class>javaee.samples.frameworks.injection.A</class>
+        <class>javaee.samples.frameworks.injection.entities.MyEntity</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>NONE</shared-cache-mode>
         <validation-mode>NONE</validation-mode>
     </persistence-unit>
     <persistence-unit name="table-generator-pu" transaction-type="RESOURCE_LOCAL">
-        <class>javaee.samples.frameworks.junitjparule.tablegenerator.EntityWithTableGenerator</class>
+        <class>javaee.samples.frameworks.injection.tablegenerator.EntityWithTableGenerator</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
     </persistence-unit>
 </persistence>
