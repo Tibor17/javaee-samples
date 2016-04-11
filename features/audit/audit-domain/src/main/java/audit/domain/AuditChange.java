@@ -48,16 +48,25 @@ public class AuditChange extends BaseEntity implements Serializable {
             new ObjectStreamField("newValue", String.class)
     };
 
+    /**
+     * @serialField property key of this audit change
+     */
     @Column(name = "KEY", nullable = false, updatable = false)
     @NotNull
     @Size(min = 1, max = 255)
     private String key;
 
+    /**
+     * @serialField old property value of this change
+     */
     @Column(name = "OLD_VALUE", updatable = false)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
     private String oldValue;
 
+    /**
+     * @serialField new property value of this audit change
+     */
     @Column(name = "NEW_VALUE", updatable = false)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
@@ -100,13 +109,5 @@ public class AuditChange extends BaseEntity implements Serializable {
     @Override
     public int hashCode() {
         return hash(getKey(), getOldValue(), getNewValue());
-    }
-
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
-    }
-
-    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
     }
 }

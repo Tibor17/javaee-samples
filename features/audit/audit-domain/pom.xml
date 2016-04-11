@@ -32,6 +32,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>

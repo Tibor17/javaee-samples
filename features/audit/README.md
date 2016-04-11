@@ -39,3 +39,5 @@ https://docs.mongodb.org/manual/reference/method/js-cursor/
 https://docs.mongodb.org/manual/reference/method/cursor.sort/#cursor.sort
 News
 http://in.relation.to/hibernate-ogm/
+serialization knowhow
+http://what-when-how.com/Tutorial/Java-SE-6/Java-SE-6-00980.html

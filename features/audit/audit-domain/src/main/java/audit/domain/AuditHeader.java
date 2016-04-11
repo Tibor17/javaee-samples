@@ -46,10 +46,16 @@ public class AuditHeader extends BaseEntity implements Serializable {
             new ObjectStreamField("value", String.class)
     };
 
+    /**
+     * @serialField property key of this audit header
+     */
     @Column(name = "KEY", updatable = false)
     @Size(max = 255)
     private String key;
 
+    /**
+     * @serialField property key of this audit value
+     */
     @Column(name = "VALUE", updatable = false)
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
@@ -83,13 +89,5 @@ public class AuditHeader extends BaseEntity implements Serializable {
     @Override
     public int hashCode() {
         return hash(getKey(), getValue());
-    }
-
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
-    }
-
-    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
     }
 }

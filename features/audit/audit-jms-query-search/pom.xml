@@ -29,5 +29,10 @@
     </parent>
 
     <artifactId>audit-jms-query-search</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>audit-query-search-api</module>
+    </modules>
 
 </project>
