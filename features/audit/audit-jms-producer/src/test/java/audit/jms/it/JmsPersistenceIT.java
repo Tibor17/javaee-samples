@@ -85,6 +85,7 @@ public class JmsPersistenceIT {
         original.setRequest(randomUUID());
         original.setInitiator(5);
         original.setModule("test");
+        original.setDescription("desc");
         original.getFlows()
                 .add(new AuditFlow());
 
@@ -97,8 +98,8 @@ public class JmsPersistenceIT {
                 .hasSize(1);
 
         assertThat(database)
-                .extracting(Audit::getModule, Audit::getInitiator, Audit::getRequest)
-                .contains(tuple(original.getModule(), original.getInitiator(), original.getRequest()));
+                .extracting(Audit::getModule, Audit::getDescription, Audit::getInitiator, Audit::getRequest)
+                .contains(tuple(original.getModule(), original.getDescription(), original.getInitiator(), original.getRequest()));
 
         assertThat(database.get(0).getFlows())
                 .hasSize(1);

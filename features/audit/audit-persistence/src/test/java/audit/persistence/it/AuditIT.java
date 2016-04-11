@@ -65,6 +65,7 @@ public class AuditIT {
         expected.setRequest(randomUUID());
         expected.setInitiator(1);
         expected.setModule("audit-module");
+        expected.setDescription("desc");
 
         service.saveFlow(expected, "some error", singleton(header), singleton(change));
     }
@@ -80,10 +81,13 @@ public class AuditIT {
                 .isEqualTo(expected.getRequest());
 
         assertThat(actual.getInitiator())
-                .isEqualTo(1L);
+                .isEqualTo(expected.getInitiator());
 
         assertThat(actual.getModule())
-                .isEqualTo("audit-module");
+                .isEqualTo(expected.getModule());
+
+        assertThat(actual.getDescription())
+                .isEqualTo(expected.getDescription());
 
         assertThat(actual.getFlows())
                 .hasSize(1);

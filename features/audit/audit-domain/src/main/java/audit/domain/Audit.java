@@ -49,7 +49,8 @@ public class Audit extends BaseEntity implements Serializable {
 
     private static final ObjectStreamField[] serialPersistentFields = {
             new ObjectStreamField("initiator", Long.TYPE),
-            new ObjectStreamField("module", String.class)
+            new ObjectStreamField("module", String.class),
+            new ObjectStreamField("description", String.class)
     };
 
     /**
@@ -81,6 +82,14 @@ public class Audit extends BaseEntity implements Serializable {
     @Column(name = "STORED")
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     private transient Calendar storedAt;
+
+    /**
+     * @serialField description java.langString audit-description
+     */
+    @Column(name = "DESCRIPTION", updatable = false)
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Size(max = 255)
+    private String description;
 
     /**
      * @serial flows - List<AuditFlow>
@@ -118,6 +127,14 @@ public class Audit extends BaseEntity implements Serializable {
 
     public Calendar getStoredAt() {
         return storedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public List<AuditFlow> getFlows() {

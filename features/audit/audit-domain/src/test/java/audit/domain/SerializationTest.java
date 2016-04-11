@@ -32,6 +32,7 @@ public class SerializationTest {
         expected.setModule("module");
         expected.setInitiator(1L);
         expected.setRequest(randomUUID());
+        expected.setDescription("desc");
         AuditFlow flow = new AuditFlow();
         flow.setError("error");
         expected.getFlows().add(flow);
@@ -64,6 +65,14 @@ public class SerializationTest {
         assertThat(actual)
                 .extracting(Audit::getRequest)
                 .containsExactly(expected.getRequest());
+
+        assertThat(actual)
+                .extracting(Audit::getDescription)
+                .containsExactly(expected.getDescription());
+
+        assertThat(actual)
+                .extracting(Audit::getStoredAt)
+                .containsExactly(expected.getStoredAt());
 
         assertThat(actual.getFlows())
                 .extracting(AuditFlow::getError)

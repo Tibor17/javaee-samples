@@ -80,9 +80,39 @@ public abstract class AbstractAuditValidationTest {
     }
 
     @Test
-    public void shouldValidateAudit() {
+    public void shouldFailAuditValidation$5() {
+        String desc = "";
+        for (int i = 0; i < 256; i++) {
+            desc += " ";
+        }
+        audit.setDescription(desc);
+        audit.setModule(" ");
+        audit.setRequest(randomUUID());
+        audit.getFlows().add(new AuditFlow());
+        Set<ConstraintViolation<Audit>> constraintViolations = validator().validate(audit);
+        assertThat(constraintViolations)
+                .hasSize(1);
+    }
+
+    @Test
+    public void shouldValidateAudit$1() {
         audit.setRequest(randomUUID());
         audit.setModule("0123456789012345678901234567890");
+        audit.getFlows().add(new AuditFlow());
+        Set<ConstraintViolation<Audit>> constraintViolations = validator().validate(audit);
+        assertThat(constraintViolations)
+                .isEmpty();
+    }
+
+    @Test
+    public void shouldValidateAudit$2() {
+        audit.setRequest(randomUUID());
+        audit.setModule("0123456789012345678901234567890");
+        String desc = "";
+        for (int i = 0; i < 255; i++) {
+            desc += " ";
+        }
+        audit.setDescription(desc);
         audit.getFlows().add(new AuditFlow());
         Set<ConstraintViolation<Audit>> constraintViolations = validator().validate(audit);
         assertThat(constraintViolations)
