@@ -24,16 +24,28 @@
 
     <parent>
         <groupId>javaee.samples</groupId>
-        <artifactId>audit</artifactId>
+        <artifactId>audit-jms-query-search</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-jms-query-search</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>audit-query-persistence-api</artifactId>
 
-    <modules>
-        <module>audit-query-search-api</module>
-        <module>audit-query-persistence-api</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>audit-query-search-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 </project>

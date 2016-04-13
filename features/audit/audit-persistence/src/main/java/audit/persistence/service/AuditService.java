@@ -22,18 +22,28 @@ import audit.domain.Audit;
 import audit.domain.AuditChange;
 import audit.domain.AuditFlow;
 import audit.domain.AuditHeader;
+import audit.query.search.api.Matcher;
+import audit.query.search.api.Sorter;
+import audit.query.search.persistence.api.Predicates;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.query.dsl.QueryBuilder;
+import org.hibernate.search.jpa.FullTextQuery;
+import org.hibernate.search.query.dsl.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.lucene.search.SortField.Type.LONG;
+import static org.apache.lucene.search.SortField.Type.STRING;
 import static org.hibernate.search.jpa.Search.getFullTextEntityManager;
 
 @ApplicationScoped
@@ -85,7 +95,7 @@ public class AuditService {
         em.persist(e);
     }
 
-    public @SuppressWarnings("unchecked") List<Audit> searchAuditPhrase(String textSearch, int fromRownum, int maxRownums) {
+    public List<Audit> searchAuditPhrase(int fromRownum, int maxRownums, Predicates predicates) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -93,14 +103,23 @@ public class AuditService {
                 .forEntity(Audit.class)
                 .get();
 
-        Query luceneQuery = qb.phrase()
-                .onField("module")
-                //.andField("initiator")
-                .sentence(textSearch)
-                .createQuery();
+        Function<Matcher<?>, Query> query = m -> qb.phrase().onField(m.getFieldName()).sentence(m.getSearchedText()).createQuery();
+        BiFunction<MustJunction, Matcher<?>, MustJunction> and = (j, m) -> j.must(query.apply(m));
 
-        return fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class)
-                .setFirstResult(fromRownum)
+        MustJunction junction =
+                predicates.getMatchers()
+                .stream()
+                .reduce(null, (j, m) -> j == null ? qb.bool().must(query.apply(m)) : and.apply(j, m), (a, b) -> a);
+
+        Query luceneQuery = junction.createQuery();
+
+        FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
+
+        Sort sort = toSort(predicates.getSorters());
+        if (sort.getSort().length != 0)
+            ftq.setSort(sort);
+
+        return ftq.setFirstResult(fromRownum)
                 .setMaxResults(maxRownums)
                 .getResultList();
     }
@@ -140,10 +159,27 @@ public class AuditService {
                 .toEntity(e)
                 .createQuery();
 
-
         return fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class)
                 .setFirstResult(fromRownum)
                 .setMaxResults(maxRownums)
                 .getResultList();
+    }
+
+    private static SortField toSortField(Sorter sorter) {
+        Class<?> ft = sorter.getFieldType();
+        if (ft == String.class)
+            return new SortField(sorter.getFieldName(), STRING, !sorter.isAscending());
+        else if (ft == long.class || ft == Long.class)
+            return new SortField(sorter.getFieldName(), LONG, !sorter.isAscending());
+        else
+            throw new IllegalStateException("no mapped field type " + ft);
+    }
+
+    private static Sort toSort(Collection<Sorter<?>> sorters) {
+        Collection<SortField> fields = sorters.stream()
+                .map(AuditService::toSortField)
+                .collect(toList());
+        int count = fields.size();
+        return new Sort(fields.toArray(new SortField[count]));
     }
 }

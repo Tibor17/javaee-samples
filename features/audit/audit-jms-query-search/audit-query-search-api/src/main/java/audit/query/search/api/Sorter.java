@@ -18,23 +18,45 @@
  */
 package audit.query.search.api;
 
-public final class StringFieldMatcher<T> extends Matcher<T> {
-    private final String fieldName;
-    private final Class<T> entityType;
+import java.io.Serializable;
+import java.util.Objects;
 
-    public StringFieldMatcher(String searchedText, String fieldName, Class<T> entityType) {
-        super(searchedText);
+import static java.util.Objects.hash;
+
+public class Sorter<T extends Serializable & Comparable<T>> {
+    private final Class<T> fieldType;
+    private final String fieldName;
+    private final boolean ascending;
+
+    public Sorter(String fieldName, boolean ascending, Class<T> fieldType) {
         this.fieldName = fieldName;
-        this.entityType = entityType;
+        this.ascending = ascending;
+        this.fieldType = fieldType;
     }
 
-    @Override
     public String getFieldName() {
         return fieldName;
     }
 
+    public boolean isAscending() {
+        return ascending;
+    }
+
+    public Class<T> getFieldType() {
+        return fieldType;
+    }
+
     @Override
-    public Class<T> getEntityType() {
-        return entityType;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sorter<?> sorter = (Sorter<?>) o;
+        return Objects.equals(getFieldType(), sorter.getFieldType())
+                && Objects.equals(getFieldName(), sorter.getFieldName());
+    }
+
+    @Override
+    public int hashCode() {
+        return hash(getFieldType(), getFieldName());
     }
 }

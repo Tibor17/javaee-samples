@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.persistence.*;
 
+import static audit.query.search.persistence.api.Predicates.predicates;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.singleton;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
@@ -112,10 +113,10 @@ public class AuditIT {
                 .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
                 .containsSequence(tuple("k", "o", "n"));
 
-        assertThat(service.searchAuditPhrase("audit-module", 0, MAX_VALUE))
+        assertThat(service.searchAuditPhrase(0, MAX_VALUE, predicates().matchModule("audit-module")))
                 .hasSize(1);
 
-        assertThat(service.searchAuditPhrase("audit-moduleX", 0, MAX_VALUE))
+        assertThat(service.searchAuditPhrase(0, MAX_VALUE, predicates().matchModule("audit-moduleX")))
                 .hasSize(0);
 
         assertThat(service.searchAuditEntity("audit-moduleX", 0, MAX_VALUE))
