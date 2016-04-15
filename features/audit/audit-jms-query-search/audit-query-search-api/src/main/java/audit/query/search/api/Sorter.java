@@ -21,17 +21,17 @@ package audit.query.search.api;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static java.util.Objects.hash;
+import static java.util.Objects.*;
 
 public class Sorter<T extends Serializable & Comparable<T>> {
-    private final Class<T> fieldType;
     private final String fieldName;
     private final boolean ascending;
+    private final Class<T> fieldType;
 
     public Sorter(String fieldName, boolean ascending, Class<T> fieldType) {
-        this.fieldName = fieldName;
+        this.fieldName = requireNonNull(fieldName);
         this.ascending = ascending;
-        this.fieldType = fieldType;
+        this.fieldType = requireNonNull(fieldType);
     }
 
     public String getFieldName() {

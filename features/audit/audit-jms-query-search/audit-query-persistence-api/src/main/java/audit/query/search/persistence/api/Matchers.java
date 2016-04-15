@@ -24,6 +24,7 @@ import audit.query.search.api.Matcher;
 import audit.query.search.api.StringFieldMatcher;
 
 import javax.enterprise.inject.Vetoed;
+import java.util.Calendar;
 
 @Vetoed
 public final class Matchers {
@@ -35,11 +36,11 @@ public final class Matchers {
         return new StringFieldMatcher<>(s, "module", Audit.class);
     }
 
-    public static Matcher<Audit> initiator(String s) {
+    public static Matcher<Audit> initiator(Long s) {
         return new StringFieldMatcher<>(s, "initiator", Audit.class);
     }
 
-    public static Matcher<Audit> storedAt(String s) {
+    public static Matcher<Audit> storedAt(Calendar s) {
         return new StringFieldMatcher<>(s, "storedAt", Audit.class);
     }
 

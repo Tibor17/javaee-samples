@@ -23,6 +23,7 @@ import audit.query.search.api.Sorter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 
 import static audit.query.search.persistence.api.Matchers.*;
@@ -69,7 +70,7 @@ public final class Predicates {
         return sort(module(false));
     }
 
-    public Predicates matchInitiator(String txt) {
+    public Predicates matchInitiator(long txt) {
         return match(initiator(txt));
     }
 
@@ -81,7 +82,7 @@ public final class Predicates {
         return sort(initiator(false));
     }
 
-    public Predicates matchStoredAt(String txt) {
+    public Predicates matchStoredAt(Calendar txt) {
         return match(storedAt(txt));
     }
 

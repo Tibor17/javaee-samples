@@ -60,7 +60,7 @@ public class AuditChange extends BaseEntity implements Serializable {
      * @serialField old property value of this change
      */
     @Column(name = "OLD_VALUE", updatable = false)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Field(store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
     private String oldValue;
 
@@ -68,7 +68,7 @@ public class AuditChange extends BaseEntity implements Serializable {
      * @serialField new property value of this audit change
      */
     @Column(name = "NEW_VALUE", updatable = false)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Field(store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
     private String newValue;
 

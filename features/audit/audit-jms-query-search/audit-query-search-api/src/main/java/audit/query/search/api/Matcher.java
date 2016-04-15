@@ -20,19 +20,19 @@ package audit.query.search.api;
 
 import java.util.Objects;
 
-import static java.util.Objects.hash;
+import static java.util.Objects.*;
 
 public abstract class Matcher<T> {
-    private final String searchedText;
+    private final Object searchedText;
 
-    public Matcher(String searchedText) {
-        this.searchedText = searchedText;
+    public Matcher(Object searchedText) {
+        this.searchedText = requireNonNull(searchedText);
     }
 
     public abstract String getFieldName();
     public abstract Class<T> getEntityType();
 
-    public String getSearchedText() {
+    public Object getSearchedText() {
         return searchedText;
     }
 
@@ -50,7 +50,7 @@ public abstract class Matcher<T> {
         return hash(getFieldName(), getEntityType());
     }
 
-    public static <T> Matcher<T> field(String searchedText, String fieldName, Class<T> entityType) {
+    public static <T> Matcher<T> field(Object searchedText, String fieldName, Class<T> entityType) {
         return new StringFieldMatcher<>(searchedText, fieldName, entityType);
     }
 }

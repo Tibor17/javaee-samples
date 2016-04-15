@@ -57,7 +57,7 @@ public class AuditHeader extends BaseEntity implements Serializable {
      * @serialField property key of this audit value
      */
     @Column(name = "VALUE", updatable = false)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Field(store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
     private String value;
 

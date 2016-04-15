@@ -19,6 +19,7 @@
 package audit.domain;
 
 import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
@@ -42,8 +43,12 @@ public class AuditFlow extends BaseEntity implements Serializable {
     private static final ObjectStreamField[] serialPersistentFields = {new ObjectStreamField("error", String.class)};
 
     @Column(name = "ERROR", updatable = false)
-    @Field(index = org.hibernate.search.annotations.Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     @Size(min = 1, max = 255)
+    @Fields({
+            @Field(store = Store.YES, termVector = TermVector.YES),
+            @Field(name = "sortError", analyze = Analyze.NO, index = Index.NO)
+    })
+    @SortableField(forField = "sortError")
     private String error;
 
     @OneToMany(fetch = EAGER, orphanRemoval = true)

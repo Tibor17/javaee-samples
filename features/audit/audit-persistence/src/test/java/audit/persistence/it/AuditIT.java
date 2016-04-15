@@ -33,7 +33,6 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.persistence.*;
 
-import static audit.query.search.persistence.api.Predicates.predicates;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.singleton;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
@@ -53,6 +52,9 @@ public class AuditIT {
 
     @Before
     public void fillDatabase() {
+        service.findAll()
+                .forEach(service::remove);
+
         AuditHeader header = new AuditHeader();
         header.setKey("hk");
         header.setValue("hv");
@@ -113,19 +115,19 @@ public class AuditIT {
                 .extracting(AuditChange::getKey, AuditChange::getOldValue, AuditChange::getNewValue)
                 .containsSequence(tuple("k", "o", "n"));
 
-        assertThat(service.searchAuditPhrase(0, MAX_VALUE, predicates().matchModule("audit-module")))
+        assertThat(service.searchAuditPhrase(0, MAX_VALUE, p -> p.matchModule("audit-module")))
                 .hasSize(1);
 
-        assertThat(service.searchAuditPhrase(0, MAX_VALUE, predicates().matchModule("audit-moduleX")))
+        assertThat(service.searchAuditPhrase(0, MAX_VALUE, p -> p.matchModule("audit-moduleX")))
                 .hasSize(0);
 
-        assertThat(service.searchAuditEntity("audit-moduleX", 0, MAX_VALUE))
+        assertThat(service.searchAuditLike(0, MAX_VALUE, p -> p.matchModule("audit-moduleX")))
                 .hasSize(1);
 
-        assertThat(service.searchAuditEntity("audit", 0, MAX_VALUE))
+        assertThat(service.searchAuditLike(0, MAX_VALUE, p -> p.matchModule("audit")))
                 .hasSize(1);
 
-        assertThat(service.searchAuditEntity("module", 0, MAX_VALUE))
+        assertThat(service.searchAuditLike(0, MAX_VALUE, p -> p.matchModule("module")))
                 .hasSize(1);
 
         assertThat(service.searchAuditFlowPhrase("some error", 0, MAX_VALUE))

@@ -37,10 +37,14 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import java.beans.*;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
+import static audit.query.search.persistence.api.Predicates.predicates;
+import static java.beans.Introspector.getBeanInfo;
 import static java.util.stream.Collectors.toList;
 import static org.apache.lucene.search.SortField.Type.LONG;
 import static org.apache.lucene.search.SortField.Type.STRING;
@@ -48,6 +52,20 @@ import static org.hibernate.search.jpa.Search.getFullTextEntityManager;
 
 @ApplicationScoped
 public class AuditService {
+    private static final Invoker $ = (target, beanProperty, value) -> {
+        try {
+            BeanInfo beanInfo = getBeanInfo(Audit.class);
+            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors()) {
+                if (beanProperty.equals(descriptor.getName())) {
+                    new Expression(target, descriptor.getWriteMethod().getName(), new Object[] {value})
+                            .execute();
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getLocalizedMessage(), e);
+        }
+    };
+
     @Inject
     EntityManager em;
 
@@ -67,7 +85,7 @@ public class AuditService {
 
     @Transactional
     public void remove(Audit e) {
-        em.remove(e);
+        em.remove(findAuditById(e.getId()));
     }
 
     @Transactional
@@ -95,7 +113,7 @@ public class AuditService {
         em.persist(e);
     }
 
-    public List<Audit> searchAuditPhrase(int fromRownum, int maxRownums, Predicates predicates) {
+    public List<Audit> searchAuditPhrase(int fromRownum, int maxRownums, @NotNull UnaryOperator<Predicates> where) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -103,11 +121,18 @@ public class AuditService {
                 .forEntity(Audit.class)
                 .get();
 
-        Function<Matcher<?>, Query> query = m -> qb.phrase().onField(m.getFieldName()).sentence(m.getSearchedText()).createQuery();
+        Function<Matcher<?>, Query> query = m ->
+                qb.phrase()
+                        .onField(m.getFieldName())
+                        .sentence(m.getSearchedText() == null ? null : m.getSearchedText().toString())
+                        .createQuery();
+
         BiFunction<MustJunction, Matcher<?>, MustJunction> and = (j, m) -> j.must(query.apply(m));
 
+        Predicates p = where.apply(predicates());
+
         MustJunction junction =
-                predicates.getMatchers()
+                p.getMatchers()
                 .stream()
                 .reduce(null, (j, m) -> j == null ? qb.bool().must(query.apply(m)) : and.apply(j, m), (a, b) -> a);
 
@@ -115,7 +140,7 @@ public class AuditService {
 
         FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
 
-        Sort sort = toSort(predicates.getSorters());
+        Sort sort = toSort(p.getSorters());
         if (sort.getSort().length != 0)
             ftq.setSort(sort);
 
@@ -124,7 +149,46 @@ public class AuditService {
                 .getResultList();
     }
 
-    public @SuppressWarnings("unchecked") List<AuditFlow> searchAuditFlowPhrase(String textSearch, int fromRownum, int maxRownums) {
+    public List<Audit> searchAuditLike(int fromRownum, int maxRownums, @NotNull UnaryOperator<Predicates> where) {
+        FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
+
+        QueryBuilder qb = fullTextEntityManager.getSearchFactory()
+                .buildQueryBuilder()
+                .forEntity(Audit.class)
+                .get();
+
+        Function<Matcher<?>, Query> query = m -> {
+            Audit e = new Audit();
+            $.writeProperty(e, m.getFieldName(), m.getSearchedText());
+            return qb.moreLikeThis()
+                    .comparingField(m.getFieldName())
+                    .toEntity(e)
+                    .createQuery();
+        };
+
+        BiFunction<MustJunction, Matcher<?>, MustJunction> and = (j, m) -> j.must(query.apply(m));
+
+        Predicates p = where.apply(predicates());
+
+        MustJunction junction =
+                p.getMatchers()
+                        .stream()
+                        .reduce(null, (j, m) -> j == null ? qb.bool().must(query.apply(m)) : and.apply(j, m), (a, b) -> a);
+
+        Query luceneQuery = junction.createQuery();
+
+        FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
+
+        Sort sort = toSort(p.getSorters());
+        if (sort.getSort().length != 0)
+            ftq.setSort(sort);
+
+        return ftq.setFirstResult(fromRownum)
+                .setMaxResults(maxRownums)
+                .getResultList();
+    }
+
+    public List<AuditFlow> searchAuditFlowPhrase(String textSearch, int fromRownum, int maxRownums) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
         QueryBuilder qb = fullTextEntityManager.getSearchFactory()
@@ -138,28 +202,6 @@ public class AuditService {
                 .createQuery();
 
         return fullTextEntityManager.createFullTextQuery(luceneQuery, AuditFlow.class)
-                .setFirstResult(fromRownum)
-                .setMaxResults(maxRownums)
-                .getResultList();
-    }
-
-    public @SuppressWarnings("unchecked") List<Audit> searchAuditEntity(String textSearch, int fromRownum, int maxRownums) {
-        FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
-
-        QueryBuilder qb = fullTextEntityManager.getSearchFactory()
-                .buildQueryBuilder()
-                .forEntity(Audit.class)
-                .get();
-
-        Audit e = new Audit();
-        e.setModule(textSearch);
-
-        Query luceneQuery = qb.moreLikeThis()
-                .comparingFields("module")
-                .toEntity(e)
-                .createQuery();
-
-        return fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class)
                 .setFirstResult(fromRownum)
                 .setMaxResults(maxRownums)
                 .getResultList();

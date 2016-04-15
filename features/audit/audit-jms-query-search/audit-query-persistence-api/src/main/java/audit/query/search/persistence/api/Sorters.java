@@ -28,42 +28,42 @@ public final class Sorters {
     }
 
     public static Sorter<String> module(boolean ascending) {
-        return new Sorter<>("module", ascending, String.class);
+        return new Sorter<>("sortModule", ascending, String.class);
     }
 
     public static Sorter<String> module() {
-        return new Sorter<>("module", true, String.class);
+        return new Sorter<>("sortModule", true, String.class);
     }
 
     public static Sorter<Long> initiator(boolean ascending) {
-        return new Sorter<>("initiator", ascending, Long.class);
+        return new Sorter<>("sortInitiator", ascending, Long.class);
     }
 
     public static Sorter<Long> initiator() {
-        return new Sorter<>("initiator", true, Long.class);
+        return new Sorter<>("sortInitiator", true, Long.class);
     }
 
     public static Sorter<Calendar> storedAt(boolean ascending) {
-        return new Sorter<>("storedAt", ascending, Calendar.class);
+        return new Sorter<>("sortStoredAt", ascending, Calendar.class);
     }
 
     public static Sorter<Calendar> storedAt() {
-        return new Sorter<>("storedAt", true, Calendar.class);
+        return new Sorter<>("sortStoredAt", true, Calendar.class);
     }
 
     public static Sorter<String> description(boolean ascending) {
-        return new Sorter<>("description", ascending, String.class);
+        return new Sorter<>("sortDescription", ascending, String.class);
     }
 
     public static Sorter<String> description() {
-        return new Sorter<>("description", true, String.class);
+        return new Sorter<>("sortDescription", true, String.class);
     }
 
     public static Sorter<String> error(boolean ascending) {
-        return new Sorter<>("error", ascending, String.class);
+        return new Sorter<>("sortError", ascending, String.class);
     }
 
     public static Sorter<String> error() {
-        return new Sorter<>("error", true, String.class);
+        return new Sorter<>("sortError", true, String.class);
     }
 }

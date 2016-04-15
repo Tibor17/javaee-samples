@@ -16,27 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.query.search.api;
+package audit.persistence.service;
 
-import static java.util.Objects.requireNonNull;
-
-public final class StringFieldMatcher<T> extends Matcher<T> {
-    private final String fieldName;
-    private final Class<T> entityType;
-
-    public StringFieldMatcher(Object searchedText, String fieldName, Class<T> entityType) {
-        super(searchedText);
-        this.fieldName = requireNonNull(fieldName);
-        this.entityType = requireNonNull(entityType);
-    }
-
-    @Override
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    @Override
-    public Class<T> getEntityType() {
-        return entityType;
-    }
+@FunctionalInterface
+public interface Invoker {
+    void writeProperty(Object target, String beanProperty, Object value);
 }

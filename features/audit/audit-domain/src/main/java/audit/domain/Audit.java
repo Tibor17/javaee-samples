@@ -67,7 +67,11 @@ public class Audit extends BaseEntity implements Serializable {
      * @serialField initiator long person-id
      */
     @Column(name = "INITIATOR", precision = 19, nullable = false, updatable = false)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Fields({
+            @Field(store = Store.YES, termVector = TermVector.YES),
+            @Field(name = "sortInitiator", analyze = Analyze.NO, index = Index.NO)
+    })
+    @SortableField(forField = "sortInitiator")
     private long initiator;
 
     /**
@@ -76,19 +80,31 @@ public class Audit extends BaseEntity implements Serializable {
     @Column(name = "MODULE", length = 31, nullable = false, updatable = false)
     @NotNull
     @Size(min = 1, max = 31)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Fields({
+            @Field(store = Store.YES, termVector = TermVector.YES),
+            @Field(name = "sortModule", analyze = Analyze.NO, index = Index.NO)
+    })
+    @SortableField(forField = "sortModule")
     private String module;
 
     @Column(name = "STORED")
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
+    @Fields({
+            @Field(store = Store.YES, termVector = TermVector.YES),
+            @Field(name = "sortStoredAt", analyze = Analyze.NO, index = Index.NO)
+    })
+    @SortableField(forField = "sortStoredAt")
     private transient Calendar storedAt;
 
     /**
      * @serialField description java.langString audit-description
      */
     @Column(name = "DESCRIPTION", updatable = false)
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES, termVector = TermVector.YES)
     @Size(max = 255)
+    @Fields({
+            @Field(store = Store.YES, termVector = TermVector.YES),
+            @Field(name = "sortDescription", analyze = Analyze.NO, index = Index.NO)
+    })
+    @SortableField(forField = "sortDescription")
     private String description;
 
     /**
