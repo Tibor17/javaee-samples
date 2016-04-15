@@ -25,7 +25,6 @@ import audit.persistence.service.AuditService;
 import javaee.samples.frameworks.injection.DatabaseConfiguration;
 import javaee.samples.frameworks.injection.InjectionRunner;
 import javaee.samples.frameworks.injection.WithManagedTransactions;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
