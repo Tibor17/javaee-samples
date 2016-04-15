@@ -34,6 +34,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.TimeZone.getTimeZone;
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
+import static org.hibernate.search.annotations.Resolution.SECOND;
 
 @Vetoed
 @Entity
@@ -88,11 +89,9 @@ public class Audit extends BaseEntity implements Serializable {
     private String module;
 
     @Column(name = "STORED")
-    @Fields({
-            @Field(store = Store.YES, termVector = TermVector.YES),
-            @Field(name = "sortStoredAt", analyze = Analyze.NO, index = Index.NO)
-    })
-    @SortableField(forField = "sortStoredAt")
+    @Field(store = Store.YES, termVector = TermVector.YES)
+    @SortableField
+    @CalendarBridge(resolution = SECOND)
     private transient Calendar storedAt;
 
     /**

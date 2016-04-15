@@ -211,7 +211,7 @@ public class AuditService {
         Class<?> ft = sorter.getFieldType();
         if (ft == String.class)
             return new SortField(sorter.getFieldName(), STRING, !sorter.isAscending());
-        else if (ft == long.class || ft == Long.class)
+        else if (ft == long.class || ft == Long.class || ft == Date.class || ft == Calendar.class)
             return new SortField(sorter.getFieldName(), LONG, !sorter.isAscending());
         else
             throw new IllegalStateException("no mapped field type " + ft);
