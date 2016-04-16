@@ -39,6 +39,7 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.beans.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -178,6 +179,7 @@ public class AuditService {
         Query luceneQuery = junction.createQuery();
 
         FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
+        ftq.limitExecutionTimeTo(5, TimeUnit.SECONDS);
 
         Sort sort = toSort(p.getSorters());
         if (sort.getSort().length != 0)

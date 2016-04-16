@@ -23,7 +23,9 @@ import org.junit.Test;
 import java.util.Calendar;
 
 import static audit.util.Dates.format;
+import static java.time.ZoneOffset.UTC;
 import static java.util.Calendar.*;
+import static java.util.TimeZone.getTimeZone;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatesTest {
@@ -55,5 +57,46 @@ public class DatesTest {
 
         assertThat(convertedBack)
                 .isEqualTo(expected);
+    }
+
+    @Test
+    public void shouldConvertCalendar() {
+        Calendar expected = Calendar.getInstance();
+
+        String converted = format(expected);
+
+        Calendar convertedBack = format(converted);
+
+        assertThat(convertedBack.getTime())
+                .isEqualTo(expected.getTime());
+    }
+
+    @Test
+    public void shouldConvertCalendarAsUTC() {
+        Calendar expected = Calendar.getInstance(getTimeZone(UTC));
+
+        String converted = format(expected);
+
+        Calendar convertedBack = format(converted);
+
+        assertThat(convertedBack.get(YEAR))
+                .isEqualTo(expected.get(YEAR));
+        assertThat(convertedBack.get(MONTH))
+                .isEqualTo(expected.get(MONTH));
+        assertThat(convertedBack.get(DAY_OF_MONTH))
+                .isEqualTo(expected.get(DAY_OF_MONTH));
+        assertThat(convertedBack.get(HOUR_OF_DAY))
+                .isEqualTo(expected.get(HOUR_OF_DAY));
+        assertThat(convertedBack.get(MINUTE))
+                .isEqualTo(expected.get(MINUTE));
+        assertThat(convertedBack.get(SECOND))
+                .isEqualTo(expected.get(SECOND));
+        assertThat(convertedBack.get(MILLISECOND))
+                .isEqualTo(expected.get(MILLISECOND));
+        assertThat(convertedBack.get(ZONE_OFFSET))
+                .isEqualTo(expected.get(ZONE_OFFSET));
+
+        assertThat(convertedBack.getTime())
+                .isEqualTo(expected.getTime());
     }
 }

@@ -57,6 +57,7 @@ public class Audit extends BaseEntity implements Serializable {
     };
 
     public Audit() {
+        this(Calendar.getInstance(getTimeZone(UTC)));
     }
 
     public Audit(Calendar storedAt) {
@@ -183,13 +184,6 @@ public class Audit extends BaseEntity implements Serializable {
             flows = new ArrayList<>();
         }
         return flows;
-    }
-
-    @PrePersist
-    private void storedAt() {
-        if (storedAt == null) {
-            storedAt = Calendar.getInstance(getTimeZone(UTC));
-        }
     }
 
     /**

@@ -33,7 +33,10 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.persistence.*;
 
+import java.util.Calendar;
+
 import static java.lang.Integer.MAX_VALUE;
+import static java.util.Calendar.SECOND;
 import static java.util.Collections.singleton;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +52,8 @@ public class AuditIT {
     AuditService service;
 
     Audit expected;
+
+    Calendar expectedStoredFrom, expectedStoredTo;
 
     @Before
     public void fillDatabase() {
@@ -71,12 +76,18 @@ public class AuditIT {
         expected.setOperationKey("login");
         expected.setDescription("desc");
 
+        expectedStoredFrom = Calendar.getInstance();
+        expectedStoredTo = Calendar.getInstance();
+        expectedStoredTo.add(SECOND, 3);
+
         service.saveFlow(expected, "some error", singleton(header), singleton(change));
     }
 
     @Test
     public void canPersistAndLoad() {
+
         Audit actual = service.findAuditById(expected.getId());
+        System.out.println("tibor cas " + actual.getStoredAt());
 
         assertThat(actual)
                 .isNotSameAs(expected);
@@ -95,6 +106,11 @@ public class AuditIT {
 
         assertThat(actual.getDescription())
                 .isEqualTo(expected.getDescription());
+
+        assertThat(actual.getStoredAt())
+                .isNotNull()
+                .isGreaterThanOrEqualTo(expectedStoredFrom)
+                .isLessThanOrEqualTo(expectedStoredTo);
 
         assertThat(actual.getFlows())
                 .hasSize(1);

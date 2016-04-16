@@ -96,9 +96,7 @@ public class JmsPersistenceIT {
         List<Audit> database = repository.findAll();
 
         assertThat(database)
-                .hasSize(1);
-
-        assertThat(database)
+                .hasSize(1)
                 .extracting(Audit::getModule, Audit::getDescription, Audit::getOperationKey, Audit::getInitiator, Audit::getRequest)
                 .contains(tuple(original.getModule(), original.getDescription(), original.getOperationKey(), original.getInitiator(), original.getRequest()));
 

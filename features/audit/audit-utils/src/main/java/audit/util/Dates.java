@@ -20,6 +20,8 @@ package audit.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -65,7 +67,9 @@ public final class Dates {
         int timeZoneInSeconds = temporalAccessor.get(OFFSET_SECONDS);
         GregorianCalendar c = new GregorianCalendar(year, month - 1, day, hour, minute, second);
         c.set(MILLISECOND, millis);
-        c.setTimeZone(new SimpleTimeZone(timeZoneInSeconds * 1000, ""));
+        ZoneOffset.ofTotalSeconds(timeZoneInSeconds).getId();
+        SimpleTimeZone zone = new SimpleTimeZone(timeZoneInSeconds * 1000, "");
+        c.setTimeZone(zone);
         return c;
     }
 }
