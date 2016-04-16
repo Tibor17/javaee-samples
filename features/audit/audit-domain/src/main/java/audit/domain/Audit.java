@@ -52,7 +52,8 @@ public class Audit extends BaseEntity implements Serializable {
     private static final ObjectStreamField[] serialPersistentFields = {
             new ObjectStreamField("initiator", Long.TYPE),
             new ObjectStreamField("module", String.class),
-            new ObjectStreamField("description", String.class)
+            new ObjectStreamField("description", String.class),
+            new ObjectStreamField("operationKey", String.class)
     };
 
     public Audit() {
@@ -115,6 +116,15 @@ public class Audit extends BaseEntity implements Serializable {
     private String description;
 
     /**
+     * @serialField operationKey java.langString audit-operationKey
+     */
+    @Column(name = "OPERATION_KEY", nullable = false, updatable = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Field(store = Store.YES, termVector = TermVector.YES)
+    private String operationKey;
+
+    /**
      * @serial flows - List<AuditFlow>
      */
     @OneToMany(fetch = EAGER, orphanRemoval = true)
@@ -158,6 +168,14 @@ public class Audit extends BaseEntity implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getOperationKey() {
+        return operationKey;
+    }
+
+    public void setOperationKey(String operationKey) {
+        this.operationKey = operationKey;
     }
 
     public List<AuditFlow> getFlows() {

@@ -32,9 +32,11 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.persistence.PersistenceContext;
 
+import java.util.Calendar;
 import java.util.List;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.util.Calendar.HOUR;
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
@@ -53,11 +55,11 @@ public class AuditLikeSearchIT {
         service.findAll()
                 .forEach(service::remove);
 
-        newRecord("abc");
-        newRecord("c-prefix");
-        newRecord("a-prefix");
-        newRecord("b-prefix");
-        newRecord("xyz");
+        newRecord(1, "abc");
+        newRecord(2, "c-prefix");
+        newRecord(3, "a-prefix");
+        newRecord(4, "b-prefix");
+        newRecord(5, "xyz");
     }
 
     @Test
@@ -69,7 +71,10 @@ public class AuditLikeSearchIT {
                 .containsSequence("a-prefix", "b-prefix", "c-prefix");
     }
 
-    private void newRecord(String module) {
+    private void newRecord(int hoursDrift, String module) {
+        Calendar now = Calendar.getInstance();
+        now.add(HOUR, hoursDrift);
+
         AuditHeader header = new AuditHeader();
         header.setKey("hk");
         header.setValue("hv");
@@ -83,6 +88,7 @@ public class AuditLikeSearchIT {
         expected.setRequest(randomUUID());
         expected.setInitiator(1);
         expected.setModule(module);
+        expected.setOperationKey("login");
         expected.setDescription("desc");
 
         service.saveFlow(expected, "some error", singleton(header), singleton(change));

@@ -48,6 +48,9 @@ public class Listener implements AuditListener {
             assertThat(audit.getModule())
                     .isEqualTo("test");
 
+            assertThat(audit.getOperationKey())
+                    .isEqualTo("login");
+
         } catch (TimeoutException | BrokenBarrierException | InterruptedException e) {
             fail("Too overloaded build system. Could not acquire permit within 3 seconds. "
                     + e.getLocalizedMessage(), e);

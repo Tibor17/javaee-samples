@@ -62,6 +62,7 @@ public class JmsCommunicationTest {
 
         Audit audit = new Audit();
         audit.setModule("test");
+        audit.setOperationKey("login");
 
         producerService.send(audit);
         synchronizer.await(3, SECONDS);

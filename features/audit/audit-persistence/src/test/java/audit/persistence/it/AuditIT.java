@@ -68,6 +68,7 @@ public class AuditIT {
         expected.setRequest(randomUUID());
         expected.setInitiator(1);
         expected.setModule("audit-module");
+        expected.setOperationKey("login");
         expected.setDescription("desc");
 
         service.saveFlow(expected, "some error", singleton(header), singleton(change));
@@ -88,6 +89,9 @@ public class AuditIT {
 
         assertThat(actual.getModule())
                 .isEqualTo(expected.getModule());
+
+        assertThat(actual.getOperationKey())
+                .isEqualTo(expected.getOperationKey());
 
         assertThat(actual.getDescription())
                 .isEqualTo(expected.getDescription());
