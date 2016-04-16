@@ -20,6 +20,7 @@ package audit.domain;
 
 import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
@@ -53,12 +54,12 @@ public class AuditFlow extends BaseEntity implements Serializable {
 
     @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false)
-    @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT_FLOW__HEADER")
+    @ForeignKey(name = "FK_AUDIT_FLOW__HEADER")
     private List<AuditHeader> headers;
 
     @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false)
-    @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT_FLOW__CHANGE")
+    @ForeignKey(name = "FK_AUDIT_FLOW__CHANGE")
     private List<AuditChange> changes;
 
     public String getError() {

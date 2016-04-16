@@ -20,6 +20,7 @@ package audit.domain;
 
 import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.annotations.ForeignKey;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
@@ -53,6 +54,13 @@ public class Audit extends BaseEntity implements Serializable {
             new ObjectStreamField("module", String.class),
             new ObjectStreamField("description", String.class)
     };
+
+    public Audit() {
+    }
+
+    public Audit(Calendar storedAt) {
+        this.storedAt = storedAt;
+    }
 
     /**
      * @serial request UUID derived from initial startup time of the application server (mostSigBits)
@@ -111,7 +119,7 @@ public class Audit extends BaseEntity implements Serializable {
      */
     @OneToMany(fetch = EAGER, orphanRemoval = true)
     @JoinColumn(name = "FK_AUDIT", nullable = false, updatable = false)
-    @org.hibernate.annotations.ForeignKey(name = "FK_AUDIT__FLOW")
+    @ForeignKey(name = "FK_AUDIT__FLOW")
     @Size(min = 1)
     @NotNull
     private List<AuditFlow> flows;
@@ -161,7 +169,9 @@ public class Audit extends BaseEntity implements Serializable {
 
     @PrePersist
     private void storedAt() {
-        storedAt = Calendar.getInstance(getTimeZone(UTC));
+        if (storedAt == null) {
+            storedAt = Calendar.getInstance(getTimeZone(UTC));
+        }
     }
 
     /**
