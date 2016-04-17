@@ -35,6 +35,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.TimeZone.getTimeZone;
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.FetchType.EAGER;
+import static javax.persistence.TemporalType.TIMESTAMP;
 import static org.hibernate.search.annotations.Resolution.SECOND;
 
 @Vetoed
@@ -99,10 +100,11 @@ public class Audit extends BaseEntity implements Serializable {
     private String module;
 
     @Column(name = "STORED")
+    @Temporal(TIMESTAMP)
     @Field(store = Store.YES, termVector = TermVector.YES)
     @SortableField
     @CalendarBridge(resolution = SECOND)
-    private transient Calendar storedAt;
+    private Calendar storedAt;
 
     /**
      * @serialField description java.langString audit-description
@@ -161,6 +163,10 @@ public class Audit extends BaseEntity implements Serializable {
 
     public Calendar getStoredAt() {
         return storedAt;
+    }
+
+    public void setStoredAt(Calendar storedAt) {
+        this.storedAt = storedAt;
     }
 
     public String getDescription() {

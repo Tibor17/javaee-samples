@@ -36,8 +36,10 @@ import javax.persistence.*;
 import java.util.Calendar;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.time.ZoneOffset.UTC;
 import static java.util.Calendar.SECOND;
 import static java.util.Collections.singleton;
+import static java.util.TimeZone.getTimeZone;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -76,8 +78,8 @@ public class AuditIT {
         expected.setOperationKey("login");
         expected.setDescription("desc");
 
-        expectedStoredFrom = Calendar.getInstance();
-        expectedStoredTo = Calendar.getInstance();
+        expectedStoredFrom = Calendar.getInstance(getTimeZone(UTC));
+        expectedStoredTo = Calendar.getInstance(getTimeZone(UTC));
         expectedStoredTo.add(SECOND, 3);
 
         service.saveFlow(expected, "some error", singleton(header), singleton(change));
