@@ -39,6 +39,7 @@ import static java.lang.Integer.MAX_VALUE;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Calendar.SECOND;
 import static java.util.Collections.singleton;
+import static java.util.Optional.of;
 import static java.util.TimeZone.getTimeZone;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,17 +80,23 @@ public class AuditIT {
         expected.setDescription("desc");
 
         expectedStoredFrom = Calendar.getInstance(getTimeZone(UTC));
+        expectedStoredFrom.set(Calendar.MILLISECOND, 0);
         expectedStoredTo = Calendar.getInstance(getTimeZone(UTC));
         expectedStoredTo.add(SECOND, 3);
+        expectedStoredTo.set(Calendar.MILLISECOND, 0);
 
         service.saveFlow(expected, "some error", singleton(header), singleton(change));
     }
 
     @Test
-    public void canPersistAndLoad() {
+    public void dates() {
+        assertThat(service.search(0, MAX_VALUE, of(1L), of("audit-module"), of("login"), of("esc"), of(expectedStoredFrom), of(expectedStoredTo)))
+                .hasSize(1);
+    }
 
+    @Test
+    public void canPersistAndLoad() {
         Audit actual = service.findAuditById(expected.getId());
-        System.out.println("tibor cas " + actual.getStoredAt());
 
         assertThat(actual)
                 .isNotSameAs(expected);

@@ -43,4 +43,10 @@ serialization knowhow
 http://what-when-how.com/Tutorial/Java-SE-6/Java-SE-6-00980.html
 
 https://books.google.sk/books?id=6k0Z0mD48QwC&pg=PA140&lpg=PA140&dq=hibernate+ogm+field+calendar&source=bl&ots=piI4b8_T38&sig=A7jWvrbRtR-yY9wtJwnFIbZamz8&hl=sk&sa=X&ved=0ahUKEwjCrNj_lIrMAhVLvhQKHQBvArcQ6AEIMDAE#v=onepage&q=hibernate%20ogm%20field%20calendar&f=false
-
+https://docs.jboss.org/hibernate/ogm/5.0/reference/en-US/html_single/
+https://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html/ogm-query.html
+https://docs.jboss.org/hibernate/search/3.3/reference/en-US/html/search-query.html
+https://github.com/hibernate/hibernate-search/blob/master/orm/src/test/java/org/hibernate/search/test/query/sorting/SortUsingEntityManagerTest.java
+http://in.relation.to/2015/07/24/hibernate-search-complex-type-query/
+http://in.relation.to/2015/09/14/sorting-in-hibernate-search-55/
+https://dzone.com/articles/nosql-hibernate-ogm-part-two

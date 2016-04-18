@@ -31,21 +31,26 @@ import org.apache.lucene.search.SortField;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.FullTextQuery;
 import org.hibernate.search.query.dsl.*;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.dsl.PathBuilder;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.beans.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import static audit.query.search.persistence.api.Predicates.predicates;
+import static com.querydsl.core.alias.Alias.alias;
+import static com.querydsl.core.alias.Alias.$;
 import static java.beans.Introspector.getBeanInfo;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.apache.lucene.search.SortField.Type.LONG;
 import static org.apache.lucene.search.SortField.Type.STRING;
@@ -53,7 +58,7 @@ import static org.hibernate.search.jpa.Search.getFullTextEntityManager;
 
 @ApplicationScoped
 public class AuditService {
-    private static final Invoker $ = (target, beanProperty, value) -> {
+    private static final Invoker INVOKER = (target, beanProperty, value) -> {
         try {
             BeanInfo beanInfo = getBeanInfo(Audit.class);
             for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors()) {
@@ -114,6 +119,77 @@ public class AuditService {
         em.persist(e);
     }
 
+    /**
+     * javax.persistence.PersistenceException: org.hibernate.HibernateException: could not parse date string?2
+     * Caused by: java.text.ParseException: Unparseable date: "?2"
+     * The fix would be com.querydsl:querydsl-mongodb but it does NOT work with EntityManager
+     *  but with MongoClient, see https://github.com/querydsl/querydsl/tree/master/querydsl-mongodb
+     * https://github.com/mongodb/morphia
+     * http://www.hascode.com/2014/02/creating-elegant-typesafe-queries-for-jpa-mongodbmorphia-and-lucene-using-querydsl/
+     */
+    public List<Audit> searchQueryDSL(long fromRownum, long maxRownums, @NotNull String module, @NotNull Calendar from, @NotNull Calendar to) {
+        PathBuilder<Audit> entity = new PathBuilder<>(Audit.class, "audit");
+        JPAQuery<Audit> q = new JPAQuery<Audit>(em).from(entity);
+        Audit a = alias(Audit.class, entity);
+        return q.where($(a.getModule()).eq(module))
+                .where($(a.getStoredAt()).between(from, to))
+                .offset(fromRownum)
+                .limit(maxRownums)
+                .fetch();
+    }
+
+    public List<Audit> search(int fromRownum, int maxRownums,
+                              Optional<Long> initiator,
+                              Optional<String> module,
+                              Optional<String> operationKey,
+                              Optional<String> description,
+                              Optional<Calendar> from, Optional<Calendar> to) {
+        StringBuilder query = new StringBuilder("select a from Audit a where ");
+
+        initiator.ifPresent(i ->
+                query.append("a.initiator = ")
+                        .append(i)
+                        .append(" and "));
+
+        module.ifPresent(m ->
+                query.append("a.module = '")
+                        .append(m)
+                        .append("' and "));
+
+        operationKey.ifPresent(ok ->
+                query.append("a.operationKey = '")
+                        .append(ok)
+                        .append("' and "));
+
+        description.map(String::trim)
+                .map(d -> d.isEmpty() ? null : d)
+                .ifPresent(d ->
+                        query.append("a.description like '%")
+                                .append(d)
+                                .append("%' and "));
+
+        if (from.isPresent() && to.isPresent()) {
+            query.append("a.storedAt between :from and :to");
+        } else if (from.isPresent()) {
+            query.append("a.storedAt >= :from");
+        } else if (to.isPresent()) {
+            query.append("a.storedAt <= :to");
+        }  else {
+            int rem = query.lastIndexOf(" and ");
+            if (rem != -1)
+                query.delete(rem, query.length());
+        }
+
+        TypedQuery<Audit> audits = em.createQuery(query.toString(), Audit.class)
+                .setFirstResult(fromRownum)
+                .setMaxResults(maxRownums);
+
+        from.ifPresent(f -> audits.setParameter("from", f));
+        to.ifPresent(t -> audits.setParameter("to", t));
+
+        return audits.getResultList();
+    }
+
     public List<Audit> searchAuditPhrase(int fromRownum, int maxRownums, @NotNull UnaryOperator<Predicates> where) {
         FullTextEntityManager fullTextEntityManager = getFullTextEntityManager(em);
 
@@ -160,7 +236,7 @@ public class AuditService {
 
         Function<Matcher<?>, Query> query = m -> {
             Audit e = new Audit();
-            $.writeProperty(e, m.getFieldName(), m.getSearchedText());
+            INVOKER.writeProperty(e, m.getFieldName(), m.getSearchedText());
             return qb.moreLikeThis()
                     .comparingField(m.getFieldName())
                     .toEntity(e)
@@ -179,7 +255,7 @@ public class AuditService {
         Query luceneQuery = junction.createQuery();
 
         FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
-        ftq.limitExecutionTimeTo(5, TimeUnit.SECONDS);
+        ftq.limitExecutionTimeTo(5, SECONDS);
 
         Sort sort = toSort(p.getSorters());
         if (sort.getSort().length != 0)
