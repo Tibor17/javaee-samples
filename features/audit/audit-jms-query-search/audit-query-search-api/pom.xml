@@ -41,6 +41,66 @@
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics-runtime</artifactId>
+            <version>0.9.5</version>
+        </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>generate-jaxb-stubs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.cxf</groupId>
+                        <artifactId>cxf-xjc-plugin</artifactId>
+                        <version>2.7.0</version>
+                        <executions>
+                            <execution>
+                                <id>generate-sources</id>
+                                <goals>
+                                    <goal>xsdtojava</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <sourceRoot>${project.build.directory}/jaxb-stubs</sourceRoot>
+                            <xsdOptions>
+                                <xsdOption>
+                                    <extension>true</extension>
+                                    <xsd>src/main/xsd/query.xsd</xsd>
+                                    <bindingFile>src/main/xsd/binding.xml</bindingFile>
+                                    <packagename>audit.query.search.api</packagename>
+                                    <extensionArgs>
+                                        <extensionArg>-XReplacePrimitives</extensionArg>
+                                        <extensionArg>-XhashCode</extensionArg>
+                                        <extensionArg>-Xequals</extensionArg>
+                                        <extensionArg>-XJsr303Annotations</extensionArg>
+                                        <extensionArg>-XJsr303Annotations:generateNotNullAnnotations=true</extensionArg>
+                                        <extensionArg>-XJsr303Annotations:JSR_349=false</extensionArg>
+                                        <extensionArg>-no-header</extensionArg>
+                                    </extensionArgs>
+                                </xsdOption>
+                            </xsdOptions>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.jvnet.jaxb2_commons</groupId>
+                                <artifactId>jaxb2-basics</artifactId>
+                                <version>0.9.5</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>com.github.krasa</groupId>
+                                <artifactId>krasa-jaxb-tools</artifactId>
+                                <version>1.4</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
