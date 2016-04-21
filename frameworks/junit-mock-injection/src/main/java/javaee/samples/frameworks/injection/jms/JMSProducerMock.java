@@ -70,7 +70,19 @@ final public class JMSProducerMock implements JMSProducer {
 
     @Override
     public JMSProducer send(Destination destination, byte[] body) {
-        return null;
+        try (Connection connection = factory.createConnection()) {
+            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            MessageProducer publisher = session.createProducer(destination);
+            connection.start();
+            BytesMessage msg = session.createBytesMessage();
+            msg.writeBytes(body);
+            publisher.send(msg);
+            return this;
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override

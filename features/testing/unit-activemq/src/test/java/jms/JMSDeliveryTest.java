@@ -39,7 +39,7 @@ import static org.junit.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JMSDeliveryTest implements MessageListener, ExceptionListener {
-    private static final String SOCKET = System.getProperty("jms.broker.socket", "tcp://localhost:61616");
+    private static final String SOCKET = JmsResource.SOCKET;
 
     private final CyclicBarrier synchronizer = new CyclicBarrier(2);
 

@@ -42,3 +42,7 @@ public class AuditMessagingProducerService {
                 .send(topic, audit);
     }
 }
+//http://tomee.apache.org/examples-trunk/injection-of-connectionfactory/README.html
+//http://stackoverflow.com/questions/18464499/jms-request-response-pattern-in-transactional-environment
+///http://what-when-how.com/enterprise-javabeans-3-1/message-driven-beans-enterprise-javabeans-3-1/
+//https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/JMS_Examples-A_Point_To_Point_With_MDB_Example.html

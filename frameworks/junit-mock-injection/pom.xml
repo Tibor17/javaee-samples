@@ -161,7 +161,7 @@
                     <version>2.19.1</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <org.apache.activemq.default.directory.prefix>${project.build.directory}/</org.apache.activemq.default.directory.prefix>
+                            <org.apache.activemq.default.directory.prefix>${project.build.directory}/activemq-data</org.apache.activemq.default.directory.prefix>
                             <jms.broker.socket>tcp://localhost:${jms.broker.port}</jms.broker.socket>
                         </systemPropertyVariables>
                     </configuration>

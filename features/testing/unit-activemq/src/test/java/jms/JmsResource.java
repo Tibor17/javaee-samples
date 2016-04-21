@@ -34,13 +34,16 @@ import javax.jms.Queue;
 import java.net.URI;
 import java.util.Optional;
 
+import static java.lang.System.getProperty;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static javaee.samples.frameworks.injection.spi.JMSSocketResolverUtils.resolveJMSConnection;
 import static jms.wrappers.JMSConsumer.createConsumerOnQueue;
 import static jms.wrappers.JMSProducer.createProducerOnQueue;
 
 public class JmsResource implements InjectionPoint<Resource> {
-    private static final String SOCKET = System.getProperty("jms.broker.socket", "tcp://localhost:61616");
+    static final String SOCKET =
+            resolveJMSConnection(getProperty("jms.broker.socket"), "tcp://localhost:61616");
 
     private ConnectionFactory connectionFactory;
     private JMSConsumer consumer;

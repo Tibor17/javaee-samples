@@ -125,7 +125,12 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public TextMessage createTextMessage(String text) {
-        return null;
+        try (Connection connection = factory.createConnection()) {
+            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            return session.createTextMessage(text);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -155,7 +160,12 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public JMSConsumer createConsumer(Destination destination) {
-        return null;
+        try (Connection connection = factory.createConnection()) {
+            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            return new JMSConsumerMock(session.createConsumer(destination));
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -220,7 +230,12 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public TemporaryQueue createTemporaryQueue() {
-        return null;
+        try (Connection connection = factory.createConnection()) {
+            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            return session.createTemporaryQueue();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override

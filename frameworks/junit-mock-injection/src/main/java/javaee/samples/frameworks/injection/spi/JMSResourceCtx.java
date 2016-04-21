@@ -18,95 +18,112 @@
  */
 package javaee.samples.frameworks.injection.spi;
 
+import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 
 import javax.jms.*;
 import java.lang.IllegalStateException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static java.lang.Runtime.getRuntime;
 import static java.lang.System.getProperty;
+import static javaee.samples.frameworks.injection.spi.JMSSocketResolverUtils.resolveJMSConnection;
 
 public enum JMSResourceCtx {
     CTX;
 
-    private static final String SOCKET = getProperty("jms.broker.socket", "tcp://localhost:61616");
+    private static final String SOCKET =
+            resolveJMSConnection(getProperty("jms.broker.socket"), "tcp://localhost:61616");
 
-    private final Map<String, Queue> queues = new HashMap<>();
-    private final Map<String, Topic> topics = new HashMap<>();
-    private final Map<MessageListener, Void> listeners = new HashMap<>();
-    private ConnectionFactory factory;
-    private JMSContext jmsContext;
-    private BrokerService broker;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Map<String, Queue> queues = new ConcurrentHashMap<>();
+    private final Map<String, Topic> topics = new ConcurrentHashMap<>();
+    private volatile ConnectionFactory factory;
+    private volatile JMSContext jmsContext;
+    private volatile BrokerService broker;
 
     public ConnectionFactory getConnectionFactory() {
-        return factory;
-    }
-
-    public boolean hasConnectionFactory() {
-        return factory != null;
-    }
-
-    public void setConnectionFactory(ConnectionFactory factory) {
-        this.factory = factory;
+        lock.readLock()
+                .lock();
+        try {
+            return factory;
+        } finally {
+            lock.readLock()
+                    .unlock();
+        }
     }
 
     public JMSContext getJmsContext() {
-        return jmsContext;
-    }
-
-    public boolean hasJMSContext() {
-        return jmsContext != null;
-    }
-
-    public void setJmsContext(JMSContext jmsContext) {
-        this.jmsContext = jmsContext;
+        lock.readLock()
+                .lock();
+        try {
+            return jmsContext;
+        } finally {
+            lock.readLock()
+                    .unlock();
+        }
     }
 
     public Map<String, Queue> getQueues() {
-        return queues;
+        lock.readLock()
+                .lock();
+        try {
+            return queues;
+        } finally {
+            lock.readLock()
+                    .unlock();
+        }
     }
 
     public Map<String, Topic> getTopics() {
-        return topics;
+        lock.readLock()
+                .lock();
+        try {
+            return topics;
+        } finally {
+            lock.readLock()
+                    .unlock();
+        }
     }
 
-    public void addListener(MessageListener listener) {
-        listeners.putIfAbsent(listener, null);
-    }
-
-    public boolean hasListener(MessageListener listener) {
-        return listeners.containsKey(listener);
-    }
-
-    public ConnectionFactory startConnectionFactory() {
-        if (!hasConnectionFactory()) {
+    public void startupJMSCtx() {
+        if (jmsContext == null) {
+            lock.writeLock()
+                    .lock();
             try {
+                if (jmsContext != null)
+                    return;
                 broker = new BrokerService();
                 broker.setDeleteAllMessagesOnStartup(true);
-                broker.setPersistent(true);
+                broker.setPersistent(false);
                 broker.setUseJmx(false);
                 broker.addConnector(SOCKET);
                 broker.start();
                 String url = SOCKET;
                 url += url.contains("?") ? "&" : "?";
                 url += "jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0";
-                setConnectionFactory(new ActiveMQConnectionFactory(url));
+                factory = new ActiveMQConnectionFactory(url);
+                jmsContext = new JMSContextMock(factory);
+                Runnable hook = () -> closeBroker(broker);
+                getRuntime().addShutdownHook(new Thread(hook));
             } catch (Exception e) {
                 throw new IllegalStateException(e.getLocalizedMessage(), e);
+            } finally {
+                lock.writeLock()
+                        .unlock();
             }
         }
-        return getConnectionFactory();
     }
 
-    public void closeBroker() {
-        if (broker != null) {
-            try {
-                broker.stop();
-            } catch (Exception e) {
-                throw new IllegalStateException(e.getLocalizedMessage(), e);
-            }
+    private static void closeBroker(BrokerService broker) {
+        try {
+            broker.stop();
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getLocalizedMessage(), e);
         }
     }
 }

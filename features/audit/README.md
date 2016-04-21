@@ -42,6 +42,7 @@ http://in.relation.to/hibernate-ogm/
 serialization knowhow
 http://what-when-how.com/Tutorial/Java-SE-6/Java-SE-6-00980.html
 
+OGM and search API
 https://books.google.sk/books?id=6k0Z0mD48QwC&pg=PA140&lpg=PA140&dq=hibernate+ogm+field+calendar&source=bl&ots=piI4b8_T38&sig=A7jWvrbRtR-yY9wtJwnFIbZamz8&hl=sk&sa=X&ved=0ahUKEwjCrNj_lIrMAhVLvhQKHQBvArcQ6AEIMDAE#v=onepage&q=hibernate%20ogm%20field%20calendar&f=false
 https://docs.jboss.org/hibernate/ogm/5.0/reference/en-US/html_single/
 https://docs.jboss.org/hibernate/ogm/4.1/reference/en-US/html/ogm-query.html
@@ -50,3 +51,14 @@ https://github.com/hibernate/hibernate-search/blob/master/orm/src/test/java/org/
 http://in.relation.to/2015/07/24/hibernate-search-complex-type-query/
 http://in.relation.to/2015/09/14/sorting-in-hibernate-search-55/
 https://dzone.com/articles/nosql-hibernate-ogm-part-two
+
+JMS Request/Reply
+http://www.enterpriseintegrationpatterns.com/patterns/messaging/RequestReplyJmsExample.html
+http://stackoverflow.com/questions/10786636/is-it-a-good-practice-to-use-jms-temporary-queue-for-synchronous-use
+http://activemq.apache.org/how-should-i-implement-request-response-with-jms.html
+http://stackoverflow.com/questions/18464499/jms-request-response-pattern-in-transactional-environment
+https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/JMS_Examples-A_Point_To_Point_With_MDB_Example.html
+
+Message selector atc.
+http://what-when-how.com/enterprise-javabeans-3-1/message-driven-beans-enterprise-javabeans-3-1/
+

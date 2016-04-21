@@ -46,8 +46,8 @@ public class JMSResourcePoint implements InjectionPoint<Resource> {
         String mapping = injectionAnnotation.mappedName();
         if (mapping == null) mapping = injectionAnnotation.lookup();
         if (JNDI_CF.contains(mapping)) {
-            ConnectionFactory factory = CTX.startConnectionFactory();
-            return of(factory);
+            CTX.startupJMSCtx();
+            return of(CTX.getConnectionFactory());
         } else if (declaredInjectionType == Queue.class) {
             Queue queue = CTX.getQueues().computeIfAbsent(mapping, ActiveMQQueue::new);
             sanityCheckResource(injectionAnnotation.type(), mapping, beanType);
@@ -62,7 +62,6 @@ public class JMSResourcePoint implements InjectionPoint<Resource> {
 
     @Override
     public void destroy() {
-        CTX.closeBroker();
     }
 
     private static void sanityCheckResource(Class<?> injectionType, String mapping, Class<?> beanType) {

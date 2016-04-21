@@ -18,31 +18,17 @@
  */
 package javaee.samples.frameworks.injection.spi;
 
-import javax.inject.Inject;
-import javax.jms.*;
-import java.util.*;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
-
-public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
-
-    @Override
-    public Class<Inject> getAnnotationType() {
-        return Inject.class;
+public final class JMSSocketResolverUtils {
+    private JMSSocketResolverUtils() {
+        throw new IllegalStateException("no instantiable constructor");
     }
 
-    @Override
-    public <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, Inject injectionAnnotation, T bean, Class<? extends T> beanType) {
-        if (declaredInjectionType == JMSContext.class) {
-            CTX.startupJMSCtx();
-            return of(CTX.getJmsContext());
+    public static String resolveJMSConnection(String jmsConnection, String fallback) {
+        if (jmsConnection == null
+                || jmsConnection.equals("tcp://localhost:") || jmsConnection.equals("tcp://localhost:/")
+                || jmsConnection.equals("tcp://127.0.0.1:") || jmsConnection.equals("tcp://127.0.0.1:/")) {
+            return fallback;
         }
-        return empty();
-    }
-
-    @Override
-    public void destroy() {
+        return jmsConnection;
     }
 }

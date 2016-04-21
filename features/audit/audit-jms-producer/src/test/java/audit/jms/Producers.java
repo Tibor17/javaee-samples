@@ -18,8 +18,6 @@
  */
 package audit.jms;
 
-import javaee.samples.frameworks.injection.jms.JMSContextMock;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Disposes;
@@ -48,11 +46,8 @@ public class Producers {
 
     @Produces
     public JMSContext produceJMSContext() {
-        return new JMSContextMock(CTX.startConnectionFactory());
-    }
-
-    public void close(@Disposes JMSContext ctx) {
-        CTX.closeBroker();
+        CTX.startupJMSCtx();
+        return CTX.getJmsContext();
     }
 
     public void close(@Disposes EntityManager em) {

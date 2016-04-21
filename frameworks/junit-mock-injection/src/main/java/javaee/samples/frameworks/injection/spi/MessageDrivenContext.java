@@ -62,9 +62,9 @@ public class MessageDrivenContext implements ContextInjector {
             MessageDriven md = beanType.getAnnotation(MessageDriven.class);
             Collection<ActivationConfigProperty> properties = asList(md.activationConfig());
             ActiveMQDestination destination = lookupDestination(properties);
-            ConnectionFactory factory = CTX.startConnectionFactory();
+            CTX.startupJMSCtx();
             try {
-                Connection connection = factory.createConnection();
+                Connection connection = CTX.getConnectionFactory().createConnection();
                 connection.setClientID(lookupClientId(properties, destination.getPhysicalName()));
                 Session session = connection.createSession(false, lookupAcknowledgeMode(properties));
                 MessageConsumer consumer = createConsumer(properties, session, destination);
