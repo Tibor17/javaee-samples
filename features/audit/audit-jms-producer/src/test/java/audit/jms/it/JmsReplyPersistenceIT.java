@@ -33,17 +33,21 @@ import javax.inject.Inject;
 import javax.jms.*;
 import javax.persistence.PersistenceContext;
 
+import java.util.concurrent.CountDownLatch;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
-@Ignore
 @Vetoed
 @RunWith(InjectionRunner.class)
 /*@DatabaseConfiguration(UNDEFINED)
 @PersistenceContext(unitName = "audit-jpa")
 @WithManagedTransactions*/
 public class JmsReplyPersistenceIT {
+    private final CountDownLatch synchronizer = new CountDownLatch(1);
 
     @Resource(mappedName = "java:/ConnectionFactory")
     ConnectionFactory connectionFactory;
@@ -51,20 +55,11 @@ public class JmsReplyPersistenceIT {
     @Inject
     JMSContext ctx;
 
-    @Resource(mappedName = "java:jms/queue/audit")
-    Queue destination;
-
     /*@Inject
     AuditService repository;*/
 
-    @Resource(mappedName = "java:jms/queue/replyQueue")
-    Queue replyQueue;
-
     @Resource(mappedName = "java:jms/queue/requestQueue")
     Queue requestQueue;
-
-    @Resource(mappedName = "java:jms/queue/invalidQueue")
-    Queue invalidQueue;
 
     @Before
     public void deleteDatabase() {
@@ -73,12 +68,6 @@ public class JmsReplyPersistenceIT {
     }
 
     @Test
-    public void test() throws Exception {
-        TextMessage msg = ctx.createTextMessage("test");
-        TemporaryQueue replyQueue = ctx.createTemporaryQueue();
-        msg.setJMSReplyTo(replyQueue);
-        ctx.createProducer().send(destination, msg);
-        TextMessage received = (TextMessage) ctx.createConsumer(replyQueue).receive(5000);
-        System.out.println("sender received message: " + received.getText());
+    public void shouldReplyUpdatedMessage() throws Exception {
     }
 }

@@ -26,15 +26,15 @@ import java.util.Set;
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 
 final public class JMSProducerMock implements JMSProducer {
-    private final ConnectionFactory factory;
+    private final Connection connection;
 
-    public JMSProducerMock(ConnectionFactory factory) {
-        this.factory = factory;
+    public JMSProducerMock(Connection connection) {
+        this.connection = connection;
     }
 
     @Override
     public JMSProducer send(Destination destination, Message message) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
             connection.start();
@@ -49,7 +49,7 @@ final public class JMSProducerMock implements JMSProducer {
 
     @Override
     public JMSProducer send(Destination destination, String body) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
             connection.start();
@@ -70,7 +70,7 @@ final public class JMSProducerMock implements JMSProducer {
 
     @Override
     public JMSProducer send(Destination destination, byte[] body) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
             connection.start();
@@ -87,7 +87,7 @@ final public class JMSProducerMock implements JMSProducer {
 
     @Override
     public JMSProducer send(Destination destination, Serializable body) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
             connection.start();

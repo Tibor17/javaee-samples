@@ -21,6 +21,7 @@ package javaee.samples.frameworks.injection.spi;
 import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.transport.TransportDisposedIOException;
 
 import javax.jms.*;
 import java.lang.IllegalStateException;
@@ -43,7 +44,7 @@ public enum JMSResourceCtx {
     private final Map<String, Queue> queues = new ConcurrentHashMap<>();
     private final Map<String, Topic> topics = new ConcurrentHashMap<>();
     private volatile ConnectionFactory factory;
-    private volatile JMSContext jmsContext;
+    private volatile JMSContextMock jmsContext;
     private volatile BrokerService broker;
 
     public ConnectionFactory getConnectionFactory() {
@@ -90,13 +91,13 @@ public enum JMSResourceCtx {
         }
     }
 
-    public void startupJMSCtx() {
+    public JMSResourceCtx startupJMSCtx() {
         if (jmsContext == null) {
             lock.writeLock()
                     .lock();
             try {
                 if (jmsContext != null)
-                    return;
+                    return this;
                 broker = new BrokerService();
                 broker.setDeleteAllMessagesOnStartup(true);
                 broker.setPersistent(false);
@@ -108,7 +109,17 @@ public enum JMSResourceCtx {
                 url += "jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0";
                 factory = new ActiveMQConnectionFactory(url);
                 jmsContext = new JMSContextMock(factory);
-                Runnable hook = () -> closeBroker(broker);
+                Runnable hook = () -> {
+                    try {
+                        jmsContext.closeConnection();
+                    } catch (JMSException e) {
+                        if (!(e.getCause() instanceof TransportDisposedIOException)) {
+                            e.printStackTrace();
+                        }
+                    } finally {
+                        closeBroker(broker);
+                    }
+                };
                 getRuntime().addShutdownHook(new Thread(hook));
             } catch (Exception e) {
                 throw new IllegalStateException(e.getLocalizedMessage(), e);
@@ -117,6 +128,7 @@ public enum JMSResourceCtx {
                         .unlock();
             }
         }
+        return this;
     }
 
     private static void closeBroker(BrokerService broker) {

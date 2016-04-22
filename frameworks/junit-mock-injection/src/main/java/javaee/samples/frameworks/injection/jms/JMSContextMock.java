@@ -22,10 +22,14 @@ import javax.jms.*;
 import java.io.Serializable;
 
 public final class JMSContextMock implements JMSContext {
-    private final ConnectionFactory factory;
+    private final Connection connection;
 
     public JMSContextMock(ConnectionFactory factory) {
-        this.factory = factory;
+        try {
+            connection = factory.createConnection();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -35,7 +39,7 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public JMSProducer createProducer() {
-        return new JMSProducerMock(factory);
+        return new JMSProducerMock(connection);
     }
 
     @Override
@@ -45,7 +49,6 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void setClientID(String clientID) {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
@@ -60,22 +63,18 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void setExceptionListener(ExceptionListener listener) {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public void start() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public void stop() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public void setAutoStart(boolean autoStart) {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
@@ -85,7 +84,10 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void close() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
+    }
+
+    public void closeConnection() throws JMSException {
+        connection.close();
     }
 
     @Override
@@ -125,7 +127,7 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public TextMessage createTextMessage(String text) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return session.createTextMessage(text);
         } catch (JMSException e) {
@@ -145,22 +147,19 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void commit() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public void rollback() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public void recover() {
-        throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
     }
 
     @Override
     public JMSConsumer createConsumer(Destination destination) {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return new JMSConsumerMock(session.createConsumer(destination));
         } catch (JMSException e) {
@@ -230,7 +229,7 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public TemporaryQueue createTemporaryQueue() {
-        try (Connection connection = factory.createConnection()) {
+        try {
             Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return session.createTemporaryQueue();
         } catch (JMSException e) {
