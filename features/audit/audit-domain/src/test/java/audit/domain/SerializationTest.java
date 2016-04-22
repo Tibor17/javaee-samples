@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.*;
 
 public class SerializationTest {
     @Test
-    public void test() throws IOException, ClassNotFoundException {
+    public void serializeAudit() throws IOException, ClassNotFoundException {
         Audit expected = new Audit();
         expected.setModule("module");
         expected.setInitiator(1L);
