@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -89,50 +90,93 @@ import static org.jvnet.jaxb2_commons.locator.util.LocatorUtils.property;
     "searchAnyError",
     "error"
 })
-public class AuditQuery
-        implements Paging, Serializable, Equals, HashCode {
+public class AuditQuery implements Paging, Serializable, Equals, HashCode {
+    private static final long serialVersionUID = 1;
 
     private static final ObjectStreamField[] serialPersistentFields = {
-            new ObjectStreamField("initiator", Long.TYPE),
+            new ObjectStreamField("initiator", Long.class),
             new ObjectStreamField("module", String.class),
             new ObjectStreamField("operationKey", String.class),
             new ObjectStreamField("description", String.class),
             new ObjectStreamField("startRowNum", Integer.class),
             new ObjectStreamField("pageSize", Integer.class),
-            new ObjectStreamField("sortField", Enum.class),
-            new ObjectStreamField("searchAnyError", String.class),
+            new ObjectStreamField("sortField", SortField.class),
+            new ObjectStreamField("searchAnyError", Boolean.class),
             new ObjectStreamField("error", String.class),
     };
 
+    /**
+     * @serial initiator
+     */
     @XmlElement(required = true, type = Long.class, nillable = true)
     protected Long initiator;
+
+    /**
+     * @serial module
+     */
     @XmlElement(required = true, nillable = true)
     @Size(min = 1, max = 31)
     protected String module;
+
+    /**
+     * @serial operationKey
+     */
     @XmlElement(required = true, nillable = true)
     @Size(min = 1, max = 255)
     protected String operationKey;
+
+    /**
+     * @serial description
+     */
     @XmlElement(required = true, nillable = true)
     @Size(min = 1, max = 255)
     protected String description;
+
+    /**
+     * @serial from
+     */
     @XmlElement(required = true, nillable = true)
     @XmlSchemaType(name = "dateTime")
-    protected XMLGregorianCalendar from;
+    protected transient XMLGregorianCalendar from;
+
+    /**
+     * @serial to
+     */
     @XmlElement(required = true, nillable = true)
     @XmlSchemaType(name = "dateTime")
-    protected XMLGregorianCalendar to;
+    protected transient XMLGregorianCalendar to;
+
+    /**
+     * @serial startRowNum
+     */
     @javax.validation.constraints.NotNull
     @javax.validation.constraints.DecimalMin("0")
     protected java.lang.Integer startRowNum;
+
+    /**
+     * @serial pageSize
+     */
     @javax.validation.constraints.NotNull
     @javax.validation.constraints.DecimalMin("1")
     protected java.lang.Integer pageSize;
+
+    /**
+     * @serial sortField
+     */
     @XmlElement(required = true, defaultValue = "SORT_BY_DEFAULT")
     @javax.validation.constraints.NotNull
     protected SortField sortField;
+
+    /**
+     * @serial searchAnyError
+     */
     @XmlElement(defaultValue = "false")
     @javax.validation.constraints.NotNull
     protected Boolean searchAnyError;
+
+    /**
+     * @serial error
+     */
     @XmlElement(required = true, nillable = true)
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     @XmlSchemaType(name = "normalizedString")

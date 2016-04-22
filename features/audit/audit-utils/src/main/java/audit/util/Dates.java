@@ -19,11 +19,9 @@
 package audit.util;
 
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -83,30 +81,45 @@ public final class Dates {
     }
 
     public static Calendar toCalendar(XMLGregorianCalendar xmlCalendar) {
-        TimeZone timeZone = getTimeZone(UTC);
+        TimeZone utc = getTimeZone(UTC);
+        TimeZone timeZone = xmlCalendar.getTimeZone(utc.getRawOffset());
+        if (!timeZone.hasSameRules(utc)) {
+            throw new IllegalStateException(String.format("Declaring TimeZone %s is not according to XML standard" +
+                    " in xsd:dateTime and UTC must be used.", timeZone.getDisplayName()));
+        }
         try {
-            int utcOffset = timeZone.getRawOffset();
-            XMLGregorianCalendar def = newInstance().newXMLGregorianCalendar(0, 0, 0, 0, 0, 0, 0, utcOffset);
-            return xmlCalendar.toGregorianCalendar(timeZone, ROOT, def);
+            int utcOffset = utc.getRawOffset();
+            XMLGregorianCalendar def = newInstance().newXMLGregorianCalendar(1, 1, 1, 0, 0, 0, 0, utcOffset);
+            return xmlCalendar.toGregorianCalendar(utc, ROOT, def);
         } catch (DatatypeConfigurationException e) {
             throw new IllegalStateException(e.getLocalizedMessage(), e);
         }
     }
 
     public static XMLGregorianCalendar toXMLGregorianCalendar(Calendar calendar) {
+        calendar = (Calendar) calendar.clone();
+        TimeZone currentTimeZone = calendar.getTimeZone();
+        int offset = currentTimeZone.getRawOffset();
+        if (currentTimeZone.useDaylightTime() && currentTimeZone.inDaylightTime(calendar.getTime())) {
+            offset += currentTimeZone.getDSTSavings();
+        }
+
         int year         = calendar.get(Calendar.YEAR);
         int month        = calendar.get(Calendar.MONTH);
         int dayOfMonth   = calendar.get(Calendar.DAY_OF_MONTH);
         int hourOfDay    = calendar.get(Calendar.HOUR_OF_DAY);
         int minute       = calendar.get(Calendar.MINUTE);
         int second       = calendar.get(Calendar.SECOND);
-        int milliseconds = calendar.get(Calendar.MILLISECOND);
+        int milliseconds = calendar.get(MILLISECOND);
+        calendar.add(MILLISECOND, -1 * offset);
 
-        TimeZone timeZone = getTimeZone(UTC);
+        TimeZone utc = getTimeZone(UTC);
 
         try {
-            return newInstance().newXMLGregorianCalendar(year, 1 + month, dayOfMonth,
-                    hourOfDay, minute, second, milliseconds, timeZone.getRawOffset());
+            return newInstance()
+                    .newXMLGregorianCalendar(year, 1 + month, dayOfMonth,
+                            hourOfDay, minute, second, milliseconds, utc.getRawOffset());
+
         } catch (DatatypeConfigurationException e) {
             throw new IllegalStateException(e.getLocalizedMessage(), e);
         }
