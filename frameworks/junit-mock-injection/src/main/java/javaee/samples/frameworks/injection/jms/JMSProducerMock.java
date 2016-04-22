@@ -23,21 +23,17 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-import static javax.jms.Session.AUTO_ACKNOWLEDGE;
-
 final public class JMSProducerMock implements JMSProducer {
-    private final Connection connection;
+    private final Session session;
 
-    public JMSProducerMock(Connection connection) {
-        this.connection = connection;
+    public JMSProducerMock(Session session) {
+        this.session = session;
     }
 
     @Override
     public JMSProducer send(Destination destination, Message message) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
-            connection.start();
             publisher.send(message);
             return this;
         } catch (InvalidDestinationException e) {
@@ -50,9 +46,7 @@ final public class JMSProducerMock implements JMSProducer {
     @Override
     public JMSProducer send(Destination destination, String body) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
-            connection.start();
             TextMessage msg = session.createTextMessage(body);
             publisher.send(msg);
             return this;
@@ -71,9 +65,7 @@ final public class JMSProducerMock implements JMSProducer {
     @Override
     public JMSProducer send(Destination destination, byte[] body) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
-            connection.start();
             BytesMessage msg = session.createBytesMessage();
             msg.writeBytes(body);
             publisher.send(msg);
@@ -88,9 +80,7 @@ final public class JMSProducerMock implements JMSProducer {
     @Override
     public JMSProducer send(Destination destination, Serializable body) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             MessageProducer publisher = session.createProducer(destination);
-            connection.start();
             ObjectMessage msg = session.createObjectMessage(body);
             publisher.send(msg);
             return this;

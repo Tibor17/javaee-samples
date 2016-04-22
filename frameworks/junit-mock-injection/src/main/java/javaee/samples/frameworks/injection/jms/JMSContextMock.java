@@ -23,10 +23,13 @@ import java.io.Serializable;
 
 public final class JMSContextMock implements JMSContext {
     private final Connection connection;
+    private final Session session;
 
     public JMSContextMock(ConnectionFactory factory) {
         try {
             connection = factory.createConnection();
+            session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            connection.start();
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }
@@ -39,7 +42,7 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public JMSProducer createProducer() {
-        return new JMSProducerMock(connection);
+        return new JMSProducerMock(session);
     }
 
     @Override
@@ -128,7 +131,6 @@ public final class JMSContextMock implements JMSContext {
     @Override
     public TextMessage createTextMessage(String text) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return session.createTextMessage(text);
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
@@ -142,7 +144,11 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public int getSessionMode() {
-        return 0;
+        try {
+            return session.getAcknowledgeMode();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -160,7 +166,6 @@ public final class JMSContextMock implements JMSContext {
     @Override
     public JMSConsumer createConsumer(Destination destination) {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return new JMSConsumerMock(session.createConsumer(destination));
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
@@ -219,18 +224,31 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public QueueBrowser createBrowser(Queue queue) {
-        return null;
+        try {
+            return session.createBrowser(queue);
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public QueueBrowser createBrowser(Queue queue, String messageSelector) {
-        return null;
+        try {
+            return session.createBrowser(queue, messageSelector);
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (InvalidSelectorException e) {
+            throw new InvalidSelectorRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public TemporaryQueue createTemporaryQueue() {
         try {
-            Session session = connection.createSession(false, AUTO_ACKNOWLEDGE);
             return session.createTemporaryQueue();
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
