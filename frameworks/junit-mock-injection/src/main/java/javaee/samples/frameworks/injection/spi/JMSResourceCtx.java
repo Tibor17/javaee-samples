@@ -20,19 +20,23 @@ package javaee.samples.frameworks.injection.spi;
 
 import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ConnectionClosedException;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.transport.TransportDisposedIOException;
 
 import javax.jms.*;
+import javax.jms.Queue;
 import java.lang.IllegalStateException;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.System.getProperty;
 import static javaee.samples.frameworks.injection.spi.JMSSocketResolverUtils.resolveJMSConnection;
+import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 
 public enum JMSResourceCtx {
     CTX;
@@ -43,8 +47,8 @@ public enum JMSResourceCtx {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<String, Queue> queues = new ConcurrentHashMap<>();
     private final Map<String, Topic> topics = new ConcurrentHashMap<>();
+    private final Deque<JMSContextMock> jmsContext = new ConcurrentLinkedDeque<>();
     private volatile ConnectionFactory factory;
-    private volatile JMSContextMock jmsContext;
     private volatile BrokerService broker;
 
     public ConnectionFactory getConnectionFactory() {
@@ -52,17 +56,6 @@ public enum JMSResourceCtx {
                 .lock();
         try {
             return factory;
-        } finally {
-            lock.readLock()
-                    .unlock();
-        }
-    }
-
-    public JMSContext getJmsContext() {
-        lock.readLock()
-                .lock();
-        try {
-            return jmsContext;
         } finally {
             lock.readLock()
                     .unlock();
@@ -91,44 +84,53 @@ public enum JMSResourceCtx {
         }
     }
 
-    public JMSResourceCtx startupJMSCtx() {
-        if (jmsContext == null) {
+    public JMSContextMock startJMSCtx() {
+        startBrokerIfAbsent();
+        JMSContextMock ctx = new JMSContextMock(factory, null, false, AUTO_ACKNOWLEDGE);
+        jmsContext.offer(ctx);
+        return ctx;
+    }
+
+    public void startBrokerIfAbsent() {
+        if (broker == null) {
             lock.writeLock()
                     .lock();
             try {
-                if (jmsContext != null)
-                    return this;
-                broker = new BrokerService();
-                broker.setDeleteAllMessagesOnStartup(true);
-                broker.setPersistent(false);
-                broker.setUseJmx(false);
-                broker.addConnector(SOCKET);
-                broker.start();
-                String url = SOCKET;
-                url += url.contains("?") ? "&" : "?";
-                url += "jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0";
-                factory = new ActiveMQConnectionFactory(url);
-                jmsContext = new JMSContextMock(factory);
-                Runnable hook = () -> {
+                if (broker == null) {
                     try {
-                        jmsContext.closeConnection();
-                    } catch (JMSException e) {
-                        if (!(e.getCause() instanceof TransportDisposedIOException)) {
-                            e.printStackTrace();
-                        }
-                    } finally {
-                        closeBroker(broker);
+                        broker = new BrokerService();
+                        broker.setDeleteAllMessagesOnStartup(true);
+                        broker.setPersistent(false);
+                        broker.setUseJmx(false);
+                        broker.addConnector(SOCKET);
+                        broker.start();
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e.getLocalizedMessage(), e);
                     }
-                };
-                getRuntime().addShutdownHook(new Thread(hook));
-            } catch (Exception e) {
-                throw new IllegalStateException(e.getLocalizedMessage(), e);
+
+                    Runnable hook = () -> {
+                        try {
+                            jmsContext.forEach(JMSContextMock::closeConnection);
+                        } catch (JMSRuntimeException e) {
+                            if (!(e.getCause() instanceof TransportDisposedIOException)
+                                    && !(e.getCause() instanceof ConnectionClosedException)) {
+                                e.printStackTrace();
+                            }
+                        } finally {
+                            closeBroker(broker);
+                        }
+                    };
+                    getRuntime().addShutdownHook(new Thread(hook));
+                    String url = SOCKET;
+                    url += url.contains("?") ? "&" : "?";
+                    url += "jms.redeliveryPolicy.maximumRedeliveries=1&jms.redeliveryPolicy.initialRedeliveryDelay=0";
+                    factory = new ActiveMQConnectionFactory(url);
+                }
             } finally {
                 lock.writeLock()
                         .unlock();
             }
         }
-        return this;
     }
 
     private static void closeBroker(BrokerService broker) {

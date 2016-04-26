@@ -34,7 +34,8 @@ import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
 
 public class JMSResourcePoint implements InjectionPoint<Resource> {
     private static final Collection<String> JNDI_CF = asList("jms/ConnectionFactory", "java:/ConnectionFactory",
-            "/ConnectionFactory", "java:comp/DefaultJMSConnectionFactory", "java:jboss/DefaultJMSConnectionFactory", "java:/JmsXA");
+            "/ConnectionFactory", "java:comp/DefaultJMSConnectionFactory", "java:jboss/DefaultJMSConnectionFactory",
+            "java:/JmsXA");
 
     @Override
     public Class<Resource> getAnnotationType() {
@@ -42,11 +43,13 @@ public class JMSResourcePoint implements InjectionPoint<Resource> {
     }
 
     @Override
-    public <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, Resource injectionAnnotation, T bean, Class<? extends T> beanType) {
+    public <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, Resource injectionAnnotation, T bean,
+                                         Class<? extends T> beanType) {
         String mapping = injectionAnnotation.mappedName();
         if (mapping == null) mapping = injectionAnnotation.lookup();
         if (JNDI_CF.contains(mapping)) {
-            return of(CTX.startupJMSCtx().getConnectionFactory());
+            CTX.startBrokerIfAbsent();
+            return of(CTX.getConnectionFactory());
         } else if (declaredInjectionType == Queue.class) {
             Queue queue = CTX.getQueues().computeIfAbsent(mapping, ActiveMQQueue::new);
             sanityCheckResource(injectionAnnotation.type(), mapping, beanType);

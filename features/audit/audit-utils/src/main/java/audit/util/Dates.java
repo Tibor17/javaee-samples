@@ -46,19 +46,21 @@ public final class Dates {
     }
 
     public static String format(Calendar c) {
-        DateFormat format = new SimpleDateFormat(CALENDAR_FORMAT, Locale.ROOT);
+        DateFormat format = new SimpleDateFormat(CALENDAR_FORMAT, ROOT);
         format.setTimeZone(c.getTimeZone());
         return format.format(c.getTime());
     }
 
     public static String format(Date d) {
-        DateFormat format = new SimpleDateFormat(DATE_FORMAT, Locale.ROOT);
+        DateFormat format = new SimpleDateFormat(DATE_FORMAT, ROOT);
         format.setTimeZone(getTimeZone(UTC));
         return format.format(d);
     }
 
     public static Calendar format(String formatted) {
+        TimeZone utc = getTimeZone(UTC);
         DateTimeFormatter formatter = ofPattern(CALENDAR_FORMAT_JAVA8);
+
         TemporalAccessor temporalAccessor = formatter.parse(formatted);
         int year = temporalAccessor.get(YEAR);
         int month = temporalAccessor.get(MONTH_OF_YEAR);
@@ -68,11 +70,17 @@ public final class Dates {
         int second = temporalAccessor.get(SECOND_OF_MINUTE);
         int millis = temporalAccessor.get(MILLI_OF_SECOND);
         int timeZoneInSeconds = temporalAccessor.get(OFFSET_SECONDS);
+        ZoneOffset zoneOffset = ZoneOffset.ofTotalSeconds(timeZoneInSeconds);
+
         GregorianCalendar c = new GregorianCalendar(year, month - 1, day, hour, minute, second);
         c.set(MILLISECOND, millis);
-        ZoneOffset.ofTotalSeconds(timeZoneInSeconds).getId();
-        SimpleTimeZone zone = new SimpleTimeZone(timeZoneInSeconds * 1000, "");
-        c.setTimeZone(zone);
+
+        if (timeZoneInSeconds == utc.getRawOffset()) {
+            c.setTimeZone(utc);
+        } else {
+            SimpleTimeZone zone = new SimpleTimeZone(timeZoneInSeconds * 1000, zoneOffset.getId());
+            c.setTimeZone(zone);
+        }
         return c;
     }
 

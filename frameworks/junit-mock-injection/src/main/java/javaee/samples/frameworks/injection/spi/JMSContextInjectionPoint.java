@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.injection.spi;
 
+import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
 
@@ -25,6 +26,7 @@ import javax.inject.Inject;
 import javax.jms.*;
 import java.lang.IllegalStateException;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
@@ -36,10 +38,7 @@ public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
             asList("setClientID", "setExceptionListener", "start", "stop", "setAutoStart", "close", "commit",
                     "rollback", "recover");
 
-    private final Object LOCK = new Object();
-
-    // do not cache if transactional
-    private volatile JMSContext ctx;
+    private final Deque<JMSContextMock> ctx = new ConcurrentLinkedDeque<>();
 
     @Override
     public Class<Inject> getAnnotationType() {
@@ -50,23 +49,26 @@ public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
     public <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, Inject injectionAnnotation,
                                          T bean, Class<? extends T> beanType) {
 
-        return declaredInjectionType == JMSContext.class ? of($(CTX.startupJMSCtx().getJmsContext())) : empty();
+        return declaredInjectionType == JMSContext.class ? of(jmsContext(bean)) : empty();
     }
 
     @Override
     public void destroy() {
+        ctx.forEach(JMSContextMock::closeConnection);
     }
 
-    private JMSContext $(JMSContext ctx) {
-        if (this.ctx == null) {
-            synchronized (LOCK) {
-                if (this.ctx == null)
-                    this.ctx = proxy(ctx);
-            }
+    private <T> JMSContextMock jmsContext(T bean) {
+        JMSContextMock jmsCtx = MessageDrivenContext.MDCTX.get().get(bean);
+        if (jmsCtx == null) {
+            jmsCtx = CTX.startJMSCtx();
+            ctx.offer(jmsCtx);
         }
-        return this.ctx;
+        return jmsCtx;
     }
 
+    /**
+     * todo use it if transactional session
+     */
     private static JMSContext proxy(JMSContext ctx) {
         ProxyFactory factory = new ProxyFactory();
         factory.setInterfaces(new Class<?>[]{JMSContext.class});

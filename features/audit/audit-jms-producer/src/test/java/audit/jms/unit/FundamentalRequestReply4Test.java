@@ -19,7 +19,9 @@
 package audit.jms.unit;
 
 import javaee.samples.frameworks.injection.InjectionRunner;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
@@ -30,15 +32,15 @@ import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 @Vetoed
 @RunWith(InjectionRunner.class)
 public class FundamentalRequestReply4Test {
     private final CountDownLatch synchronizer = new CountDownLatch(1);
 
-    @Resource(mappedName = "java:/ConnectionFactory")
-    ConnectionFactory connectionFactory;
+    @Rule
+    public final ErrorCollector errors = new ErrorCollector();
 
     @Inject
     JMSContext ctx;
@@ -65,17 +67,22 @@ public class FundamentalRequestReply4Test {
                             TextMessage replyMessage = (TextMessage) m;
                             assertThat(replyMessage.getText())
                                     .isEqualTo("Hi There! replied back to sender");
+                            synchronizer.countDown();
                         } else {
                             fail("illegal message type");
                         }
                     } catch (JMSException e) {
+                        errors.addError(e);
                         throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
-                    } finally {
-                        synchronizer.countDown();
+                    } catch (Throwable t) {
+                        errors.addError(t);
+                        fail(t.getLocalizedMessage(), t);
                     }
                 });
 
-        synchronizer.await(3, SECONDS);
+        assertThat(synchronizer.await(3, SECONDS))
+                .describedAs("test timeout")
+                .isTrue();
     }
 
     private void receiver() {
@@ -101,7 +108,11 @@ public class FundamentalRequestReply4Test {
                             fail("illegal message type");
                         }
                     } catch (JMSException e) {
-                        fail(e.getLocalizedMessage());
+                        errors.addError(e);
+                        throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+                    } catch (Throwable t) {
+                        errors.addError(t);
+                        fail(t.getLocalizedMessage(), t);
                     }
                 });
     }

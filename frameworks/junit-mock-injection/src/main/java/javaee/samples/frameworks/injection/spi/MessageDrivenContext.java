@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.injection.spi;
 
+import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
@@ -38,39 +39,48 @@ import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static javax.jms.Session.DUPS_OK_ACKNOWLEDGE;
 
 public class MessageDrivenContext implements ContextInjector {
-    private final Map<Object, Void> messageDrivenBeans = new WeakHashMap<>();
-    private final Collection<Connection> connections = new ArrayList<>();
+    public static class MessageDrivenBeanContext extends ThreadLocal<Map<Object, JMSContextMock>> {
+        @Override
+        protected Map<Object, JMSContextMock> initialValue() {
+            return new WeakHashMap<>();
+        }
+    }
+
+    static final MessageDrivenBeanContext MDCTX = new MessageDrivenBeanContext();
 
     @Override
     public <T> T bindContext(T bean, Class<?> beanType) {
         if (beanType.isAnnotationPresent(MessageDriven.class)) {
-            if (!messageDrivenBeans.containsKey(bean)) {
-                messageDrivenBean(bean, beanType);
-                messageDrivenBeans.put(bean, null);
-            }
+            MDCTX.get().computeIfAbsent(bean, b -> messageDrivenBean(bean, beanType));
         }
         return bean;
     }
 
     @Override
     public void destroy() {
-        connections.forEach(MessageDrivenContext::close);
+        try {
+            MDCTX.get()
+                    .values()
+                    .forEach(JMSContextMock::closeConnection);
+        } finally {
+            MDCTX.remove();
+        }
     }
 
-    private <T> void messageDrivenBean(T bean, Class<? extends T> beanType) {
+    private static <T> JMSContextMock messageDrivenBean(T bean, Class<? extends T> beanType) {
         if (MessageListener.class.isAssignableFrom(beanType)) {
             MessageDriven md = beanType.getAnnotation(MessageDriven.class);
             Collection<ActivationConfigProperty> properties = asList(md.activationConfig());
             ActiveMQDestination destination = lookupDestination(properties);
-            CTX.startupJMSCtx();
+            CTX.startBrokerIfAbsent();
             try {
-                Connection connection = CTX.getConnectionFactory().createConnection();
-                connection.setClientID(lookupClientId(properties, destination.getPhysicalName()));
-                Session session = connection.createSession(false, lookupAcknowledgeMode(properties));
-                MessageConsumer consumer = createConsumer(properties, session, destination);
-                consumer.setMessageListener((MessageListener) bean);
-                connection.start();
-                connections.add(connection);
+                JMSContextMock ctx = new JMSContextMock(CTX.getConnectionFactory(),
+                        lookupClientId(properties, destination.getPhysicalName()),
+                        false,
+                        lookupAcknowledgeMode(properties));
+                createConsumer(properties, ctx.getSession(), destination)
+                        .setMessageListener((MessageListener) bean);
+                return ctx;
             } catch (JMSException e) {
                 throw new EJBException(e.getLocalizedMessage(), e);
             }
@@ -161,13 +171,5 @@ public class MessageDrivenContext implements ContextInjector {
         if (type.equals(Queue.class.getName())) return new ActiveMQQueue(jndi);
         else if (type.equals(Topic.class.getName())) return new ActiveMQTopic(jndi);
         return null;
-    }
-
-    private static void close(Connection connection) {
-        try {
-            connection.close();
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
     }
 }

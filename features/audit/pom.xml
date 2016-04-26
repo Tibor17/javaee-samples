@@ -41,6 +41,7 @@
         <module>audit-endpoint</module>
         <module>audit-jms-query-search</module>
         <module>audit-utils</module>
+        <module>audit-jms-reply</module>
     </modules>
 
     <properties>

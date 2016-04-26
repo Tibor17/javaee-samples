@@ -46,7 +46,7 @@ public class Producers {
 
     @Produces
     public JMSContext produceJMSContext() {
-        return CTX.startupJMSCtx().getJmsContext();
+        return CTX.startJMSCtx();
     }
 
     public void close(@Disposes EntityManager em) {

@@ -28,7 +28,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-jms-consumer</artifactId>
+    <artifactId>audit-jms-reply</artifactId>
 
     <dependencies>
         <dependency>

@@ -20,24 +20,68 @@ package javaee.samples.frameworks.injection.jms;
 
 import javax.jms.*;
 import java.io.Serializable;
+import java.lang.IllegalStateException;
+
+import static java.lang.reflect.Proxy.newProxyInstance;
 
 public final class JMSContextMock implements JMSContext {
     private final Connection connection;
     private final Session session;
 
-    public JMSContextMock(ConnectionFactory factory) {
+    private static class SessionThreadLocal extends ThreadLocal<Session> {
+        private final boolean transacted;
+        private final int acknowledgeMode;
+        private final Connection connection;
+
+        private SessionThreadLocal(boolean transacted, int acknowledgeMode, Connection connection) {
+            this.transacted = transacted;
+            this.acknowledgeMode = acknowledgeMode;
+            this.connection = connection;
+        }
+
+        @Override
+        protected Session initialValue() {
+            try {
+                return connection.createSession(transacted, acknowledgeMode);
+            } catch (JMSException e) {
+                throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+            }
+        }
+    }
+
+    public JMSContextMock(ConnectionFactory factory, String clientId, boolean transacted, int acknowledgeMode) {
         try {
             connection = factory.createConnection();
-            session = connection.createSession(false, AUTO_ACKNOWLEDGE);
+            clientId = clientId == null ? null : clientId.trim();
+            if (clientId != null && !clientId.isEmpty()) {
+                connection.setClientID(clientId);
+            }
             connection.start();
+            final ThreadLocal<Session> ls = new SessionThreadLocal(transacted, acknowledgeMode, connection);
+            Class<?>[] sType = {Session.class};
+            ClassLoader cl = context();
+            session = (Session) newProxyInstance(cl, sType, (proxy, method, args) -> method.invoke(ls.get(), args));
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    private static ClassLoader context() {
+        return Thread.currentThread().getContextClassLoader();
+    }
+
     @Override
     public JMSContext createContext(int sessionMode) {
-        return null;
+        throw new JMSRuntimeException("The method JMSContext.createContext() " +
+                "is being called in a Java EE web or EJB application.");
     }
 
     @Override
@@ -47,7 +91,11 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public String getClientID() {
-        return null;
+        try {
+            return connection.getClientID();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -56,7 +104,11 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public ConnectionMetaData getMetaData() {
-        return null;
+        try {
+            return connection.getMetaData();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -82,50 +134,83 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public boolean getAutoStart() {
-        return false;
+        return true;
     }
 
     @Override
     public void close() {
     }
 
-    public void closeConnection() throws JMSException {
-        connection.close();
+    public void closeConnection() {
+        try {
+            session.close();
+            connection.close();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public BytesMessage createBytesMessage() {
-        return null;
+        try {
+            return session.createBytesMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public MapMessage createMapMessage() {
-        return null;
+        try {
+            return session.createMapMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public Message createMessage() {
-        return null;
+        try {
+            return session.createMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public ObjectMessage createObjectMessage() {
-        return null;
+        try {
+            return session.createObjectMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public ObjectMessage createObjectMessage(Serializable object) {
-        return null;
+        try {
+            return session.createObjectMessage(object);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public StreamMessage createStreamMessage() {
-        return null;
+        try {
+            return session.createStreamMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public TextMessage createTextMessage() {
-        return null;
+        try {
+            return session.createTextMessage();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -153,14 +238,37 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void commit() {
+        try {
+            session.commit();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateRuntimeException(e.getLocalizedMessage());
+        } catch (TransactionRolledBackException e) {
+            throw new TransactionRolledBackRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void rollback() {
+        try {
+            session.rollback();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateRuntimeException(e.getLocalizedMessage());
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void recover() {
+        try {
+            session.rollback();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateRuntimeException(e.getLocalizedMessage());
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -184,42 +292,94 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public Queue createQueue(String queueName) {
-        return null;
+        try {
+            return session.createQueue(queueName);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public Topic createTopic(String topicName) {
-        return null;
+        try {
+            return session.createTopic(topicName);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createDurableConsumer(Topic topic, String name) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createDurableConsumer(topic, name));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createDurableConsumer(Topic topic, String name, String messageSelector, boolean noLocal) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createDurableConsumer(topic, name, messageSelector, noLocal));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (InvalidSelectorException e) {
+            throw new InvalidSelectorRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createSharedDurableConsumer(Topic topic, String name) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createSharedDurableConsumer(topic, name));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createSharedDurableConsumer(Topic topic, String name, String messageSelector) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createSharedDurableConsumer(topic, name, messageSelector));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (InvalidSelectorException e) {
+            throw new InvalidSelectorRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createSharedConsumer(topic, sharedSubscriptionName));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (InvalidSelectorException e) {
+            throw new InvalidSelectorRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName, String messageSelector) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createSharedConsumer(topic, sharedSubscriptionName, messageSelector));
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (InvalidSelectorException e) {
+            throw new InvalidSelectorRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -257,16 +417,25 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public TemporaryTopic createTemporaryTopic() {
-        return null;
+        try {
+            return session.createTemporaryTopic();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public void unsubscribe(String name) {
-
+        try {
+            session.unsubscribe(name);
+        } catch (InvalidDestinationException e) {
+            throw new InvalidDestinationRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public void acknowledge() {
-
     }
 }

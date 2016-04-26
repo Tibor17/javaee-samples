@@ -16,29 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.producer;
+package audit.jms.unit;
 
-import audit.domain.Audit;
+import audit.domain.AuditObjects;
+import audit.jms.consumer.AuditSelector;
+import audit.query.search.api.AuditQuery;
 
-import javax.annotation.Resource;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.jms.JMSContext;
-import javax.jms.Topic;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-@ApplicationScoped
-public class AuditMessagingProducerService {
-
-    @Inject
-    JMSContext ctx;
-
-    @Resource(mappedName = "java:jms/topic/audit")
-    Topic topic;
-
-    public void send(@NotNull @Valid Audit audit) {
-        ctx.createProducer()
-                .send(topic, audit);
+public class Selector implements AuditSelector {
+    @Override
+    public AuditObjects onMessage(AuditQuery query) {
+        return null;
     }
 }

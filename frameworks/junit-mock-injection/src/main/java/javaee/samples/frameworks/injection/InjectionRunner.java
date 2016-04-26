@@ -40,6 +40,7 @@ import static java.lang.Integer.MAX_VALUE;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparingInt;
 import static java.util.ServiceLoader.load;
+import static javaee.samples.frameworks.injection.BeanManager.getEmBeanType;
 import static javaee.samples.frameworks.injection.DB.H2;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static javaee.samples.frameworks.injection.FieldUtils.filterGenericTypes;
@@ -202,7 +203,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
 
     private static void addEntityManagerInContext(BeanManager beanManager, JPARule rule) {
         rule.setBeanManager(beanManager);
-        beanManager.createBean(BeanManager.getEmBeanType(), rule.getEntityManager());
+        beanManager.createBean(getEmBeanType(), rule.getEntityManager());
     }
 
     private static boolean injectJpaRule(Field field, Object testInstance, PersistenceContext nonFieldPU) throws Exception {

@@ -62,3 +62,6 @@ https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/JMS_Exampl
 Message selector atc.
 http://what-when-how.com/enterprise-javabeans-3-1/message-driven-beans-enterprise-javabeans-3-1/
 
+TomEE JMS
+http://tomee.apache.org/examples-trunk/injection-of-connectionfactory/README.html
+

@@ -19,9 +19,8 @@
 package audit.jms.unit;
 
 import javaee.samples.frameworks.injection.InjectionRunner;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
@@ -33,12 +32,16 @@ import java.util.concurrent.CountDownLatch;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.fail;
 
 @Vetoed
 @RunWith(InjectionRunner.class)
 public class FundamentalRequestReply3Test {
     private final CountDownLatch synchronizer = new CountDownLatch(1);
+
+    @Rule
+    public final ErrorCollector errors = new ErrorCollector();
 
     @Resource(mappedName = "java:/ConnectionFactory")
     ConnectionFactory connectionFactory;
@@ -84,20 +87,25 @@ public class FundamentalRequestReply3Test {
                             TextMessage replyMessage = (TextMessage) msg;
                             assertThat(replyMessage.getText())
                                     .isEqualTo("Hi There! replied back to sender");
+                            synchronizer.countDown();
                         } else {
                             MessageProducer invalidProducer = session.createProducer(invalidQueue);
                             msg.setJMSCorrelationID(msg.getJMSMessageID());
                             invalidProducer.send(msg);
-                            fail("illegal message type");
+                            Assert.fail("illegal message type");
                         }
                     } catch (JMSException e) {
-                        fail(e.getLocalizedMessage());
-                    } finally {
-                        synchronizer.countDown();
+                        errors.addError(e);
+                        Assert.fail(e.getLocalizedMessage());
+                    } catch (Throwable t) {
+                        errors.addError(t);
+                        fail(t.getLocalizedMessage(), t);
                     }
                 });
 
-        synchronizer.await(3, SECONDS);
+        assertThat(synchronizer.await(3, SECONDS))
+                .describedAs("test timeout")
+                .isTrue();
     }
 
     private void receiver() {
@@ -124,15 +132,15 @@ public class FundamentalRequestReply3Test {
                                 MessageProducer invalidProducer = session.createProducer(invalidQueue);
                                 msg.setJMSCorrelationID(msg.getJMSMessageID());
                                 invalidProducer.send(msg);
-                                fail("illegal message type");
+                                Assert.fail("illegal message type");
                             }
                         } catch (JMSException e) {
-                            fail(e.getLocalizedMessage());
+                            Assert.fail(e.getLocalizedMessage());
                         }
                     });
             repConn.start();
         } catch (JMSException e) {
-            fail(e.getLocalizedMessage());
+            Assert.fail(e.getLocalizedMessage());
         }
     }
 }
