@@ -28,6 +28,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 import static java.time.ZoneOffset.UTC;
+import static java.time.ZoneOffset.ofTotalSeconds;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.time.temporal.ChronoField.*;
 import static java.time.temporal.ChronoField.OFFSET_SECONDS;
@@ -70,7 +71,6 @@ public final class Dates {
         int second = temporalAccessor.get(SECOND_OF_MINUTE);
         int millis = temporalAccessor.get(MILLI_OF_SECOND);
         int timeZoneInSeconds = temporalAccessor.get(OFFSET_SECONDS);
-        ZoneOffset zoneOffset = ZoneOffset.ofTotalSeconds(timeZoneInSeconds);
 
         GregorianCalendar c = new GregorianCalendar(year, month - 1, day, hour, minute, second);
         c.set(MILLISECOND, millis);
@@ -78,6 +78,7 @@ public final class Dates {
         if (timeZoneInSeconds == utc.getRawOffset()) {
             c.setTimeZone(utc);
         } else {
+            ZoneOffset zoneOffset = ofTotalSeconds(timeZoneInSeconds);
             SimpleTimeZone zone = new SimpleTimeZone(timeZoneInSeconds * 1000, zoneOffset.getId());
             c.setTimeZone(zone);
         }
