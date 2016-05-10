@@ -82,10 +82,13 @@ final class BeanUtils {
     private static <T extends Annotation> T hasAnnotationInStereotypes(Annotation[] declaredAnnotations, Class<T> expectedAnnotationType) {
         for (Annotation declaredAnnotation : declaredAnnotations) {
             Class<? extends Annotation> declaredAnnotationType = declaredAnnotation.annotationType();
-            if (declaredAnnotationType == expectedAnnotationType
-                    || declaredAnnotationType.isAnnotationPresent(Stereotype.class)
-                    && hasAnnotationInStereotypes(declaredAnnotationType.getAnnotations(), expectedAnnotationType) != null) {
+            if (declaredAnnotationType == expectedAnnotationType) {
                 return expectedAnnotationType.cast(declaredAnnotation);
+            } else if (declaredAnnotationType.isAnnotationPresent(Stereotype.class)) {
+                T ann = hasAnnotationInStereotypes(declaredAnnotationType.getAnnotations(), expectedAnnotationType);
+                if (ann != null) {
+                    return expectedAnnotationType.cast(ann);
+                }
             }
         }
         return null;
