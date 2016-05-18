@@ -47,6 +47,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.querydsl.core.alias.Alias.alias;
+import static java.beans.Introspector.decapitalize;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 
@@ -93,10 +94,7 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     protected
     @NotNull
     PathBuilder<E> newQueryEntity() {
-        StringBuilder variable = new StringBuilder(entityType.getSimpleName());
-        char firstLetter = variable.charAt(0);
-        variable.setCharAt(0, Character.toLowerCase(firstLetter));
-        return newQueryEntity(variable.toString());
+        return newQueryEntity(decapitalize(entityType.getSimpleName()));
     }
 
     protected
