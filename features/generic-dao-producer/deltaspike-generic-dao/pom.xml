@@ -30,4 +30,24 @@
 
     <artifactId>deltaspike-generic-dao</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.deltaspike.modules</groupId>
+            <artifactId>deltaspike-data-module-impl</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <!--<dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-threads</artifactId>
+            <version>8.2.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-ejb3</artifactId>
+            <version>8.2.1.Final</version>
+            <scope>test</scope>
+        </dependency>-->
+    </dependencies>
+
 </project>
