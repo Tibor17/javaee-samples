@@ -23,21 +23,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>javaee-samples-project</artifactId>
         <groupId>javaee.samples</groupId>
+        <artifactId>features</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>features</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>fixed-rate-cdi-timer</artifactId>
 
-    <modules>
-        <module>testing</module>
-        <module>audit</module>
-        <module>fluent-properties</module>
-        <module>generic-dao-producer</module>
-        <module>mail-testing</module>
-        <module>fixed-rate-cdi-timer</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

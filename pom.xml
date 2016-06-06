@@ -282,6 +282,7 @@
                                 <exclude>**/buildNumber.properties</exclude>
                                 <exclude>.mvn/timing.properties</exclude>
                                 <exclude>.gitignore</exclude>
+                                <exclude>**/META-INF/services/*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
