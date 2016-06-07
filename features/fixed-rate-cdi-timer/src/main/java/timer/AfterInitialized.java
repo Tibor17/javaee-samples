@@ -18,25 +18,14 @@
  */
 package timer;
 
-import javax.annotation.Resource;
-import javax.enterprise.concurrent.ContextService;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Destroyed;
-import javax.enterprise.context.Initialized;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.CDI;
-import javax.enterprise.inject.spi.Extension;
-import javax.inject.Inject;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-public class AfterInitialized implements Extension {
+public class AfterInitialized extends AbstractExtensionOnStartupTimer<Job> {
+    /**
+     * No injection points and resources can be observed in CDI Extension.
+     */
 
     /*
     @Resource
@@ -53,29 +42,18 @@ public class AfterInitialized implements Extension {
     ManagedScheduledExecutorService executor;
     */
 
-    volatile ScheduledFuture<?> future;
-
-    public void afterInitialized(@Observes @Initialized(ApplicationScoped.class) Object event) throws NamingException {
-        InitialContext ctx = new InitialContext();
-
-        ManagedScheduledExecutorService executor =
-                (ManagedScheduledExecutorService) ctx.lookup("java:comp/DefaultManagedScheduledExecutorService");
-
-        ContextService proxy = (ContextService) ctx.lookup("java:comp/DefaultContextService");
-
-        future = executor.scheduleAtFixedRate(() ->
-        {
-            Instance<Job> jobs = CDI.current().select(Job.class);
-            Job job = jobs.get();
-            try {
-                proxy.createContextualProxy(job, Runnable.class).run();
-            } finally {
-                jobs.destroy(job);
-            }
-        }, 0, 1, SECONDS);
+    @Override
+    protected TimeUnit getTimeUnit() {
+        return SECONDS;
     }
 
-    public void afterDestroyed(@Observes @Destroyed(ApplicationScoped.class) Object event) {
-        future.cancel(false);
+    @Override
+    protected long getPeriodTime() {
+        return 1;
+    }
+
+    @Override
+    protected Class<Job> getJobType() {
+        return Job.class;
     }
 }
