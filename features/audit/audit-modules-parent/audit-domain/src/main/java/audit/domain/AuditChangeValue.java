@@ -21,7 +21,6 @@ package audit.domain;
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-
 import java.io.ObjectStreamField;
 import java.io.Serializable;
 import java.util.Arrays;

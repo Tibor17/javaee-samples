@@ -42,6 +42,7 @@
         <module>audit-jms-query-search</module>
         <module>audit-utils</module>
         <module>audit-jms-reply</module>
+        <module>audit-modules-parent</module>
     </modules>
 
     <properties>
@@ -55,7 +56,7 @@
                 <groupId>org.hibernate.ogm</groupId>
                 <artifactId>hibernate-ogm-bom</artifactId>
                 <type>pom</type>
-                <version>5.0.0.CR1</version>
+                <version>5.0.0.Final</version>
                 <scope>import</scope>
             </dependency>
         </dependencies>
