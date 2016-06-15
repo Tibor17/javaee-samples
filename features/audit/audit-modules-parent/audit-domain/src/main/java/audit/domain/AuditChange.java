@@ -19,10 +19,7 @@
 package audit.domain;
 
 import javax.enterprise.inject.Vetoed;
-import javax.persistence.Access;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.ObjectStreamField;
@@ -31,6 +28,8 @@ import java.util.Objects;
 
 import static java.util.Objects.hash;
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REFRESH;
 
 @Vetoed
 @Entity
@@ -41,8 +40,8 @@ public class AuditChange extends BaseEntity implements Serializable {
 
     private static final ObjectStreamField[] serialPersistentFields = {
             new ObjectStreamField("key", String.class),
-            new ObjectStreamField("oldValue", String.class),
-            new ObjectStreamField("newValue", String.class)
+            new ObjectStreamField("oldValue", AuditChangeValue.class),
+            new ObjectStreamField("newValue", AuditChangeValue.class)
     };
 
     /**
@@ -56,16 +55,18 @@ public class AuditChange extends BaseEntity implements Serializable {
     /**
      * @serialField old property value of this change
      */
-    @Column(name = "OLD_VALUE", updatable = false)
-    @Size(max = 255)
-    private String oldValue;
+    @OneToOne(optional = false, cascade = {PERSIST, REFRESH})
+    @JoinColumn(name = "OLD_VALUE", unique = true, nullable = false, updatable = false)
+    @NotNull
+    private AuditChangeValue oldValue;
 
     /**
      * @serialField new property value of this audit change
      */
-    @Column(name = "NEW_VALUE", updatable = false)
-    @Size(max = 255)
-    private String newValue;
+    @OneToOne(optional = false, cascade = {PERSIST, REFRESH})
+    @JoinColumn(name = "NEW_VALUE", unique = true, nullable = false, updatable = false)
+    @NotNull
+    private AuditChangeValue newValue;
 
     public String getKey() {
         return key;
@@ -75,19 +76,19 @@ public class AuditChange extends BaseEntity implements Serializable {
         this.key = key;
     }
 
-    public String getOldValue() {
+    public AuditChangeValue getOldValue() {
         return oldValue;
     }
 
-    public void setOldValue(String oldValue) {
+    public void setOldValue(AuditChangeValue oldValue) {
         this.oldValue = oldValue;
     }
 
-    public String getNewValue() {
+    public AuditChangeValue getNewValue() {
         return newValue;
     }
 
-    public void setNewValue(String newValue) {
+    public void setNewValue(AuditChangeValue newValue) {
         this.newValue = newValue;
     }
 

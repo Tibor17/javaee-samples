@@ -18,10 +18,7 @@
  */
 package domain;
 
-import audit.domain.Audit;
-import audit.domain.AuditChange;
-import audit.domain.AuditFlow;
-import audit.domain.AuditHeader;
+import audit.domain.*;
 import org.junit.Test;
 
 import java.io.*;
@@ -46,8 +43,8 @@ public class SerializationTest {
         flow.getHeaders().add(header);
         AuditChange change = new AuditChange();
         change.setKey("ck");
-        change.setOldValue("cov");
-        change.setNewValue("cnv");
+        change.setOldValue(new AuditChangeValue().setValue("cov").setDiscriminator("unlocalized-value"));
+        change.setNewValue(new AuditChangeValue().setValue("cnv").setDiscriminator("unlocalized-value"));
         flow.getChanges().add(change);
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
