@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>javaee.samples.it</groupId>
+        <artifactId>integration-tests</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>timer-cdi-extension</artifactId>
+    <packaging>war</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>javaee.samples</groupId>
+            <artifactId>fixed-rate-cdi-timer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javaee.samples.frameworks</groupId>
+            <artifactId>junit-mock-injection</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld.se</groupId>
+            <artifactId>weld-se</artifactId>
+            <version>2.2.16.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- WELD-SE-000014: bean discovery-mode="annotated" support is disabled.
+            Add org.jboss:jandex to the classpath to enable it. -->
+            <groupId>org.jboss</groupId>
+            <artifactId>jandex</artifactId>
+            <version>1.2.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.deltaspike.cdictrl</groupId>
+            <artifactId>deltaspike-cdictrl-weld</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.deltaspike.modules</groupId>
+            <artifactId>deltaspike-test-control-module-impl</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.deltaspike.modules</groupId>
+            <artifactId>deltaspike-jpa-module-impl</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.geronimo.specs</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>4.3.7.Final</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.persistence</groupId>
+                    <artifactId>persistence-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>jta</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <!--<version>1.3.173</version>-->
+            <version>1.4.191</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>${project.basedir}/src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wildfly</groupId>
+                                    <artifactId>wildfly-dist</artifactId>
+                                    <version>8.2.1.Final</version>
+                                    <type>zip</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>reserve-ports</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>h2.server.port</portName>
+                                <portName>h2.monitor.port</portName>
+                                <portName>http.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--<plugin>
+                <groupId>com.edugility</groupId>
+                <artifactId>h2-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>spawn</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+            <plugin>
+                <groupId>com.btmatthews.maven.plugins.inmemdb</groupId>
+                <artifactId>inmemdb-maven-plugin</artifactId>
+                <version>1.4.3</version>
+                <executions>
+                    <execution>
+                        <id>h2database-server-run</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <daemon>true</daemon>
+                            <type>h2</type>
+                            <database>test</database>
+                            <username>sa</username>
+                            <password>sa</password>
+                            <port>${h2.server.port}</port>
+                            <attributes>
+                                <PAGE_SIZE>2048</PAGE_SIZE>       <!--in bytes, default:2048-->
+                                <QUERY_TIMEOUT>0</QUERY_TIMEOUT>  <!--in millis, default:0 means no-timeout-->
+                                <EARLY_FILTER>TRUE</EARLY_FILTER> <!--performance increase in 53%-->
+                            </attributes>
+                            <sources>
+                                <script>
+                                    <sourceFile>src/test/resources/scripts/create-database.sql</sourceFile>
+                                </script>
+                                <!--<dataSet>
+                                    <sourceFile>src/test/resources/users.dbunit.xml</sourceFile>
+                                </dataSet>-->
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>h2database-server-stop</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <monitorKey>inmemdb</monitorKey>
+                    <monitorPort>${h2.monitor.port}</monitorPort>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>1.3.173</version>
+                        <!--<version>1.4.191</version>-->
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>1.0.2.Final</version>
+                <!--<version>1.1.0.Alpha8</version>-->
+                <!--<version>1.1.0.Alpha9-SNAPSHOT</version>-->
+                <executions>
+                    <execution>
+                        <id>wildfly-start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>setup-server</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>execute-commands</goal>
+                        </goals>
+                        <configuration>
+                            <execute-commands>
+                                <batch>false</batch>
+                                <scripts>
+                                    <!--<script>${project.build.testOutputDirectory}/scripts/datasource-remove.cli</script>-->
+                                    <script>${project.build.testOutputDirectory}/scripts/datasource-add.cli</script>
+                                    <script>${project.build.testOutputDirectory}/scripts/logger-write.cli</script>
+                                    <script>${project.build.testOutputDirectory}/scripts/jms-queue-add.cli</script>
+                                    <!--<script>${project.build.testOutputDirectory}/scripts/h2module-add.cli</script>-->
+                                </scripts>
+                                <!--<commands>
+                                    <command>deploy
+                                        d:\vcs\github\javaee-samples\features\testing\integration-tests\target\integration-tests-1.0-SNAPSHOT.war
+                                    </command>
+                                    <command>/subsystem=messaging/hornetq-server=default/jms-queue=SwQueue:add(entries=[java:/queue/SwQueue])</command>
+                                    <command>connect
+                                    &#45;&#45;connect &#45;&#45;controller=localhost:9990 &#45;&#45;command="/subsystem=logging/console=CONSOLE:write-attribute(name=level,value=DEBUG)"
+                                        /subsystem=security/security-domain="unused-domain":remove</command>
+                                    <command>module add &#45;&#45;name=com.h2database.h2 &#45;&#45;resources=D:\\.m2\\repository/com/h2database/h2/1.4.191/h2-1.4.191.jar &#45;&#45;dependencies=javax.api,javax.transaction.api,javax.servlet.api</command>
+                                </commands>-->
+                            </execute-commands>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>wildfly-deploy</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy-only</goal>
+                        </goals>
+                        <configuration>
+                            <beforeDeployment>
+                                <commands>
+                                    <command>/subsystem=mail/mail-session=default:write-attribute(name=jndi-name, value=java:jboss/mail/Default)</command>
+                                    <command>/subsystem=mail/mail-session=default:write-attribute(name=from, value=noreply@cam.de)</command>
+                                    <command>/subsystem=mail/mail-session=default:write-attribute(name=debug, value=true)</command>
+                                    <command>/subsystem=mail/mail-session=default/server=smtp:write-attribute(name=username, value=noreply@cam.de)</command>
+                                    <command>/subsystem=mail/mail-session=default/server=smtp:write-attribute(name=password, value=noreply123)</command>
+                                    <command>/subsystem=mail/mail-session=default/server=smtp:write-attribute(name=ssl, value=false)</command>
+                                    <command>/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=mail-smtp/:write-attribute(name=host, value=localhost)</command>
+                                    <command>/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=mail-smtp/:write-attribute(name=port, value=25)</command>
+                                </commands>
+                            </beforeDeployment>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>widfly-shutdown</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>undeploy</goal>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <version>8.2.1.Final</version>
+                    <force>false</force>
+                    <username>admin</username>
+                    <password>admin</password>
+                    <!---Djboss.socket.binding.port-offset=${wildfly.portoffset}-->
+                    <jvmArgs>-Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.http.port=${http.port}</jvmArgs>
+                    <!--<propertiesFile>${project.build.testOutputDirectory}/scripts/wildfly.properties</propertiesFile>-->
+                    <serverConfig>standalone-full.xml</serverConfig>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>integration-tests-verification</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
