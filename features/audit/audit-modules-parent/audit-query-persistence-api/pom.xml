@@ -23,20 +23,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>javaee.samples</groupId>
-        <artifactId>audit</artifactId>
+        <groupId>javaee.samples.audit-modules</groupId>
+        <artifactId>audit-modules-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>javaee.samples.audit-modules</groupId>
-    <artifactId>audit-modules-parent</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>audit-domain</module>
-        <module>audit-utils</module>
-        <module>audit-persistence</module>
-        <module>audit-query-persistence-api</module>
-    </modules>
+    <artifactId>audit-query-persistence-api</artifactId>
 
 </project>
