@@ -18,8 +18,6 @@
  */
 package audit.domain;
 
-import org.hibernate.search.annotations.Indexed;
-
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -39,7 +37,6 @@ import static javax.persistence.EnumType.STRING;
 @Entity
 @Table(name = "AUDIT_CHANGE_VALUE")
 @Access(FIELD)
-@Indexed
 public class AuditChangeValue extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1;
 
