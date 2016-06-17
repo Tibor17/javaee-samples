@@ -30,6 +30,7 @@ import static java.util.Objects.hash;
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REFRESH;
+import static javax.persistence.CascadeType.REMOVE;
 
 @Vetoed
 @Entity
@@ -55,16 +56,18 @@ public class AuditChange extends BaseEntity implements Serializable {
     /**
      * @serialField old property value of this change
      */
-    @OneToOne(optional = false, cascade = {PERSIST, REFRESH})
-    @JoinColumn(name = "OLD_VALUE", unique = true, nullable = false, updatable = false)
+    @OneToOne(optional = false, orphanRemoval = true, cascade = {PERSIST, REFRESH, REMOVE})
+    @JoinColumn(name = "OLD_VALUE", nullable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "FK_AUDIT_CHANGE__OLD_VALUE"))
     @NotNull
     private AuditChangeValue oldValue;
 
     /**
      * @serialField new property value of this audit change
      */
-    @OneToOne(optional = false, cascade = {PERSIST, REFRESH})
-    @JoinColumn(name = "NEW_VALUE", unique = true, nullable = false, updatable = false)
+    @OneToOne(optional = false, orphanRemoval = true, cascade = {PERSIST, REFRESH, REMOVE})
+    @JoinColumn(name = "NEW_VALUE", nullable = false, updatable = false,
+            foreignKey = @ForeignKey(name = "FK_AUDIT_CHANGE__NEW_VALUE"))
     @NotNull
     private AuditChangeValue newValue;
 

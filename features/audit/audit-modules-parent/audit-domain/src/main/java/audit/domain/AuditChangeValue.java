@@ -21,6 +21,7 @@ package audit.domain;
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.ObjectStreamField;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -45,6 +46,9 @@ public class AuditChangeValue extends BaseEntity implements Serializable {
             new ObjectStreamField("value", byte[].class)
     };
 
+    /**
+     * @serialField enum of technical data type of the value
+     */
     @Column(name = "VALUE_TYPE", nullable = false, updatable = false, length = 15)
     @Enumerated(STRING)
     @NotNull
@@ -55,11 +59,17 @@ public class AuditChangeValue extends BaseEntity implements Serializable {
      * with proprietary syntax with limited
      * string-length of 255 characters; e.g. unlocalized-value,
      * localized-property-key, id-of-record-in-sql-table::TABLE.
+     *
+     * @serialField the purpose of this value
      */
     @Column(name = "DISCRIMINATOR", nullable = false, updatable = false)
     @NotNull
+    @Size(min = 1, max = 255)
     private String discriminator;
 
+    /**
+     * @serialField value of this change
+     */
     @Lob @Basic
     @Column(name = "VALUE", updatable = false)
     private byte[] value;

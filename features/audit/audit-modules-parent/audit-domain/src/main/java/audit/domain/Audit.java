@@ -33,6 +33,9 @@ import static java.nio.ByteBuffer.allocate;
 import static java.time.ZoneOffset.UTC;
 import static java.util.TimeZone.getTimeZone;
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REFRESH;
+import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.TemporalType.TIMESTAMP;
 
@@ -54,12 +57,9 @@ public class Audit extends BaseEntity implements Serializable {
             new ObjectStreamField("operationKey", String.class)
     };
 
-    public Audit() {
-        this(Calendar.getInstance(getTimeZone(UTC)));
-    }
-
-    public Audit(Calendar storedAt) {
-        this.storedAt = storedAt;
+    @PrePersist
+    void setupTime() {
+        setStoredAt(Calendar.getInstance(getTimeZone(UTC)));
     }
 
     /**
@@ -108,7 +108,7 @@ public class Audit extends BaseEntity implements Serializable {
     /**
      * @serial flows - List<AuditFlow>
      */
-    @OneToMany(fetch = EAGER, orphanRemoval = true)
+    @OneToMany(fetch = EAGER, orphanRemoval = true, cascade = {PERSIST, REFRESH, REMOVE})
     @JoinColumn(name = "FK_AUDIT", nullable = false, updatable = false,
             foreignKey = @ForeignKey(name = "FK_AUDIT__FLOW"))
     @Size(min = 1)

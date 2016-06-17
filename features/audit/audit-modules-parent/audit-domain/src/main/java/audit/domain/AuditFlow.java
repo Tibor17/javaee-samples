@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REFRESH;
+import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.FetchType.EAGER;
 
 @Vetoed
@@ -43,12 +46,12 @@ public class AuditFlow extends BaseEntity implements Serializable {
     @Size(min = 1, max = 255)
     private String error;
 
-    @OneToMany(fetch = EAGER, orphanRemoval = true)
+    @OneToMany(fetch = EAGER, orphanRemoval = true, cascade = {PERSIST, REFRESH, REMOVE})
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false,
             foreignKey = @ForeignKey(name = "FK_AUDIT_FLOW__HEADER"))
     private List<AuditHeader> headers;
 
-    @OneToMany(fetch = EAGER, orphanRemoval = true)
+    @OneToMany(fetch = EAGER, orphanRemoval = true, cascade = {PERSIST, REFRESH, REMOVE})
     @JoinColumn(name = "FK_AUDIT_FLOW", nullable = false, updatable = false,
             foreignKey = @ForeignKey(name = "FK_AUDIT_FLOW__CHANGE"))
     private List<AuditChange> changes;

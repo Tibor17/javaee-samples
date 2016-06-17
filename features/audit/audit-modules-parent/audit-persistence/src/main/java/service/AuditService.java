@@ -61,28 +61,18 @@ public class AuditService {
 
     @Transactional
     public void saveFlow(@NotNull Audit e) {
-        e.getFlows().forEach(f -> {
-            f.getHeaders().forEach(em::persist);
-            f.getChanges().forEach(em::persist);
-            em.persist(f);
-        });
         em.persist(e);
     }
 
     @Transactional
     public void saveFlow(@NotNull Audit e, String error, @NotNull Collection<AuditHeader> headers,
                          @NotNull Collection<AuditChange> changes) {
-        headers.forEach(em::persist);
-        changes.forEach(em::persist);
-
         AuditFlow flow = new AuditFlow();
         flow.setError(error);
         flow.getHeaders().addAll(headers);
         flow.getChanges().addAll(changes);
-        em.persist(flow);
-
         e.getFlows().add(flow);
-        em.persist(e);
+        saveFlow(e);
     }
 
     public List<Audit> search(long fromRownum, long maxRownums, @NotNull String module,
