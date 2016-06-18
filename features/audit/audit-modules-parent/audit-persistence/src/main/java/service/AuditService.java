@@ -40,7 +40,7 @@ public class AuditService {
     @Inject
     EntityManager em;
 
-    public List<Audit> findAll() {
+    public @NotNull List<Audit> findAll() {
         return em.createNamedQuery("Audit.all", Audit.class)
                 .getResultList();
     }
@@ -55,7 +55,7 @@ public class AuditService {
     }
 
     @Transactional
-    public void remove(Audit e) {
+    public void remove(@NotNull Audit e) {
         em.remove(findAuditById(e.getId()));
     }
 
@@ -75,7 +75,7 @@ public class AuditService {
         saveFlow(e);
     }
 
-    public List<Audit> search(long fromRownum, long maxRownums, @NotNull String module,
+    public @NotNull List<Audit> search(long fromRownum, long maxRownums, @NotNull String module,
                               @NotNull Calendar from, @NotNull Calendar to) {
         PathBuilder<Audit> entity = new PathBuilder<>(Audit.class, "audit");
         JPAQuery<Audit> q = new JPAQuery<Audit>(em).from(entity);
@@ -87,12 +87,12 @@ public class AuditService {
                 .fetch();
     }
 
-    public List<Audit> search(int fromRownum, int maxRownums,
-                              Optional<Long> initiator,
-                              Optional<String> module,
-                              Optional<String> operationKey,
-                              Optional<String> description,
-                              Optional<Calendar> from, Optional<Calendar> to) {
+    public @NotNull List<Audit> search(int fromRownum, int maxRownums,
+                              @NotNull Optional<Long> initiator,
+                              @NotNull Optional<String> module,
+                              @NotNull Optional<String> operationKey,
+                              @NotNull Optional<String> description,
+                              @NotNull Optional<Calendar> from, @NotNull Optional<Calendar> to) {
         PathBuilder<Audit> entity = new PathBuilder<>(Audit.class, "audit");
         JPAQuery<Audit> q = new JPAQuery<Audit>(em).from(entity);
         Audit a = alias(Audit.class, entity);

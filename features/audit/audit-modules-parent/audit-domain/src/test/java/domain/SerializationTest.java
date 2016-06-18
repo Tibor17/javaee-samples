@@ -72,8 +72,8 @@ public class SerializationTest {
                 .containsExactly(expected.getDescription());
 
         assertThat(actual)
-                .extracting(a -> a.getStoredAt().getTime())
-                .containsExactly(expected.getStoredAt().getTime());
+                .extracting(Audit::getStoredAt)
+                .containsNull();
 
         assertThat(actual.getFlows())
                 .extracting(AuditFlow::getError)
