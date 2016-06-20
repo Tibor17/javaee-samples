@@ -76,35 +76,25 @@ public class AuditQueryConsumerServiceTest {
         TemporaryQueue replyQueue = ctx.createTemporaryQueue();
         msg.setJMSReplyTo(replyQueue);
 
-        ctx.createProducer()
-                .send(requestQueue, msg);
-
         ctx.createConsumer(replyQueue)
                 .setMessageListener(m -> {
                     try {
-                        if (m instanceof ObjectMessage) {
-                            ObjectMessage replyMessage = (ObjectMessage) m;
-                            Object replied = replyMessage.getObject();
+                        assertThat(m)
+                                .isInstanceOf(ObjectMessage.class);
 
-                            assertThat(replied)
-                                    .isInstanceOf(AuditObjects.class);
+                        AuditObjects auditObjects = m.getBody(AuditObjects.class);
 
-                            AuditObjects auditObjects = (AuditObjects) replied;
+                        assertThat(auditObjects)
+                                .extracting(AuditObjects::toList)
+                                .hasSize(1);
 
-                            assertThat(auditObjects)
-                                    .extracting(AuditObjects::toList)
-                                    .hasSize(1);
+                        assertThat(auditObjects.toList().get(0).getStoredAt().getTime())
+                                .isEqualTo(audit.getStoredAt().getTime());
 
-                            assertThat(auditObjects.toList().get(0).getStoredAt().getTime())
-                                    .isEqualTo(audit.getStoredAt().getTime());
+                        assertThat(auditObjects.toList().get(0).getStoredAt().getTimeZone())
+                                .isEqualTo(audit.getStoredAt().getTimeZone());
 
-                            assertThat(auditObjects.toList().get(0).getStoredAt().getTimeZone())
-                                    .isEqualTo(audit.getStoredAt().getTimeZone());
-
-                            synchronizer.countDown();
-                        } else {
-                            fail("illegal message type");
-                        }
+                        synchronizer.countDown();
                     } catch (JMSException e) {
                         errors.addError(e);
                         throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
@@ -113,6 +103,9 @@ public class AuditQueryConsumerServiceTest {
                         fail(t.getLocalizedMessage(), t);
                     }
                 });
+
+        ctx.createProducer()
+                .send(requestQueue, msg);
 
         assertThat(synchronizer.await(3, SECONDS))
                 .describedAs("test timeout")

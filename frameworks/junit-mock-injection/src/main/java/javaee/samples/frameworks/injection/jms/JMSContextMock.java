@@ -18,6 +18,8 @@
  */
 package javaee.samples.frameworks.injection.jms;
 
+import org.apache.activemq.ActiveMQSession;
+
 import javax.jms.*;
 import java.io.Serializable;
 import java.lang.IllegalStateException;
@@ -282,12 +284,20 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public JMSConsumer createConsumer(Destination destination, String messageSelector) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createConsumer(destination, messageSelector));
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public JMSConsumer createConsumer(Destination destination, String messageSelector, boolean noLocal) {
-        return null;
+        try {
+            return new JMSConsumerMock(session.createConsumer(destination, messageSelector, noLocal));
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
@@ -437,5 +447,14 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void acknowledge() {
+        ActiveMQSession session = (ActiveMQSession) this.session;
+        if (session.isClosed())
+            throw new IllegalStateRuntimeException("JMSContext is closed");//todo throw always if managed
+        //todo create variable isManaged
+        try {
+            session.acknowledge();
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 }

@@ -39,7 +39,7 @@ public class AuditMessagingConsumerService implements MessageListener {
     public void onMessage(Message message) {
         try {
             ObjectMessage msg = (ObjectMessage) message;
-            Audit audit = (Audit) msg.getObject();
+            Audit audit = msg.getBody(Audit.class);
             auditListener.onMessage(audit);
         } catch (JMSException e) {
             throw new IllegalStateException(e.getLocalizedMessage(), e);

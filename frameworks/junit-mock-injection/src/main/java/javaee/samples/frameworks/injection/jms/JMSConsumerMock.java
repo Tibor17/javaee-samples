@@ -20,6 +20,8 @@ package javaee.samples.frameworks.injection.jms;
 
 import javax.jms.*;
 
+import static javaee.samples.frameworks.injection.jms.Util.castTo;
+
 public final class JMSConsumerMock implements JMSConsumer {
     private final MessageConsumer consumer;
 
@@ -48,7 +50,7 @@ public final class JMSConsumerMock implements JMSConsumer {
     @Override
     public void setMessageListener(MessageListener listener) throws JMSRuntimeException {
         try {
-            consumer.setMessageListener(listener);
+            consumer.setMessageListener(new JMS20MessageListenerDecorator<>(listener));
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }
@@ -92,16 +94,28 @@ public final class JMSConsumerMock implements JMSConsumer {
 
     @Override
     public <T> T receiveBody(Class<T> c) {
-        return null;
+        try {
+            return castTo(c, consumer.receive());
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public <T> T receiveBody(Class<T> c, long timeout) {
-        return null;
+        try {
+            return castTo(c, consumer.receive(timeout));
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 
     @Override
     public <T> T receiveBodyNoWait(Class<T> c) {
-        return null;
+        try {
+            return castTo(c, consumer.receiveNoWait());
+        } catch (JMSException e) {
+            throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
+        }
     }
 }

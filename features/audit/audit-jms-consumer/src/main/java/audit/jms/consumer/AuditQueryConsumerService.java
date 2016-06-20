@@ -41,9 +41,8 @@ public class AuditQueryConsumerService implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        ObjectMessage om = (ObjectMessage) message;
         try {
-            AuditQuery query = (AuditQuery) om.getObject();
+            AuditQuery query = message.getBody(AuditQuery.class);
             AuditObjects audits = selector.onMessage(query);
 
             message.setJMSCorrelationID(message.getJMSMessageID());

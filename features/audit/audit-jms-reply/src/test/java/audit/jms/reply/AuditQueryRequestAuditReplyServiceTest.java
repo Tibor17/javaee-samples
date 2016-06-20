@@ -34,7 +34,6 @@ import javax.inject.Inject;
 import javax.jms.*;
 
 import java.util.Calendar;
-import java.util.concurrent.CountDownLatch;
 
 import static audit.query.search.api.SortField.SORT_BY_DATE;
 import static audit.util.Dates.toXMLGregorianCalendar;
@@ -47,7 +46,6 @@ import static org.assertj.core.api.Assertions.*;
 public class AuditQueryRequestAuditReplyServiceTest {
     private final AuditQuery query = newQuery();
     private final Audit audit = newAudit();
-    private final CountDownLatch synchronizer = new CountDownLatch(1);
 
     @Rule
     public final ErrorCollector errors = new ErrorCollector();
@@ -65,13 +63,12 @@ public class AuditQueryRequestAuditReplyServiceTest {
     public void prepareQueryConsumer() {
         ctx.createConsumer(requestQueue)
                 .setMessageListener(msg -> {
-                    ObjectMessage om = (ObjectMessage) msg;
                     try {
-                        AuditQuery query = (AuditQuery) om.getObject();
+                        AuditQuery query = msg.getBody(AuditQuery.class);
                         assertThat(query).isNotNull();
 
-                        om.setJMSCorrelationID(om.getJMSMessageID());
-                        Destination replyDestination = om.getJMSReplyTo();
+                        msg.setJMSCorrelationID(msg.getJMSMessageID());
+                        Destination replyDestination = msg.getJMSReplyTo();
 
                         ctx.createProducer().send(replyDestination, new AuditObjects(audit));
                     } catch (Throwable e) {

@@ -18,6 +18,7 @@
  */
 package javaee.samples.frameworks.injection.spi;
 
+import javaee.samples.frameworks.injection.jms.JMS20MessageListenerDecorator;
 import javaee.samples.frameworks.injection.jms.JMSContextMock;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.command.ActiveMQQueue;
@@ -79,7 +80,7 @@ public class MessageDrivenContext implements ContextInjector {
                         false,
                         lookupAcknowledgeMode(properties));
                 createConsumer(properties, ctx.getSession(), destination)
-                        .setMessageListener((MessageListener) bean);
+                        .setMessageListener(new JMS20MessageListenerDecorator<>((MessageListener) bean));
                 return ctx;
             } catch (JMSException e) {
                 throw new EJBException(e.getLocalizedMessage(), e);

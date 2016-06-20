@@ -48,9 +48,8 @@ public class AuditQueryRequestAuditReplyService {
         TemporaryQueue replyQueue = request(auditQuery);
         ctx.createConsumer(replyQueue)
                 .setMessageListener(msg -> {
-                    ObjectMessage om = (ObjectMessage) msg;
                     try {
-                        AuditObjects response = (AuditObjects) om.getObject();
+                        AuditObjects response = msg.getBody(AuditObjects.class);
                         asyncConsumer.accept(response == null ? emptySet() : response.toList(), null);
                     } catch (JMSException e) {
                         LOG.error(e.getLocalizedMessage());
@@ -61,18 +60,18 @@ public class AuditQueryRequestAuditReplyService {
 
     public Iterable<Audit> queryAuditWithNoWait(AuditQuery auditQuery) throws JMSException {
         TemporaryQueue replyQueue = request(auditQuery);
-        ObjectMessage om = (ObjectMessage) ctx.createConsumer(replyQueue)
-                .receiveNoWait();
+        AuditObjects om = ctx.createConsumer(replyQueue)
+                .receiveBodyNoWait(AuditObjects.class);
 
-        return om == null ? emptySet() : ((AuditObjects) om.getObject()).toList();
+        return om == null ? emptySet() : om.toList();
     }
 
     public Iterable<Audit> queryAudit(AuditQuery auditQuery, TimeUnit timeUnit, long timeout) throws JMSException {
         TemporaryQueue replyQueue = request(auditQuery);
-        ObjectMessage om = (ObjectMessage) ctx.createConsumer(replyQueue)
-                .receive(timeUnit.toMillis(timeout));
+        AuditObjects obs = ctx.createConsumer(replyQueue)
+                .receiveBody(AuditObjects.class, timeUnit.toMillis(timeout));
 
-        return om == null ? emptySet() : ((AuditObjects) om.getObject()).toList();
+        return obs == null ? emptySet() : obs.toList();
     }
 
     private TemporaryQueue request(AuditQuery auditQuery) throws JMSException {
