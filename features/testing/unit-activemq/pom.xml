@@ -50,8 +50,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-all</artifactId>
-            <version>5.13.2</version>
+            <artifactId>activemq-client</artifactId>
+            <version>5.13.3</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
