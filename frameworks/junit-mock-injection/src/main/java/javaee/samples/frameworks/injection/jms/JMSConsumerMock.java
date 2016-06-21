@@ -20,6 +20,7 @@ package javaee.samples.frameworks.injection.jms;
 
 import javax.jms.*;
 
+import static javaee.samples.frameworks.injection.jms.Jms20MessageBuilder.proxyJms20Message;
 import static javaee.samples.frameworks.injection.jms.Util.castTo;
 
 public final class JMSConsumerMock implements JMSConsumer {
@@ -59,7 +60,7 @@ public final class JMSConsumerMock implements JMSConsumer {
     @Override
     public Message receive() {
         try {
-            return consumer.receive();
+            return proxyJms20Message(consumer.receive());
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }
@@ -68,7 +69,7 @@ public final class JMSConsumerMock implements JMSConsumer {
     @Override
     public Message receive(long timeout) {
         try {
-            return consumer.receive(timeout);
+            return proxyJms20Message(consumer.receive(timeout));
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }
@@ -77,7 +78,7 @@ public final class JMSConsumerMock implements JMSConsumer {
     @Override
     public Message receiveNoWait() {
         try {
-            return consumer.receiveNoWait();
+            return proxyJms20Message(consumer.receiveNoWait());
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }

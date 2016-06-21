@@ -20,8 +20,7 @@ package javaee.samples.frameworks.injection.jms;
 
 import javax.jms.*;
 
-import static java.lang.reflect.Proxy.newProxyInstance;
-import static javaee.samples.frameworks.injection.jms.Util.*;
+import static javaee.samples.frameworks.injection.jms.Jms20MessageBuilder.proxyJms20Message;
 
 public final class JMS20MessageListenerDecorator<T extends MessageListener> implements MessageListener {
     private final T delegate;
@@ -32,38 +31,6 @@ public final class JMS20MessageListenerDecorator<T extends MessageListener> impl
 
     @Override
     public void onMessage(final Message message) {
-        final Class<? extends Message> proxyType = resolveToMessageClass(message);
-
-        Message proxyMsg =
-                (Message) newProxyInstance(context(), new Class<?>[]{proxyType}, (proxy, method, args) -> {
-                    switch (method.getName()) {
-                        case "getJMSDeliveryTime":
-                        case "setJMSDeliveryTime":
-                            throw new JMSException("not implemented");
-                        case "getBody":
-                            Class<?> type = (Class<?>) args[0];
-                            return castTo(type, message);
-                        case "isBodyAssignableTo":
-                            type = (Class<?>) args[0];
-                            return isBodyAssignableTo(message, type);
-                        default:
-                            return method.invoke(message, args);
-                    }
-                });
-
-        delegate.onMessage(proxyMsg);
-    }
-
-    private static ClassLoader context() {
-        return Thread.currentThread().getContextClassLoader();
-    }
-
-    private static Class<? extends Message> resolveToMessageClass(Message message) {
-        if (message instanceof BytesMessage) return BytesMessage.class;
-        else if (message instanceof MapMessage) return MapMessage.class;
-        else if (message instanceof ObjectMessage) return ObjectMessage.class;
-        else if (message instanceof StreamMessage) return StreamMessage.class;
-        else if (message instanceof TextMessage) return TextMessage.class;
-        else return Message.class;
+        delegate.onMessage(proxyJms20Message(message));
     }
 }
