@@ -421,11 +421,11 @@ public abstract class GenericDAO<E, PK extends Comparable<PK>> implements IGDAO<
     @Override
     public
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize) {
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
                 .from(entity)
-                .offset(page)
+                .offset(pagingOffset)
                 .limit(pageSize)
                 .fetch();
     }
@@ -433,12 +433,12 @@ public abstract class GenericDAO<E, PK extends Comparable<PK>> implements IGDAO<
     @Override
     public
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize, @NotNull Collection<Predicate> predicates) {
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Collection<Predicate> predicates) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
                 .from(entity)
                 .where(predicates.toArray(new Predicate[predicates.size()]))
-                .offset(page)
+                .offset(pagingOffset)
                 .limit(pageSize)
                 .fetch();
     }
@@ -457,13 +457,13 @@ public abstract class GenericDAO<E, PK extends Comparable<PK>> implements IGDAO<
     @Override
     public
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize, @NotNull Where<E> predicate) {
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
         JPAQueryBase<E, ?> q = newQuery().from(entity);
 
         predicate.where(q, entity, alias(entityType, entity));
-        return q.offset(page)
+        return q.offset(pagingOffset)
                 .limit(pageSize)
                 .fetch();
     }

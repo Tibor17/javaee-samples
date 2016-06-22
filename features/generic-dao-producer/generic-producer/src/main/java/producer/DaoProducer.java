@@ -18,9 +18,7 @@
  */
 package producer;
 
-import dao.DAO;
-import dao.GenericDAO;
-import dao.IGDAO;
+import dao.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.ContextNotActiveException;
@@ -45,40 +43,40 @@ import static java.util.stream.Collectors.toSet;
 @ApplicationScoped
 @SuppressWarnings("unused")
 public class DaoProducer {
+
     @Produces
     @Dependent
     @DAO
-    public <T> IGDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip,
-                                                  @TransientReference BeanManager bm) {
-        return buildDao(ip, bm);
+    public <T> IDAO<T> produceDaoWithLongId(@TransientReference InjectionPoint ip,
+                                            @TransientReference BeanManager bm) {
+        return buildDaoWithOneGenericType(ip, bm, new IDAOFactory<>());
     }
 
     @Produces
     @Dependent
     @DAO
-    public <T> IGDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
-                                                        @TransientReference BeanManager bm) {
-        return buildDao(ip, bm);
+    public <T> LDAO<T> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
+                                               @TransientReference BeanManager bm) {
+        return buildDaoWithOneGenericType(ip, bm, new LDAOFactory<>());
     }
 
     @SuppressWarnings("unchecked")
-    private static <T, PK extends Number & Comparable<PK>> IGDAO<T, PK> buildDao(InjectionPoint ip, BeanManager bm) {
+    private static <R extends INumericDAO<E, PK>, E, PK extends Number & Comparable<PK>>
+    R buildDaoWithOneGenericType(InjectionPoint ip, BeanManager bm, GenericNumericDaoFactory<R, E, PK> factory) {
+
         Type daoType = ip.getType();
         if (daoType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) daoType;
             Type[] types = type.getActualTypeArguments();
-            Class<T> entity = (Class<T>) types[0];
-            Class<PK> id = (Class<PK>) types[1];
+            Class<E> entity = (Class<E>) types[0];
+            //Class<PK> id = (Class<PK>) types[1];
             EntityManager em = lookupEntityManager(ip, bm);
-            return new GenericDAO<T, PK>(entity, id) {
-                @Override
-                protected EntityManager em() {
-                    return em;
-                }
-            };
+            return factory.build(entity, em);
         } else {
             throw new IllegalArgumentException("Use Generic Type in the interface "
-                    + IGDAO.class.getSimpleName()
+                    + IDAO.class.getSimpleName()
+                    + " or "
+                    + LDAO.class.getSimpleName()
                     + " in the injection point " + ip.toString());
         }
     }
@@ -122,4 +120,49 @@ public class DaoProducer {
                 .anyMatch(a ->
                         (qualifier == Default.class || qualifier == Any.class) || a.annotationType() == qualifier);
     }
+
+    interface GenericNumericDaoFactory<R extends INumericDAO<E, PK>, E, PK extends Number & Comparable<PK>> {
+        R build(Class<E> entityType, EntityManager em);
+    }
+
+    static class IDAOFactory<E> implements GenericNumericDaoFactory<IDAO<E>, E, Integer> {
+
+        @Override
+        public IDAO<E> build(Class<E> entityType, EntityManager em) {
+            class ID extends GenericNumericDAO<E, Integer> implements IDAO<E> {
+
+                ID(Class<E> entityType) {
+                    super(entityType, Integer.class);
+                }
+
+                @Override
+                protected EntityManager em() {
+                    return em;
+                }
+            }
+
+            return new ID(entityType);
+        }
+    }
+
+    static class LDAOFactory<E> implements GenericNumericDaoFactory<LDAO<E>, E, Long> {
+
+        @Override
+        public LDAO<E> build(Class<E> entityType, EntityManager em) {
+            class LD extends GenericNumericDAO<E, Long> implements LDAO<E> {
+
+                LD(Class<E> entityType) {
+                    super(entityType, Long.class);
+                }
+
+                @Override
+                protected EntityManager em() {
+                    return em;
+                }
+            }
+
+            return new LD(entityType);
+        }
+    }
+
 }

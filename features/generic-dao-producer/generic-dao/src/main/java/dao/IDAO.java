@@ -18,11 +18,5 @@
  */
 package dao;
 
-public abstract class GenericNumericDAO<E, PK extends Number & Comparable<PK>>
-        extends GenericDAO<E, PK>
-        implements INumericDAO<E, PK> {
-
-        public GenericNumericDAO(Class<E> entityType, Class<PK> primaryKeyType) {
-                super(entityType, primaryKeyType);
-        }
+public interface IDAO<E> extends INumericDAO<E, Integer> {
 }
