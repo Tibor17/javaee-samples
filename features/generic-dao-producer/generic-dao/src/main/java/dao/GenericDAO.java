@@ -51,7 +51,7 @@ import static java.beans.Introspector.decapitalize;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 
-public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implements IDAO<E,PK> {
+public abstract class GenericDAO<E, PK extends Comparable<PK>> implements IGDAO<E,PK> {
     private final Class<E> entityType;
     private final Class<PK> primaryKeyType;
 
@@ -296,7 +296,7 @@ public abstract class GenericDAO<E, PK extends Number & Comparable<PK>> implemen
     @Override
     public boolean hasId(@NotNull E entityObject) {
         PK id = getIdentifier(entityObject);
-        return id != null && id.longValue() > 0;
+        return id != null && (!(id instanceof Number) || ((Number) id).longValue() > 0);
     }
 
     @Override

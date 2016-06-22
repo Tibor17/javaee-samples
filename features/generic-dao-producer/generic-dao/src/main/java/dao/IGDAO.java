@@ -33,7 +33,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface IDAO<E, PK extends Number & Comparable<PK>> {
+public interface IGDAO<E, PK extends Comparable<PK>> {
     /**
      * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
      */

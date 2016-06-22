@@ -20,7 +20,7 @@ package producer;
 
 import dao.DAO;
 import dao.GenericDAO;
-import dao.IDAO;
+import dao.IGDAO;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.ContextNotActiveException;
@@ -48,7 +48,7 @@ public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip,
+    public <T> IGDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip,
                                                   @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
@@ -56,13 +56,13 @@ public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
+    public <T> IGDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
                                                         @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T, PK extends Number & Comparable<PK>> IDAO<T, PK> buildDao(InjectionPoint ip, BeanManager bm) {
+    private static <T, PK extends Number & Comparable<PK>> IGDAO<T, PK> buildDao(InjectionPoint ip, BeanManager bm) {
         Type daoType = ip.getType();
         if (daoType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) daoType;
@@ -78,7 +78,7 @@ public class DaoProducer {
             };
         } else {
             throw new IllegalArgumentException("Use Generic Type in the interface "
-                    + IDAO.class.getSimpleName()
+                    + IGDAO.class.getSimpleName()
                     + " in the injection point " + ip.toString());
         }
     }

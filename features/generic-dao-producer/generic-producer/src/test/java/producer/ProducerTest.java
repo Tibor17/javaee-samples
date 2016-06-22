@@ -19,7 +19,7 @@
 package producer;
 
 import dao.DAO;
-import dao.IDAO;
+import dao.IGDAO;
 import org.apache.deltaspike.core.api.projectstage.ProjectStage;
 import org.apache.deltaspike.testcontrol.api.TestControl;
 import org.apache.deltaspike.testcontrol.api.junit.CdiTestRunner;
@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Vetoed
 public class ProducerTest {
     @Inject @DAO(QTestDataSource.class)
-    IDAO<MyEntity, Long> dao;
+    IGDAO<MyEntity, Long> dao;
 
     @Inject
     TransactionalDeltaspikeHelper helper;
@@ -72,7 +72,7 @@ public class ProducerTest {
                 .isNotZero();
 
         assertThat(dao)
-                .extracting(IDAO::count)
+                .extracting(IGDAO::count)
                 .containsExactly(1L);
     }
 }
