@@ -31,8 +31,4 @@
     <artifactId>timer-concurrency-util-arquillian</artifactId>
     <packaging>war</packaging>
 
-    <properties>
-        <skipTests>true</skipTests>
-    </properties>
-
 </project>
