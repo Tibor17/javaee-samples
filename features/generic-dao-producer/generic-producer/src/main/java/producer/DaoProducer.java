@@ -60,6 +60,22 @@ public class DaoProducer {
         return buildDaoWithOneGenericType(ip, bm, new LDAOFactory<>());
     }
 
+    @Produces
+    @Dependent
+    @Default
+    public <T> IDAO<T> produceUnqualifiedDaoWithLongId(@TransientReference InjectionPoint ip,
+                                                       @TransientReference BeanManager bm) {
+        return buildDaoWithOneGenericType(ip, bm, new IDAOFactory<>());
+    }
+
+    @Produces
+    @Dependent
+    @Default
+    public <T> LDAO<T> produceUnqualifiedDaoWithIntegerId(@TransientReference InjectionPoint ip,
+                                                          @TransientReference BeanManager bm) {
+        return buildDaoWithOneGenericType(ip, bm, new LDAOFactory<>());
+    }
+
     @SuppressWarnings("unchecked")
     private static <R extends INumericDAO<E, PK>, E, PK extends Number & Comparable<PK>>
     R buildDaoWithOneGenericType(InjectionPoint ip, BeanManager bm, GenericNumericDaoFactory<R, E, PK> factory) {
@@ -99,12 +115,15 @@ public class DaoProducer {
     }
 
     private static EntityManager lookupEntityManager(InjectionPoint ip, BeanManager bm) {
-        Class<? extends Annotation> annotation = ip.getQualifiers()
+        final Class def = Default.class;
+
+        @SuppressWarnings("unchecked")
+        final Class<? extends Annotation> annotation = ip.getQualifiers()
                 .stream()
                 .filter(q -> q.annotationType() == DAO.class)
                 .map(q -> ((DAO) q).value())
                 .findFirst()
-                .get();
+                .orElse(def);
 
         if (bm.isQualifier(annotation)) {
             return lookupEntityManager(bm, annotation);
