@@ -21,24 +21,26 @@ package producer;
 import dao.DAO;
 import dao.GenericDAO;
 import dao.IDAO;
-import dao.QualifiedJPA;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.ContextNotActiveException;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.TransientReference;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.persistence.EntityManager;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toSet;
 
 @ApplicationScoped
 @SuppressWarnings("unused")
@@ -46,14 +48,16 @@ public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
+    public <T> IDAO<T, Long> produceDaoWithLongId(@TransientReference InjectionPoint ip,
+                                                  @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip, @TransientReference BeanManager bm) {
+    public <T> IDAO<T, Integer> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
+                                                        @TransientReference BeanManager bm) {
         return buildDao(ip, bm);
     }
 
@@ -65,7 +69,7 @@ public class DaoProducer {
             Type[] types = type.getActualTypeArguments();
             Class<T> entity = (Class<T>) types[0];
             Class<PK> id = (Class<PK>) types[1];
-            EntityManager em = lookupEntityManager(bm, lookupQualifier(ip));
+            EntityManager em = lookupEntityManager(ip, bm);
             return new GenericDAO<T, PK>(entity, id) {
                 @Override
                 protected EntityManager em() {
@@ -81,23 +85,54 @@ public class DaoProducer {
 
     private static <T extends Annotation> EntityManager lookupEntityManager(BeanManager bm, T qualifier) {
         Set<Bean<?>> beans = bm.getBeans(EntityManager.class, qualifier);
-        Bean bean = bm.resolve(beans);
-        CreationalContext ctx = bm.createCreationalContext(bean);
+        Bean<?> bean = bm.resolve(beans);
+        CreationalContext<?> ctx = bm.createCreationalContext(bean);
         return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
     }
 
-    private static Annotation lookupQualifier(InjectionPoint ip) {
-        Set<Annotation> qualifiers = new HashSet<>();
-
-        asList(ip.getMember().getDeclaringClass().getAnnotations())
+    private static EntityManager lookupEntityManager(BeanManager bm, Class<? extends Annotation> qualifier) {
+        Set<Bean<?>> beans = bm.getBeans(EntityManager.class, new AnnotationLiteral<Any>() {})
                 .stream()
-                .filter(q -> q.annotationType().isAnnotationPresent(QualifiedJPA.class))
-                .forEach(qualifiers::add);
+                .filter(bean -> hasQualifier(bean, qualifier))
+                .collect(toSet());
+        Bean<?> bean = bm.resolve(beans);
+        CreationalContext<?> ctx = bm.createCreationalContext(bean);
+        return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
+    }
 
-        if (qualifiers.size() != 1) {
-            throw new IllegalStateException();
+    private static EntityManager lookupEntityManager(BeanManager bm, Set<? extends Annotation> qualifiers) {
+        Set<Bean<?>> beans = bm.getBeans(EntityManager.class, qualifiers.toArray(new Annotation[qualifiers.size()]));
+        Bean<?> bean = bm.resolve(beans);
+        CreationalContext<?> ctx = bm.createCreationalContext(bean);
+        return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
+    }
+
+    private static EntityManager lookupEntityManager(InjectionPoint ip, BeanManager bm) {
+        Class<? extends Annotation> annotation = ip.getQualifiers()
+                .stream()
+                .filter(q -> q.annotationType() == DAO.class)
+                .map(q -> ((DAO) q).value())
+                .findFirst()
+                .get();
+
+        if (bm.isQualifier(annotation)) {
+            return lookupEntityManager(bm, annotation);
+        } else if (bm.isStereotype(annotation)) {
+            Set<? extends Annotation> qualifiers = bm.getStereotypeDefinition(annotation)
+                    .stream()
+                    .filter(a -> bm.isQualifier(a.annotationType()))
+                    .collect(toSet());
+            return lookupEntityManager(bm, qualifiers);
+        } else {
+            throw new ContextNotActiveException("no datasource qualifier nor stereotype presents in the " +
+                    "injection point " + ip);
         }
+    }
 
-        return qualifiers.iterator().next();
+    private static boolean hasQualifier(Bean<?> bean, Class<? extends Annotation> qualifier) {
+        return bean.getQualifiers()
+                .stream()
+                .anyMatch(a ->
+                        (qualifier == Default.class || qualifier == Any.class) || a.annotationType() == qualifier);
     }
 }

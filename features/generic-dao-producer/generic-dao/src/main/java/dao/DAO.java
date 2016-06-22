@@ -18,7 +18,10 @@
  */
 package dao;
 
+import javax.enterprise.inject.Default;
+import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -30,4 +33,5 @@ import static java.lang.annotation.ElementType.PARAMETER;
 @Retention(RUNTIME)
 @Target({FIELD, METHOD, PARAMETER})
 public @interface DAO {
+    @Nonbinding Class<? extends Annotation> value() default Default.class;
 }

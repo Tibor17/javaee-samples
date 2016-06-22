@@ -39,12 +39,12 @@ public class TransactionalDeltaspikeHelper {
     }
 
     @Transactional(qualifier = QTestDataSource.class)
-    public <T> T $(Supplier<T> function) throws Exception {
+    public <T> T $(Supplier<T> function) {
         return function.get();
     }
 
     @Transactional(qualifier = QTestDataSource.class)
-    public void  $(Runnable function) throws Exception {
+    public void $(Runnable function) {
         function.run();
     }
 }

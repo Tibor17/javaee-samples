@@ -37,8 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestControl(startScopes = RequestScoped.class, projectStage = ProjectStage.Development.class,
         startExternalContainers = false)
 @Vetoed
-public class ProducerTest {
-    @Inject @DAO(QTestDataSource.class)
+public class ProducerWithSingleDatasourceTest {
+    @Inject
+    @DAO
     IDAO<MyEntity, Long> dao;
 
     @Inject
