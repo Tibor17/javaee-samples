@@ -100,13 +100,6 @@ public class DaoProducer {
         return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
     }
 
-    private static EntityManager lookupEntityManager(BeanManager bm, Set<? extends Annotation> qualifiers) {
-        Set<Bean<?>> beans = bm.getBeans(EntityManager.class, qualifiers.toArray(new Annotation[qualifiers.size()]));
-        Bean<?> bean = bm.resolve(beans);
-        CreationalContext<?> ctx = bm.createCreationalContext(bean);
-        return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
-    }
-
     private static EntityManager lookupEntityManager(InjectionPoint ip, BeanManager bm) {
         Class<? extends Annotation> annotation = ip.getQualifiers()
                 .stream()
@@ -117,12 +110,6 @@ public class DaoProducer {
 
         if (bm.isQualifier(annotation)) {
             return lookupEntityManager(bm, annotation);
-        } else if (bm.isStereotype(annotation)) {
-            Set<? extends Annotation> qualifiers = bm.getStereotypeDefinition(annotation)
-                    .stream()
-                    .filter(a -> bm.isQualifier(a.annotationType()))
-                    .collect(toSet());
-            return lookupEntityManager(bm, qualifiers);
         } else {
             throw new ContextNotActiveException("no datasource qualifier nor stereotype presents in the " +
                     "injection point " + ip);
