@@ -188,16 +188,16 @@ public interface IGDAO<E, PK extends Comparable<PK>> {
     List<E> loadAll();
 
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize);
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize);
 
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize, @NotNull Collection<Predicate> predicates);
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Collection<Predicate> predicates);
 
     @NotNull
     List<E> loadAll(@NotNull Collection<Predicate> predicates);
 
     @NotNull
-    List<E> loadAll(@Min(0) int page, @Min(1) int pageSize, @NotNull Where<E> predicate);
+    List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Where<E> predicate);
 
     @NotNull
     List<E> loadAll(@NotNull Where<E> predicate);
