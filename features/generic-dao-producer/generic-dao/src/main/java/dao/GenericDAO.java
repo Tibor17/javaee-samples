@@ -36,6 +36,7 @@ import javax.persistence.criteria.Root;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
@@ -51,7 +52,7 @@ import static java.beans.Introspector.decapitalize;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 
-public abstract class GenericDAO<E, PK extends Comparable<PK>> implements IGDAO<E,PK> {
+public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> implements IGDAO<E,PK> {
     private final Class<E> entityType;
     private final Class<PK> primaryKeyType;
 
