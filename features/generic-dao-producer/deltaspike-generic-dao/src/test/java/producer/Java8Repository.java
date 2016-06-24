@@ -22,10 +22,7 @@ import org.apache.deltaspike.data.api.EntityManagerConfig;
 import org.apache.deltaspike.data.api.Modifying;
 import org.apache.deltaspike.data.api.Query;
 import org.apache.deltaspike.data.api.Repository;
-import org.apache.deltaspike.data.spi.DelegateQueryHandler;
-import org.apache.deltaspike.data.spi.QueryInvocationContext;
 
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -33,31 +30,31 @@ import static org.apache.deltaspike.data.api.SingleResultType.OPTIONAL;
 
 @Repository(forEntity = MyEntity.class)
 @EntityManagerConfig(entityManagerResolver = CrmEntityManagerResolver.class)
-public abstract class MyRepository implements DelegateQueryHandler {
-    @Inject
-    private QueryInvocationContext context;
+public interface Java8Repository {
 
     @Query(named = "delete.all")
     @Modifying
-    abstract void deleteAll();
+    void deleteAll();
 
     @Query("select e from MyEntity e")
-    abstract List<MyEntity> loadAll();
+    List<MyEntity> loadAll();
 
     @Query(value = "select e from MyEntity e where e.courseName = ?1", singleResult = OPTIONAL)
-    abstract MyEntity findByCourse(@NotNull String courseName);
+    MyEntity findByCourse(@NotNull String courseName);
 
-    abstract MyEntity findByCourseName(@NotNull String courseName);
+    MyEntity findByCourseName(@NotNull String courseName);
 
     @Query(value = "select e from AnotherEntity e where e.courseName = ?1", singleResult = OPTIONAL)
-    abstract AnotherEntity find(@NotNull String courseName);
+    AnotherEntity find(@NotNull String courseName);
 
     @Query("select e from AnotherEntity e where e.courseName = ?1")
-    abstract AnotherEntity findOptional(@NotNull String courseName);
+    AnotherEntity findOptional(@NotNull String courseName);
 
-    abstract MyEntity findAnyByCourseName(@NotNull String courseName);
+    MyEntity findAnyByCourseName(@NotNull String courseName);
 
-    public List<MyEntity> abc() {
-        return loadAll();
+    default AggregateRoot loadAggregateRoot(String courseName) {
+        MyEntity myEntity = findAnyByCourseName(courseName);
+        AnotherEntity anotherEntity = find(courseName);
+        return new AggregateRoot(myEntity, anotherEntity);
     }
 }

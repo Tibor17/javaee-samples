@@ -18,34 +18,23 @@
  */
 package producer;
 
-import javax.persistence.*;
+import javax.enterprise.inject.Vetoed;
 
-import static javax.persistence.AccessType.FIELD;
-import static javax.persistence.GenerationType.IDENTITY;
+@Vetoed
+public class AggregateRoot {
+    private final MyEntity myEntity;
+    private final AnotherEntity anotherEntity;
 
-@Entity
-@Access(FIELD)
-@NamedQueries({
-        @NamedQuery(name = "delete.all", query = "delete from MyEntity")
-})
-public class MyEntity {
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
-
-    @Column(name = "COURSE_NAME", unique = true, nullable = false)
-    private String courseName;
-
-    public Long getId() {
-        return id;
+    public AggregateRoot(MyEntity myEntity, AnotherEntity anotherEntity) {
+        this.myEntity = myEntity;
+        this.anotherEntity = anotherEntity;
     }
 
-    public String getCourseName() {
-        return courseName;
+    public MyEntity getMyEntity() {
+        return myEntity;
     }
 
-    public MyEntity setCourseName(String courseName) {
-        this.courseName = courseName;
-        return this;
+    public AnotherEntity getAnotherEntity() {
+        return anotherEntity;
     }
 }

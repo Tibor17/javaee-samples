@@ -28,9 +28,9 @@ import javax.inject.Inject;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(CdiTestRunner.class)
-public class ProducerTest {
+public class Java8RepoTest {
     @Inject
-    MyRepository repository;
+    Java8Repository repository;
 
     @Inject
     TransactionalDeltaspikeHelper helper;
@@ -45,16 +45,18 @@ public class ProducerTest {
         assertThat(repository)
                 .isNotNull();
 
-        assertThat(repository.abc())
-                .isEmpty();
+        assertThat(repository.loadAggregateRoot("javaee"))
+                .extracting(AggregateRoot::getMyEntity)
+                .containsNull();
 
         assertThat(repository.findByCourse("javaee"))
                 .isNull();
 
         MyEntity e = helper.$(new MyEntity().setCourseName("javaee"));
 
-        assertThat(repository.abc())
-                .hasSize(1);
+        assertThat(repository.loadAggregateRoot("javaee"))
+                .extracting(AggregateRoot::getMyEntity)
+                .doesNotContainNull();
 
         assertThat(repository.findByCourse("javaee"))
                 .isNotNull();
