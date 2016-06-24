@@ -598,6 +598,17 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     @Override
     public
     @NotNull
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass,
+                                   @Min(0) int paginationOffset, @Min(1) int pageSize) {
+        return buildNamedQuery(resultClass, sqlStatement, new Object[0])
+                .setFirstResult(paginationOffset)
+                .setMaxResults(pageSize)
+                .getResultList();
+    }
+
+    @Override
+    public
+    @NotNull
     List<E> selectByNamedQuery(@NotNull String sqlStatement, Object... attributes) {
         return selectByNamedQuery(sqlStatement, entityType, attributes);
     }

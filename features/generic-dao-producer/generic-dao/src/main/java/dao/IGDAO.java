@@ -249,6 +249,10 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>> {
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass);
 
     @NotNull
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass,
+                                   @Min(0) int paginationOffset, @Min(1) int pageSize);
+
+    @NotNull
     List<E> selectByNamedQuery(@NotNull String sqlStatement, Object... attributes);
 
     @NotNull
