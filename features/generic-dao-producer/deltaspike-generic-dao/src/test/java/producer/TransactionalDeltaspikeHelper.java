@@ -44,7 +44,7 @@ public class TransactionalDeltaspikeHelper {
     }
 
     @Transactional(qualifier = QTestDataSource.class)
-    public void  $(Runnable function) {
+    public void $(Runnable function) {
         function.run();
     }
 }
