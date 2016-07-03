@@ -21,6 +21,7 @@ package dao;
 import com.querydsl.core.FilteredClause;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
+import dao.Queries.I1;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -35,6 +36,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface IGDAO<E, PK extends Serializable & Comparable<PK>> {
+    <Q> Q query(@NotNull I1<Query<E>> q);
+
     /**
      * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
      */

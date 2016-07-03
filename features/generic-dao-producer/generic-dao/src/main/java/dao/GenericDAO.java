@@ -28,6 +28,7 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
+import dao.Queries.I1;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -165,6 +166,10 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     @NotNull
     SQLQuery newSQLQuery(@NotNull SQLTemplates templates) {
         return new SQLQuery(templates);
+    }
+
+    public <Q> Q query(I1<Query<E>> q) {
+        return q.$(createQuery());
     }
 
     /**
