@@ -23,6 +23,10 @@ import javax.enterprise.inject.Vetoed;
 @Vetoed
 public final class Queries {
 
+    public static <Q, E1> Q $(IGDAO<E1, ?> d1, I1<Query<E1>> q) {
+        return q.$(q(d1));
+    }
+
     public static <Q, E1, E2> Q $(IGDAO<E1, ?> d1, IGDAO<E2, ?> d2,
                                   I2<Query<E1>, Query<E2>> q) {
         return q.$(q(d1), q(d2));
@@ -77,6 +81,10 @@ public final class Queries {
         I10<Query<E1>, Query<E2>, Query<E3>, Query<E4>, Query<E5>, Query<E6>, Query<E7>, Query<E8>, Query<E9>,
                 Query<E10>> q) {
         return q.$(q(d1), q(d2), q(d3), q(d4), q(d5), q(d6), q(d7), q(d8), q(d9), q(d10));
+    }
+
+    public interface I1<Q1> {
+        <Q> Q $(Q1 q1);
     }
 
     public interface I2<Q1, Q2> {
