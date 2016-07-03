@@ -18,10 +18,17 @@
  */
 package dao;
 
-import com.querydsl.jpa.JPAQueryBase;
 import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPAQueryBase;
 
-@FunctionalInterface
-public interface Where<E> {
-    void where(JPAQueryBase<E, ?> q, PathBuilder<E> builder, E alias);
+public final class Query<E> {
+    public final JPAQueryBase<E, ?> q;
+    public final PathBuilder<E> builder;
+    public final E alias;
+
+    Query(JPAQueryBase<E, ?> q, PathBuilder<E> builder, E alias) {
+        this.q = q;
+        this.builder = builder;
+        this.alias = alias;
+    }
 }

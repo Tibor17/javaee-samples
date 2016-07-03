@@ -76,6 +76,10 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         this.primaryKeyType = primaryKeyType;
     }
 
+    Query<E> createQuery() {
+        return new Query<>(newQuery(), newQueryEntity(), alias(getEntityType()));
+    }
+
     protected abstract
     @NotNull
     EntityManager em();
@@ -107,7 +111,7 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     protected
     @NotNull
     JPAQuery<E> newQuery() {
-        return new JPAQuery<E>(em());
+        return new JPAQuery<>(em());
     }
 
     protected
@@ -130,13 +134,15 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
 
     protected
     @NotNull
-    SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull SQLTemplates templates, @NotNull RelationalPath<?> q) throws SQLException {
+    SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull SQLTemplates templates,
+                                       @NotNull RelationalPath<?> q) throws SQLException {
         return new SQLInsertClause(connection, templates, q);
     }
 
     protected
     @NotNull
-    SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull RelationalPath<?> q) throws SQLException {
+    SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull RelationalPath<?> q)
+            throws SQLException {
         return new SQLInsertClause(connection, findTemplates(connection), q);
     }
 
@@ -199,7 +205,10 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         }
         E e = load(id);
         if (e == null) {
-            throw new EntityNotFoundException(entityType.getSimpleName() + " record with " + id + " does not exist in database");
+            throw new EntityNotFoundException(entityType.getSimpleName()
+                    + " record with "
+                    + id
+                    + " does not exist in database");
         }
         return e;
     }
@@ -233,7 +242,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
 
     /**
      * Refresh from database, (optional) overriding argument {@code e}.<p>
-     * Set property <em>javax.persistence.lock.timeout</em> to e.g. 5000 which means 5 seconds if timeout elapsed too fast.
+     * Set property <em>javax.persistence.lock.timeout</em> to e.g. 5000 which means
+     * 5 seconds if timeout elapsed too fast.
      *
      * @return refreshed entity object: new attached object if given argument {@code e} was detached, or given entity
      * reference if argument {@code e} is attached to the persistence context.
@@ -255,7 +265,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
 
     /**
      * Refresh from database overriding argument {@code e}.<p>
-     * Set property <em>javax.persistence.lock.timeout</em> to e.g. 5000 which means 5 seconds if timeout elapsed too fast.
+     * Set property <em>javax.persistence.lock.timeout</em> to e.g. 5000 which means
+     * 5 seconds if timeout elapsed too fast.
      *
      * @return refreshed entity object: new attached object if given argument {@code e} was detached, or given entity
      * reference if argument {@code e} is attached to the persistence context.
@@ -631,7 +642,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     @Override
     public
     @NotNull
-    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass) {
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName,
+                                   Object attributeValue, @NotNull Class<T> resultClass) {
         return selectByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue), resultClass);
     }
 
@@ -645,7 +657,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     @Override
     public
     @NotNull
-    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass) {
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes,
+                                   @NotNull Class<T> resultClass) {
         return buildNamedQuery(resultClass, sqlStatement, attributes)
                 .getResultList();
     }
@@ -665,7 +678,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     @Override
     public
     @NotNull
-    List<E> findByAttributeAsString(@NotNull String attributeName, @NotNull String attributeValue, boolean ignoreCase) {
+    List<E> findByAttributeAsString(@NotNull String attributeName, @NotNull String attributeValue,
+                                    boolean ignoreCase) {
         CriteriaBuilder b = em().getCriteriaBuilder();
         CriteriaQuery<E> c = b.createQuery(entityType);
         Root<E> selection = c.from(entityType);
@@ -688,9 +702,13 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
                 phrase.insert(phrase.length() - 1, '\\');
             }
 
-            c = c.where(ignoreCase ? b.like(b.lower(selection.<String>get(attributeName)), attributeValue.toLowerCase()) : b.like(selection.<String>get(attributeName), attributeValue));
+            c = c.where(ignoreCase
+                    ? b.like(b.lower(selection.<String>get(attributeName)), attributeValue.toLowerCase())
+                    : b.like(selection.<String>get(attributeName), attributeValue));
         } else {
-            c = c.where(ignoreCase ? b.like(b.lower(selection.<String>get(attributeName)), attributeValue.toLowerCase()) : b.like(selection.<String>get(attributeName), attributeValue));
+            c = c.where(ignoreCase
+                    ? b.like(b.lower(selection.<String>get(attributeName)), attributeValue.toLowerCase())
+                    : b.like(selection.<String>get(attributeName), attributeValue));
         }
 
         return em().createQuery(c).getResultList();
@@ -801,7 +819,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         }
     }
 
-    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
+    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement,
+                                              @NotNull Map<String, ?> attributes) {
         TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
         if (attributes != null) {
             attributes.entrySet()
@@ -810,7 +829,8 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         return query;
     }
 
-    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement, @NotNull Object... attributes) {
+    private <T> TypedQuery<T> buildNamedQuery(@NotNull Class<T> resultClass, @NotNull String sqlStatement,
+                                              @NotNull Object... attributes) {
         TypedQuery<T> query = em().createNamedQuery(sqlStatement, resultClass);
         if (attributes != null) {
             for (int i = 0; i < attributes.length; ++i) {

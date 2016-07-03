@@ -24,10 +24,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.ContextNotActiveException;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.TransientReference;
+import javax.enterprise.inject.*;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -47,33 +44,41 @@ public class DaoProducer {
     @Produces
     @Dependent
     @DAO
-    public <T> IDAO<T> produceDaoWithLongId(@TransientReference InjectionPoint ip,
-                                            @TransientReference BeanManager bm) {
-        return buildDaoWithOneGenericType(ip, bm, new IDAOFactory<>());
+    @SuppressWarnings("unchecked")
+    public <T> IDAO<T> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
+                                               @TransientReference BeanManager bm,
+                                               @New @TransientReference IDAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (IDAOFactory<T>) f);
     }
 
     @Produces
     @Dependent
     @DAO
-    public <T> LDAO<T> produceDaoWithIntegerId(@TransientReference InjectionPoint ip,
-                                               @TransientReference BeanManager bm) {
-        return buildDaoWithOneGenericType(ip, bm, new LDAOFactory<>());
+    @SuppressWarnings("unchecked")
+    public <T> LDAO<T> produceDaoWithLongId(@TransientReference InjectionPoint ip,
+                                            @TransientReference BeanManager bm,
+                                            @New @TransientReference LDAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (LDAOFactory<T>) f);
     }
 
     @Produces
     @Dependent
     @Default
-    public <T> IDAO<T> produceUnqualifiedDaoWithLongId(@TransientReference InjectionPoint ip,
-                                                       @TransientReference BeanManager bm) {
-        return buildDaoWithOneGenericType(ip, bm, new IDAOFactory<>());
+    @SuppressWarnings("unchecked")
+    public <T> IDAO<T> produceUnqualifiedDaoWithIntegerId(@TransientReference InjectionPoint ip,
+                                                          @TransientReference BeanManager bm,
+                                                          @New @TransientReference IDAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (IDAOFactory<T>) f);
     }
 
     @Produces
     @Dependent
     @Default
-    public <T> LDAO<T> produceUnqualifiedDaoWithIntegerId(@TransientReference InjectionPoint ip,
-                                                          @TransientReference BeanManager bm) {
-        return buildDaoWithOneGenericType(ip, bm, new LDAOFactory<>());
+    @SuppressWarnings("unchecked")
+    public <T> LDAO<T> produceUnqualifiedDaoWithLongId(@TransientReference InjectionPoint ip,
+                                                       @TransientReference BeanManager bm,
+                                                       @New @TransientReference LDAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (LDAOFactory<T>) f);
     }
 
     @SuppressWarnings("unchecked")
