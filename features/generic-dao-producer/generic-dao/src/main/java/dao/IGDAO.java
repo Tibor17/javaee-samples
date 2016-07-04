@@ -36,6 +36,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface IGDAO<E, PK extends Serializable & Comparable<PK>> {
+
+    /**
+     * Generic query.
+     *
+     * @param q      QueryDSL query
+     * @param <Q>    customized return type, a value returned by {@link I1#$(Object)}
+     * @return customized value returned by {@link I1#$(Object)}
+     */
     <Q> Q query(@NotNull I1<Query<E>> q);
 
     /**
