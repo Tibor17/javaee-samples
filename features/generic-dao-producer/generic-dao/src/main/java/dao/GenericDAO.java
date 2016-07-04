@@ -168,6 +168,12 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         return new SQLQuery(templates);
     }
 
+    /**
+     *
+     * @param q      {@inheritDoc}
+     * @param <Q>    {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     public <Q> Q query(I1<Query<E>> q) {
         return q.$(createQuery());
     }
@@ -190,9 +196,9 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     }
 
     /**
-     * Refresh (detached) entity object.
+     * Loads (detached) entity object into persistence context (unless already been loaded).
      *
-     * @param entityObject (detached) entity object to refresh from
+     * @param entityObject (detached) entity object to load
      * @return never returns null
      * @throws EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} does not have id, or
@@ -204,11 +210,11 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     public
     @NotNull
     E reload(@NotNull E entityObject) {
-        PK id;
+        final PK id;
         if (!hasId(entityObject) || (id = getIdentifier(entityObject)) == null) {
             throw new IllegalArgumentException("does not have id");
         }
-        E e = load(id);
+        final E e = load(id);
         if (e == null) {
             throw new EntityNotFoundException(entityType.getSimpleName()
                     + " record with "
@@ -219,9 +225,9 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     }
 
     /**
-     * Refresh (detached) entity object.
+     * Loads (detached) entity object into persistence context (unless already been loaded).
      *
-     * @param entityObject (detached) entity object to refresh from
+     * @param entityObject (detached) entity object to load
      * @return never returns null
      * @throws EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if the entity object is found not to be an entity
