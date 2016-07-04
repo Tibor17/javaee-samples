@@ -23,12 +23,12 @@ import com.querydsl.jpa.JPAQueryBase;
 
 public final class Query<E> {
     public final JPAQueryBase<E, ?> q;
-    public final PathBuilder<E> builder;
-    public final E alias;
+    public final PathBuilder<E> b;
+    public final E e;
 
-    Query(JPAQueryBase<E, ?> q, PathBuilder<E> builder, E alias) {
+    Query(JPAQueryBase<E, ?> q, PathBuilder<E> b, E e) {
         this.q = q;
-        this.builder = builder;
-        this.alias = alias;
+        this.b = b;
+        this.e = e;
     }
 }
