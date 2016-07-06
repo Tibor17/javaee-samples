@@ -1,0 +1,5 @@
+# Connect to Wildfly instance
+connect
+
+# Remove Datasources
+/subsystem=datasources/data-source=TestDS:remove

@@ -1,0 +1,5 @@
+# Connect to Wildfly instance
+connect
+
+# Create Datasource
+jms-queue add --queue-address=demoQueue --entries=java:/jms/queue/demoQueue,java:jboss/exported/jms/queue/demoQueue

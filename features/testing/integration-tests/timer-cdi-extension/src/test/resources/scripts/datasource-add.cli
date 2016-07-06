@@ -1,0 +1,19 @@
+# Connect to Wildfly instance
+connect
+
+batch
+
+# Create Datasource
+/subsystem=datasources/data-source=TestDS: \
+    add( \
+    	jndi-name="${datasource.jndi}", \
+    	driver-name=h2, \
+    	connection-url="jdbc:h2:tcp://localhost:${h2.server.port}/mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE", \
+    	user-name="${datasource.user}", \
+    	password="${datasource.password}", \
+    	use-java-context="true", \
+    	spy="true")
+
+/subsystem=ee/service=default-bindings:write-attribute(name="datasource", value="${datasource.jndi}")
+
+run-batch

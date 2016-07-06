@@ -1,0 +1,5 @@
+# Connect to Wildfly instance
+connect
+
+# Remove management http socket bindings
+/socket-binding-group=standard-sockets/socket-binding=management-http:write-attribute(name=port,value=${jboss.management.http.port:9990})

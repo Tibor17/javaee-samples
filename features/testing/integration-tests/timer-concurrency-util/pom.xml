@@ -33,11 +33,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>javaee.samples</groupId>
-            <artifactId>fixed-rate-cdi-timer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <scope>provided</scope>
@@ -268,7 +263,9 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>1.1.0.Alpha8</version>
+                <version>1.0.2.Final</version>
+                <!--<version>1.1.0.Alpha8</version>-->
+                <!--<version>1.1.0.Alpha9-SNAPSHOT</version>-->
                 <executions>
                     <execution>
                         <id>wildfly-start</id>
@@ -284,7 +281,8 @@
                             <goal>execute-commands</goal>
                         </goals>
                         <configuration>
-                            <executeCommands>
+                            <execute-commands>
+                                <batch>false</batch>
                                 <scripts>
                                     <!--<script>${project.build.testOutputDirectory}/scripts/datasource-remove.cli</script>-->
                                     <script>${project.build.testOutputDirectory}/scripts/datasource-add.cli</script>
@@ -302,7 +300,7 @@
                                         /subsystem=security/security-domain="unused-domain":remove</command>
                                     <command>module add &#45;&#45;name=com.h2database.h2 &#45;&#45;resources=D:\\.m2\\repository/com/h2database/h2/1.4.191/h2-1.4.191.jar &#45;&#45;dependencies=javax.api,javax.transaction.api,javax.servlet.api</command>
                                 </commands>-->
-                            </executeCommands>
+                            </execute-commands>
                         </configuration>
                     </execution>
                     <execution>

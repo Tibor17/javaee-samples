@@ -1,0 +1,5 @@
+# Connect to Wildfly instance
+connect
+
+# Write ROOT logger
+/subsystem=logging/root-logger=ROOT:write-attribute(name="level", value="WARN")

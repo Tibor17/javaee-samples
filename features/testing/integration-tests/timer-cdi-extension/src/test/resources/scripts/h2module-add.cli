@@ -1,0 +1,5 @@
+# Connect to Wildfly instance
+connect
+
+# Add H2 module
+module add --name=com.h2database.h2 --resources=${maven.repo.local}/com/h2database/h2/1.4.191/h2-1.4.191.jar --dependencies=javax.api,javax.transaction.api,javax.servlet.api
