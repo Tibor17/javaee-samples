@@ -236,7 +236,7 @@
                             </attributes>
                             <sources>
                                 <script>
-                                    <sourceFile>src/test/resources/scripts/create-database.sql</sourceFile>
+                                    <sourceFile>${project.basedir}/src/test/resources/scripts/create-database.sql</sourceFile>
                                 </script>
                                 <!--<dataSet>
                                     <sourceFile>src/test/resources/users.dbunit.xml</sourceFile>
