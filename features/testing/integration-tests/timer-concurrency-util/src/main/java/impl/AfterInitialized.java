@@ -75,6 +75,6 @@ public class AfterInitialized {
 
     @PreDestroy
     void onDestroy() {
-        task.cancel(false);
+        task.cancel(true);
     }
 }

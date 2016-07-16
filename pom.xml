@@ -39,13 +39,7 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
-
-        <maven.site.path>cam-archives/cam-shared-LATEST</maven.site.path>
         <tagNameFormat>r@{project.version}</tagNameFormat>
-        <arguments>-e</arguments>
-        <!-- In CI system use "-DreleaseProfiles=production,generate-docs" -->
-        <releaseProfiles>production</releaseProfiles>
-        <gpg.keyname>@todo add here our GnuPG key</gpg.keyname>
     </properties>
 
     <dependencyManagement>
@@ -228,8 +222,6 @@
                     <configuration>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <useReleaseProfile>false</useReleaseProfile>
-                        <arguments>${arguments}</arguments>
-                        <releaseProfiles>${releaseProfiles}</releaseProfiles>
                         <tagNameFormat>${tagNameFormat}</tagNameFormat>
                         <!-- Let tidy-maven-plugin convert POM to canonical xml. -->
                         <useEditMode>true</useEditMode>

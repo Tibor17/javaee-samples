@@ -29,8 +29,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,8 +45,7 @@ public class TimerIT {
 
     @Test
     public void should() throws InterruptedException {
-        TimeUnit.MILLISECONDS
-                .sleep(1500);
+        MILLISECONDS.sleep(1500);
 
         Collection<MyEntity> results =
                 em.createQuery("select e from MyEntity e", MyEntity.class)

@@ -26,7 +26,7 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 import static java.lang.System.currentTimeMillis;
-import static java.lang.System.out;
+import static java.lang.System.err;
 
 @ApplicationScoped
 public class Job implements Runnable {
@@ -35,7 +35,7 @@ public class Job implements Runnable {
 
     @Transactional
     public void run() {
-        out.println("time process " + currentTimeMillis());
+        err.println("time process " + currentTimeMillis());
         em.persist(new MyEntity());
     }
 }
