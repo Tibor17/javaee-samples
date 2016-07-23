@@ -31,6 +31,12 @@
     <artifactId>timer-concurrency-util-arquillian</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <org.jboss.wildfly.version>8.2.1.Final</org.jboss.wildfly.version>
+        <jboss.home>${project.build.directory}/wildfly-${org.jboss.wildfly.version}</jboss.home>
+        <datasource.jndi>java:jboss/datasources/ExampleDS</datasource.jndi>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -45,30 +51,156 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-junit</artifactId>
-            <type>pom</type>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.arquillian.universe</groupId>
+            <artifactId>arquillian-junit</artifactId>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+        <!--<dependency>
+            <groupId>org.arquillian.universe</groupId>
             <artifactId>arquillian-cukes</artifactId>
             <type>pom</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.arquillian.universe</groupId>
             <artifactId>arquillian-drone</artifactId>
             <type>pom</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.arquillian.universe</groupId>
             <artifactId>arquillian-graphene</artifactId>
             <type>pom</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.arquillian.universe</groupId>
             <artifactId>arquillian-persistence</artifactId>
             <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-arquillian-container-remote</artifactId>
+            <version>8.2.0.Final</version>
+            <scope>test</scope>
+        </dependency>-->
+        <dependency>
+            <groupId>org.wildfly.arquillian</groupId>
+            <artifactId>wildfly-arquillian-container-managed</artifactId>
+            <version>2.0.0.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>${project.basedir}/src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wildfly</groupId>
+                                    <artifactId>wildfly-dist</artifactId>
+                                    <version>${org.jboss.wildfly.version}</version>
+                                    <type>zip</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--<plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>1.0.2.Final</version>
+                <executions>
+                    <execution>
+                        <id>wildfly-start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>wildfly-stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>undeploy</goal>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <id>it</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
+                        <arquillian.launch>arquillian-wildfly-managed</arquillian.launch>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <jboss.server.config.file.name>standalone-full.xml</jboss.server.config.file.name>
+                        <jboss.options>-Xmx128m -XX:MetaspaceSize=64m</jboss.options>
+                        <jboss.home>${jboss.home}</jboss.home>
+                        <!--
+                        https://developer.jboss.org/thread/263582?start=0&tstart=0
+                        <module.path>${jboss.home}/modules</module.path>
+                        -->
+                    </systemPropertyVariables>
+                    <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
