@@ -265,9 +265,6 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>1.0.2.Final</version>
-                <!--<version>1.1.0.Alpha8</version>-->
-                <!--<version>1.1.0.Alpha9-SNAPSHOT</version>-->
                 <executions>
                     <execution>
                         <id>wildfly-start</id>

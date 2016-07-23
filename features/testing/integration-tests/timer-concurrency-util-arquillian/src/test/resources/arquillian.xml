@@ -29,7 +29,7 @@
             <property name="executionType">MANAGED</property>
         </protocol>
         <configuration>
-            <property name="startupTimeoutInSeconds">20</property>
+            <property name="startupTimeoutInSeconds">30</property>
             <property name="managementPort">9990</property>
         </configuration>
     </container>
