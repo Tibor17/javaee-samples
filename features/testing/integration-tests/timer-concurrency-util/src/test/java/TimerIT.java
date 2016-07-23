@@ -44,7 +44,7 @@ public class TimerIT {
     EntityManager em;
 
     @Test
-    public void should() throws InterruptedException {
+    public void shouldFindTimerTicks() throws InterruptedException {
         MILLISECONDS.sleep(1500);
 
         Collection<MyEntity> results =
