@@ -284,16 +284,6 @@
                                     <script>${project.build.testOutputDirectory}/scripts/jms-queue-add.cli</script>
                                     <!--<script>${project.build.testOutputDirectory}/scripts/h2module-add.cli</script>-->
                                 </scripts>
-                                <!--<commands>
-                                    <command>deploy
-                                        d:\vcs\github\javaee-samples\features\testing\integration-tests\target\integration-tests-1.0-SNAPSHOT.war
-                                    </command>
-                                    <command>/subsystem=messaging/hornetq-server=default/jms-queue=SwQueue:add(entries=[java:/queue/SwQueue])</command>
-                                    <command>connect
-                                    &#45;&#45;connect &#45;&#45;controller=localhost:9990 &#45;&#45;command="/subsystem=logging/console=CONSOLE:write-attribute(name=level,value=DEBUG)"
-                                        /subsystem=security/security-domain="unused-domain":remove</command>
-                                    <command>module add &#45;&#45;name=com.h2database.h2 &#45;&#45;resources=D:\\.m2\\repository/com/h2database/h2/1.4.191/h2-1.4.191.jar &#45;&#45;dependencies=javax.api,javax.transaction.api,javax.servlet.api</command>
-                                </commands>-->
                             </execute-commands>
                         </configuration>
                     </execution>

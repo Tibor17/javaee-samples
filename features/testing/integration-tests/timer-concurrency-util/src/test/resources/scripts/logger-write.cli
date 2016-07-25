@@ -3,3 +3,9 @@ connect
 
 # Write ROOT logger
 /subsystem=logging/root-logger=ROOT:write-attribute(name="level", value="WARN")
+/subsystem=logging/console-handler=CONSOLE:write-attribute(name=level, value=WARN)
+# https://docs.jboss.org/author/display/AS71/CLI+Recipes
+# https://access.redhat.com/documentation/en-US/JBoss_Enterprise_Application_Platform/6.2/html/Administration_and_Configuration_Guide/Configure_a_Log_Category_in_the_CLI1.html
+/subsystem=logging/logger=org.hibernate:add(level=WARN)
+/subsystem=logging/logger=org.hibernate:assign-handler(name="CONSOLE")
+/subsystem=logging/logger=org.hibernate:assign-handler(name="FILE")
