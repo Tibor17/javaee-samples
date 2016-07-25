@@ -304,8 +304,17 @@
                             <goal>deploy-only</goal>
                         </goals>
                         <configuration>
+                            <!--
+                            CLI tutorial
+                            https://access.redhat.com/documentation/en-US/JBoss_Enterprise_Application_Platform/6/html/Administration_and_Configuration_Guide/chap-Transaction_Subsystem.html
+                            disable port txn-recovery-environment 4712
+                            disable port txn-status-manager 4713
+                            -->
                             <beforeDeployment>
                                 <commands>
+                                    <command>/subsystem=transactions/:write-attribute(name=default-timeout, value=10)</command>
+                                    <command>/subsystem=transactions/:write-attribute(name=enable-statistics, value=false)</command>
+                                    <command>/subsystem=transactions/:write-attribute(name=enable-tsm-status, value=false)</command>
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=jndi-name, value=java:jboss/mail/Default)</command>
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=from, value=noreply@cam.de)</command>
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=debug, value=true)</command>
