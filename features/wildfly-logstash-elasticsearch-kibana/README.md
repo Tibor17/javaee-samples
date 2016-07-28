@@ -7,7 +7,7 @@ We can, for instance, log JMX like CPU and memory footprint in whatever fancy di
 In this example I typed "WildFly" to find all occurrences of such word in elastic-search database
 which was mirror of _server.log_ in _WildFly AS_. The logs are observed in real time from the AS running and written in
 database. You can see the diagram of occurrences appeared in servers time.  
-You can watch the ligs in Kibana which is web-application, open it in browser [http://localhost:5601](http://localhost:5601).    
+You can watch the logs in Kibana which is web-application, open it in browser [http://localhost:5601](http://localhost:5601).    
 ![kibana](kibana.jpg)
 
 Git clone this repo, download and extract these archives.   
