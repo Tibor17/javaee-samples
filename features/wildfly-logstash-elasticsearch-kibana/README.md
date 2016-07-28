@@ -1,4 +1,4 @@
-# WildFly Remove Logger with ElasticSearch+Kibana+Logstash
+# WildFly Remote Logger with ElasticSearch+Kibana+Logstash
 
 You want to watch console logs from WildFly in a browser?   
 All you need is Kibana, Elasticsearch and logstash. 
