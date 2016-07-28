@@ -1,4 +1,4 @@
-**Install VirtualBox 5.0.26 x64**`<br />`
+**Install VirtualBox 5.0.26 x64**   
 Download VirtualBox from Oracle.com.
 You must have x64 bit host OS (Windows 7 x64) and x64 bit VirtualBox.
 
