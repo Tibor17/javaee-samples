@@ -1,0 +1,1 @@
+wildfly-10.0.0.Final/bin/jboss-cli.bat -c --file=./set-access-log.cli
