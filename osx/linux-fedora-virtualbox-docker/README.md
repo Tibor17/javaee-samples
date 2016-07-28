@@ -57,7 +57,7 @@ Folder Path: D:\public
 Folder Name: public
 Auto-mount, Make permanent.
 
-Go to the window of VM (Fedora 23 [Running] Oracle VM VirtualBox). Click on the “Devices” menu and select the
+Go to the window of VM (Fedora 23 [Running] Oracle VM VirtualBox). Click on the "Devices" menu and select the
 "Insert Guest Additions CD image...". This is _VBoxGuestAdditions.iso_ in installation folder of VirtualBox.
 
 Reboot the system and configure shared folders.
