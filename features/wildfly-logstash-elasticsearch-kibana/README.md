@@ -21,7 +21,7 @@ Extract the archives.
 
 You should obtain the following structure on you file system:  
 
-**elasticsearch-1.6.0** 
+**elasticsearch-1.6.0**     
 **kibana-4.1.1-windows**    
 **logstash-1.5.3**  
 **wildfly-10.0.0.Final**    
