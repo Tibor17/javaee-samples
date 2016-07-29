@@ -11,7 +11,7 @@ You can watch the logs in Kibana which is web-application, open it in browser [h
 ![kibana](kibana.jpg)
 
 Git clone this repo, download and extract these archives.   
-**elasticsearch-1.6.0.zip** 
+**elasticsearch-1.6.0.zip**     
 **kibana-4.1.1-windows.zip**    
 **logstash-1.5.3.zip**  
 **wildfly-10.0.0.Final.zip**    
