@@ -25,7 +25,6 @@ You should obtain the following structure on you file system:
 **kibana-4.1.1-windows**    
 **logstash-1.5.3**  
 **wildfly-10.0.0.Final**    
-**jboss-logmanager-ext-1.0.0.Alpha3.jar**   
 **1-start-logstash.cmd**    
 **2-start-jboss-as-admin.cmd**  
 **3-configure-jboss.cmd**   
