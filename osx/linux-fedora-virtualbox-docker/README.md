@@ -65,7 +65,7 @@ Go to the window of VM (Fedora 23 [Running] Oracle VM VirtualBox). Click on the 
 Reboot the system and configure shared folders. 
 
 If you have not installed GCC and kernel, the VBoxManager fails to mount shared folders.    
-Then you should install both and setup VBox addons: 
+Then you should install both and setup VBox addons:     
 `$ cd /opt/VBoxGuestAdditions-5.0.26/init`  
 `$ sudo ./vboxadd setup`    
 
