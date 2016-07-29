@@ -56,7 +56,7 @@ Install GCC and kernel-devel.
 Open the "Oracle VM VirtualBox Manager" and open "Shared folders" in your VM (Fedora 23).   
 "Add Share":    
 Folder Path: D:\public  
-Folder Name: public 
+Folder Name: public     
 Auto-mount, Make permanent.     
 
 Go to the window of VM (Fedora 23 [Running] Oracle VM VirtualBox). Click on the "Devices" menu and select the   
