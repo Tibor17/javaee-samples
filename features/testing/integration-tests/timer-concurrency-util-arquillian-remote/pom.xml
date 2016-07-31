@@ -28,7 +28,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>timer-concurrency-util-arquillian</artifactId>
+    <artifactId>timer-concurrency-util-arquillian-remote</artifactId>
     <packaging>war</packaging>
 
     <properties>
@@ -66,39 +66,9 @@
             <type>pom</type>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-cukes</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-drone</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-graphene</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-persistence</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-arquillian-container-remote</artifactId>
-            <version>8.2.0.Final</version>
-            <scope>test</scope>
-        </dependency>-->
         <dependency>
             <groupId>org.wildfly.arquillian</groupId>
-            <artifactId>wildfly-arquillian-container-managed</artifactId>
+            <artifactId>wildfly-arquillian-container-remote</artifactId>
             <version>2.0.0.Final</version>
             <scope>test</scope>
         </dependency>
@@ -136,12 +106,57 @@
                         <phase>initialize</phase>
                         <configuration>
                             <portNames>
+                                <portName>h2.server.port</portName>
+                                <portName>h2.monitor.port</portName>
                                 <portName>jboss.management.http.port</portName>
                                 <portName>jboss.http.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.btmatthews.maven.plugins.inmemdb</groupId>
+                <artifactId>inmemdb-maven-plugin</artifactId>
+                <version>1.4.3</version>
+                <executions>
+                    <execution>
+                        <id>h2database-server-run</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <daemon>true</daemon>
+                            <type>h2</type>
+                            <database>test</database>
+                            <username>sa</username>
+                            <password>sa</password>
+                            <port>${h2.server.port}</port>
+                            <attributes>
+                                <QUERY_TIMEOUT>0</QUERY_TIMEOUT>
+                                <EARLY_FILTER>TRUE</EARLY_FILTER>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>h2database-server-stop</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <monitorKey>inmemdb</monitorKey>
+                    <monitorPort>${h2.monitor.port}</monitorPort>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>1.3.173</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -170,6 +185,53 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>wildfly-start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <jbossHome>${jboss.home}</jbossHome>
+                            <serverConfig>standalone-full.xml</serverConfig>
+                            <!--<javaOpts>
+                                <javaOpt>-Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.management.http.port=${jboss.management.http.port}</javaOpt>
+                            </javaOpts>-->
+                            <jvmArgs>-Djava.net.preferIPv4Stack=true</jvmArgs><!-- -Djboss.management.http.port=${jboss.management.http.port}-->
+                            <!--<port>${jboss.management.http.port}</port>-->
+                            <startupTimeout>60</startupTimeout>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>wildfly-deploy</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy-only</goal>
+                        </goals>
+                        <configuration>
+                            <!--<port>${jboss.management.http.port}</port>-->
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>widfly-shutdown</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>undeploy</goal>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <force>false</force>
+                    <username>admin</username>
+                    <password>admin</password>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
@@ -191,10 +253,8 @@
                 <configuration>
                     <systemPropertyVariables>
                         <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
-                        <arquillian.launch>arquillian-wildfly-managed</arquillian.launch>
+                        <arquillian.launch>arquillian-wildfly-remote</arquillian.launch>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <jboss.server.config.file.name>standalone-full.xml</jboss.server.config.file.name>
-                        <jboss.options>-Xmx128m -XX:MetaspaceSize=64m</jboss.options>
                         <jboss.home>${jboss.home}</jboss.home>
                         <!--
                         https://developer.jboss.org/thread/263582?start=0&tstart=0

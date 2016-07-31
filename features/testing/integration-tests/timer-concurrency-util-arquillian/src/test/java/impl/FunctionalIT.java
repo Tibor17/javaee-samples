@@ -43,6 +43,7 @@ import java.net.URL;
 import java.util.Collection;
 
 import static java.lang.System.getProperty;
+import static java.lang.System.out;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -94,7 +95,7 @@ public class FunctionalIT {
                                          URL deployment)
             throws InterruptedException {
 
-        System.out.println(deployment.toExternalForm());
+        out.println(deployment.toExternalForm());
 
         MILLISECONDS.sleep(1500);
 

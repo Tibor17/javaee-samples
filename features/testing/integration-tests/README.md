@@ -1,5 +1,6 @@
 * arquillian deployment
-http://csierra.github.io/posts/2013/02/10/organizing-deployments-with-arquillian-and-shrinkwrap/
+
+[http://csierra.github.io/posts/2013/02/10/organizing-deployments-with-arquillian-and-shrinkwrap/]()
 https://issues.jboss.org/browse/SHRINKRES-238?jql=project%20%3D%20SHRINKRES%20AND%20component%20%3D%20maven-plugin
 https://github.com/arquillian/arquillian-examples/blob/master/arquillian-deployment-extension-tutorial/integration-tests/src/test/java/org/arquillian/tutorial/extension/deployment/GreeterTest.java
 @Deployment(name = "X") see arquillian.xml deployment name

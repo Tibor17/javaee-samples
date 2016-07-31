@@ -31,10 +31,6 @@
         <configuration>
             <property name="allowConnectingToRunningServer">false</property>
             <property name="startupTimeoutInSeconds">30</property>
-            <property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>
-            <property name="managementPort">${jboss.management.http.port}</property>
-            <!--<property name="jmxPort">1190</property>-->
-            <!--<property name="httpPort">8180</property>-->
         </configuration>
     </container>
     <container qualifier="arquillian-wildfly-remote" default="true">
@@ -42,10 +38,19 @@
             <property name="executionType">REMOTE</property>
         </protocol>
         <configuration>
+            <!--<property name="allowConnectingToRunningServer">true</property>-->
             <property name="jbossHome">${jboss.home}</property>
-            <property name="allowConnectingToRunningServer">true</property>
+            <!--
+            Waitng for the FIX of wildfly-maven-plugin
+            https://github.com/wildfly/wildfly-maven-plugin/issues/118
+            -->
+            <!--<property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>-->
+            <!--<property name="managementPort">${jboss.management.http.port}</property>-->
+
+            <!--<property name="jmxPort">1190</property>-->
+            <!--<property name="httpPort">8180</property>-->
             <!-- To debug the Arquillian managed application server: -->
-            <property name="javaVmArguments">-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</property>
+            <!--<property name="javaVmArguments">-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</property>-->
         </configuration>
     </container>
 </arquillian>

@@ -42,6 +42,7 @@
         <module>timer-cdi-extension</module>
         <module>timer-concurrency-util</module>
         <module>timer-concurrency-util-arquillian</module>
+        <module>timer-concurrency-util-arquillian-remote</module>
     </modules>
 
 </project>
