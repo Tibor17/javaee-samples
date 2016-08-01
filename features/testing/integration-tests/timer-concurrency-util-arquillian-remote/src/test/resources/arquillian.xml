@@ -40,8 +40,18 @@
             Waiting for the FIX of wildfly-maven-plugin
             https://github.com/wildfly/wildfly-maven-plugin/issues/118
             -->
+
+            <!--
+            This is needed in MANAGED Arquillian test and not in REMOTE due to the REMOTE does not start
+            the WildFly AS by Arquillian but by the wildfly-maven-plugin.
             <property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>
+            -->
+
             <property name="managementPort">${jboss.management.http.port}</property>
+            <!-- these three are maybe not necessary -->
+            <property name="managementAddress">127.0.0.1</property>
+            <property name="username">admin</property>
+            <property name="password">admin</property>
 
             <!-- another properties -->
             <!--<property name="allowConnectingToRunningServer">true</property>-->

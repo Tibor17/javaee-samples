@@ -219,13 +219,15 @@
                     <jbossHome>${jboss.home}</jbossHome>
                     <skip>${skipTests}</skip>
                     <force>false</force>
+                    <!-- these four (username,password,protocol,hostname) are maybe not necessary -->
                     <username>admin</username>
                     <password>admin</password>
                     <!--<protocol>http-remoting</protocol>-->
-                    <!--<hostname>localhost</hostname>-->
+                    <!--<hostname>127.0.0.1</hostname>-->
                     <port>${jboss.management.http.port}</port>
                     <javaOpts>
                         <javaOpt>-Xmx128m</javaOpt>
+                        <javaOpt>-XX:MaxMetaspaceSize=96m</javaOpt>
                         <javaOpt>-Djava.net.preferIPv4Stack=true</javaOpt>
                         <javaOpt>-Djboss.http.port=${jboss.http.port}</javaOpt>
                         <javaOpt>-Djboss.management.http.port=${jboss.management.http.port}</javaOpt>
@@ -259,8 +261,8 @@
                         <jboss.home>${jboss.home}</jboss.home>
                         <!--
                         https://developer.jboss.org/thread/263582?start=0&tstart=0
-                        <module.path>${jboss.home}/modules</module.path>
                         -->
+                        <module.path>${jboss.home}/modules</module.path>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
