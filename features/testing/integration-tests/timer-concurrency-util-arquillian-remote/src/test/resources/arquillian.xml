@@ -25,28 +25,26 @@
         <property name="deploymentExportPath">target/test-arquillian-deployments</property>
     </engine>
     <container qualifier="arquillian-wildfly-managed">
+        <!-- not in use, see maven-failsafe-plugin, systemPropertyVariables ::= arquillian.launch=arquillian-wildfly-remote -->
         <protocol type="jmx-as7">
             <property name="executionType">MANAGED</property>
         </protocol>
-        <configuration>
-            <property name="allowConnectingToRunningServer">false</property>
-            <property name="startupTimeoutInSeconds">30</property>
-        </configuration>
     </container>
-    <container qualifier="arquillian-wildfly-remote" default="true">
+    <container qualifier="arquillian-wildfly-remote">
         <protocol type="jmx-as7">
             <property name="executionType">REMOTE</property>
         </protocol>
         <configuration>
-            <!--<property name="allowConnectingToRunningServer">true</property>-->
             <property name="jbossHome">${jboss.home}</property>
             <!--
             Waitng for the FIX of wildfly-maven-plugin
             https://github.com/wildfly/wildfly-maven-plugin/issues/118
             -->
-            <!--<property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>-->
-            <!--<property name="managementPort">${jboss.management.http.port}</property>-->
+            <property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>
+            <property name="managementPort">${jboss.management.http.port}</property>
 
+            <!-- another properties -->
+            <!--<property name="allowConnectingToRunningServer">true</property>-->
             <!--<property name="jmxPort">1190</property>-->
             <!--<property name="httpPort">8180</property>-->
             <!-- To debug the Arquillian managed application server: -->

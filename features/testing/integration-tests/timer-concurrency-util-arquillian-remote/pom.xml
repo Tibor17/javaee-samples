@@ -195,13 +195,7 @@
                             <goal>start</goal>
                         </goals>
                         <configuration>
-                            <jbossHome>${jboss.home}</jbossHome>
                             <serverConfig>standalone-full.xml</serverConfig>
-                            <!--<javaOpts>
-                                <javaOpt>-Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.management.http.port=${jboss.management.http.port}</javaOpt>
-                            </javaOpts>-->
-                            <jvmArgs>-Djava.net.preferIPv4Stack=true</jvmArgs><!-- -Djboss.management.http.port=${jboss.management.http.port}-->
-                            <!--<port>${jboss.management.http.port}</port>-->
                             <startupTimeout>60</startupTimeout>
                         </configuration>
                     </execution>
@@ -211,9 +205,6 @@
                         <goals>
                             <goal>deploy-only</goal>
                         </goals>
-                        <configuration>
-                            <!--<port>${jboss.management.http.port}</port>-->
-                        </configuration>
                     </execution>
                     <execution>
                         <id>widfly-shutdown</id>
@@ -225,10 +216,20 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <jbossHome>${jboss.home}</jbossHome>
                     <skip>${skipTests}</skip>
                     <force>false</force>
                     <username>admin</username>
                     <password>admin</password>
+                    <!--<protocol>http-remoting</protocol>-->
+                    <!--<hostname>localhost</hostname>-->
+                    <port>${jboss.management.http.port}</port>
+                    <javaOpts>
+                        <javaOpt>-Xmx128m</javaOpt>
+                        <javaOpt>-Djava.net.preferIPv4Stack=true</javaOpt>
+                        <javaOpt>-Djboss.http.port=${jboss.http.port}</javaOpt>
+                        <javaOpt>-Djboss.management.http.port=${jboss.management.http.port}</javaOpt>
+                    </javaOpts>
                 </configuration>
             </plugin>
             <plugin>
