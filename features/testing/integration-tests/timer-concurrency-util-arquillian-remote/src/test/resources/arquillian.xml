@@ -37,7 +37,7 @@
         <configuration>
             <property name="jbossHome">${jboss.home}</property>
             <!--
-            Waitng for the FIX of wildfly-maven-plugin
+            Waiting for the FIX of wildfly-maven-plugin
             https://github.com/wildfly/wildfly-maven-plugin/issues/118
             -->
             <property name="javaVmArguments">-Djboss.management.http.port=${jboss.management.http.port} -Djboss.http.port=${jboss.http.port}</property>

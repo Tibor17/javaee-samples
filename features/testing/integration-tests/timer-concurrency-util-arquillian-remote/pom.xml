@@ -199,18 +199,18 @@
                             <startupTimeout>60</startupTimeout>
                         </configuration>
                     </execution>
-                    <execution>
+                    <!--<execution>
                         <id>wildfly-deploy</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>deploy-only</goal>
                         </goals>
-                    </execution>
+                    </execution>-->
                     <execution>
                         <id>widfly-shutdown</id>
                         <phase>post-integration-test</phase>
                         <goals>
-                            <goal>undeploy</goal>
+                            <!--<goal>undeploy</goal>-->
                             <goal>shutdown</goal>
                         </goals>
                     </execution>
