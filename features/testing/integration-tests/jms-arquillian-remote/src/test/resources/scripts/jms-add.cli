@@ -1,0 +1,11 @@
+# Connect to Wildfly instance
+connect 127.0.0.1:${jboss.management.http.port}
+
+batch
+
+# Create Datasource
+jms-topic add --topic-address=audit --entries=java:/jms/topic/audit,java:jboss/exported/jms/topic/audit
+
+# Reload the server
+:reload
+run-batch
