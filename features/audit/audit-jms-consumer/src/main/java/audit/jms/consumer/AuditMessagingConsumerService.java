@@ -23,7 +23,9 @@ import audit.domain.Audit;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
-import javax.jms.*;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
 import java.lang.IllegalStateException;
 
 @MessageDriven(activationConfig = {
@@ -38,8 +40,7 @@ public class AuditMessagingConsumerService implements MessageListener {
     @Override
     public void onMessage(Message message) {
         try {
-            ObjectMessage msg = (ObjectMessage) message;
-            Audit audit = msg.getBody(Audit.class);
+            Audit audit = message.getBody(Audit.class);
             auditListener.onMessage(audit);
         } catch (JMSException e) {
             throw new IllegalStateException(e.getLocalizedMessage(), e);
