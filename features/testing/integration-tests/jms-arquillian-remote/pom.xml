@@ -49,7 +49,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!--<dependency>
+        <dependency>
             <groupId>javaee.samples</groupId>
             <artifactId>audit-jms-producer</artifactId>
             <version>${project.version}</version>
@@ -58,7 +58,7 @@
             <groupId>javaee.samples</groupId>
             <artifactId>audit-jms-consumer</artifactId>
             <version>${project.version}</version>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>

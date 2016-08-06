@@ -8,6 +8,8 @@ batch
 # JMS for WildFly 10.0.0.Final https://docs.jboss.org/author/display/WFLY10/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
 /subsystem=messaging-activemq/server=default/jms-queue=TestQ/:add(entries=["jms/queue/test java:/jboss/exported/jms/queue/TestQ"])
 /subsystem=messaging-activemq/server=default/jms-topic=PublisherTopic/:add(entries=["jms/PublisherTopic java:/jboss/exported/jms/PublisherTopic"])
+/subsystem=messaging-activemq/server=default/jms-topic=auditquery/:add(entries=["jms/topic/auditquery/request java:/jboss/exported/jms/topic/auditquery/request"])
+/subsystem=messaging-activemq/server=default/jms-topic=audit/:add(entries=["jms/topic/audit java:/jboss/exported/jms/topic/audit"])
 #
 # JMS for WildFly 8.2.1.Final https://docs.jboss.org/author/display/WFLY8/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
 # "WorkManager is shutting down" in Arquillian tests, see https://issues.jboss.org/browse/WFLY-3355

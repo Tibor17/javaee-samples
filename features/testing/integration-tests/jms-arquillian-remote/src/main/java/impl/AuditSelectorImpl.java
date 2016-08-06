@@ -18,16 +18,16 @@
  */
 package impl;
 
-/*import audit.domain.AuditObjects;
+import audit.domain.AuditObjects;
 import audit.jms.consumer.AuditSelector;
-import audit.query.search.api.AuditQuery;*/
+import audit.query.search.api.AuditQuery;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class AuditSelectorImpl /*implements AuditSelector*/ {
-    /*@Override
+public class AuditSelectorImpl implements AuditSelector {
+    @Override
     public AuditObjects onMessage(AuditQuery query) {
         return null;
-    }*/
+    }
 }

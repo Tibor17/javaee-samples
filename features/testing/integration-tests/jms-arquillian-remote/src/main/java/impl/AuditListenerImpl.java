@@ -18,15 +18,15 @@
  */
 package impl;
 
-/*import audit.domain.Audit;
-import audit.jms.consumer.AuditListener;*/
+import audit.domain.Audit;
+import audit.jms.consumer.AuditListener;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class AuditListenerImpl/* implements AuditListener*/ {
-    /*@Override
+public class AuditListenerImpl implements AuditListener {
+    @Override
     public void onMessage(Audit audit) {
 
-    }*/
+    }
 }
