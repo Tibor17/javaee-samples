@@ -324,6 +324,9 @@
                             <goal>undeploy</goal>
                             <goal>shutdown</goal>
                         </goals>
+                        <configuration>
+                            <ignoreMissingDeployment>true</ignoreMissingDeployment>
+                        </configuration>
                     </execution>
                 </executions>
                 <configuration>
