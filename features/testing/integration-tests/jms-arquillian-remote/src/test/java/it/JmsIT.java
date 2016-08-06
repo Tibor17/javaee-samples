@@ -105,4 +105,9 @@ public class JmsIT {
 
         assertThat(stats.awaitText(), is("%text%"));
     }
+
+    @Test
+    public void publisherNameShouldBePublisherTopic() throws JMSException {
+        assertThat(publisher.getTopicName(), is("PublisherTopic"));
+    }
 }

@@ -20,6 +20,7 @@ package impl;
 
 import javax.ejb.AccessTimeout;
 import javax.ejb.ConcurrencyManagement;
+import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
+@LocalBean
 @Singleton
 @ConcurrencyManagement(BEAN)
 public class QueueTestStats implements Serializable {

@@ -19,6 +19,7 @@
 package impl;
 
 import javax.ejb.ActivationConfigProperty;
+import javax.ejb.LocalBean;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.JMSException;
@@ -26,6 +27,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import java.util.logging.Logger;
 
+@LocalBean
 @MessageDriven(name = "MyMDB", activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/queue/test"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
