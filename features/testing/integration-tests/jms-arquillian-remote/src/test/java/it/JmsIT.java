@@ -21,6 +21,7 @@ package it;
 import audit.domain.Audit;
 import audit.domain.AuditFlow;
 import audit.jms.producer.AuditMessagingProducerService;
+import impl.CdiBean;
 import impl.QueueTestStats;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
@@ -46,10 +47,15 @@ import java.util.logging.Logger;
 
 import static java.lang.System.getProperty;
 import static java.util.UUID.randomUUID;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+/**
+ * https://docs.jboss.org/arquillian/reference/1.0.0.Alpha1/en-US/html_single/
+ * https://github.com/aslakknutsen/arquillian-showcase/tree/master/jms
+ */
 @RunWith(Arquillian.class)
 public class JmsIT {
     private static final Logger LOG = Logger.getLogger(JmsIT.class.getName());
@@ -134,5 +140,15 @@ public class JmsIT {
         producer.send(origin);
 
         assertThat(stats.awaitText(), is(request.toString()));
+    }
+
+    /**
+     * See the chapter "So, what’s next?" in tutorial
+     * http://arquillian.org/blog/tags/examples/
+     */
+    @Test
+    public void shouldInjectCdiBean(CdiBean bean) {
+        assertThat(bean, is(notNullValue()));
+        assertThat(bean.getX(), is("x"));
     }
 }

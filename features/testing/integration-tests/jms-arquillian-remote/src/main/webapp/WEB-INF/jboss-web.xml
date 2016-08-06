@@ -26,6 +26,10 @@
         Press "Manually Setup External Resource" and select the schema file $JBOSS_HOME/docs/schema/jboss-web_10_0.xsd
     -->
     <resource-ref>
+        <!--
+        tutorial
+        https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/ENC_Usage_Conventions-Resource_Manager_Connection_Factory_References_with_jboss.xml_and_jboss_web.xml.html
+        -->
         <res-ref-name>topic/publisher</res-ref-name>
         <jndi-name>java:/jms/PublisherTopic</jndi-name>
     </resource-ref>
