@@ -72,7 +72,8 @@ public class JmsIT {
                 .importBuildOutput()
                 .as(WebArchive.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-                .addAsWebInfResource(new File(getProperty("web.xml")), "web.xml");
+                .addAsWebInfResource(new File(getProperty("web.xml")), "web.xml")
+                .addAsWebInfResource(new File(getProperty("jboss-web.xml")), "jboss-web.xml");
     }
 
     @Before

@@ -235,6 +235,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
+                        <jboss-web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/jboss-web.xml</jboss-web.xml>
                         <arquillian.launch>arquillian-wildfly-remote</arquillian.launch>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <jboss.home>${jboss.home}</jboss.home>
