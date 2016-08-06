@@ -58,7 +58,7 @@ public class AuditQueryConsumerServiceTest {
     @Inject
     JMSContext ctx;
 
-    @Resource(mappedName = "java:jms/topic/auditquery/request")
+    @Resource(mappedName = "java:/jms/topic/auditquery/request")
     Topic requestQueue;
 
     @Inject

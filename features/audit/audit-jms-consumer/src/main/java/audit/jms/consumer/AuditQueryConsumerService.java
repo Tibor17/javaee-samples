@@ -30,7 +30,7 @@ import javax.jms.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @MessageDriven(activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:jms/topic/auditquery/request"),
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:/jms/topic/auditquery/request"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic")
 })
 public class AuditQueryConsumerService implements MessageListener {

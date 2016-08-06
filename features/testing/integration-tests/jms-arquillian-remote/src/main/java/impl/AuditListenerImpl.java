@@ -16,29 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.producer;
+package impl;
 
-import audit.domain.Audit;
+/*import audit.domain.Audit;
+import audit.jms.consumer.AuditListener;*/
 
-import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.jms.JMSContext;
-import javax.jms.Topic;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @ApplicationScoped
-public class AuditMessagingProducerService {
+public class AuditListenerImpl/* implements AuditListener*/ {
+    /*@Override
+    public void onMessage(Audit audit) {
 
-    @Inject
-    JMSContext ctx;
-
-    @Resource(mappedName = "java:/jms/topic/audit")
-    Topic topic;
-
-    public void send(@NotNull @Valid Audit audit) {
-        ctx.createProducer()
-                .send(topic, audit);
-    }
+    }*/
 }

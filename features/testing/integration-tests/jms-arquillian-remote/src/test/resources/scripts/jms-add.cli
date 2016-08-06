@@ -4,7 +4,16 @@ connect 127.0.0.1:${jboss.management.http.port}
 batch
 
 # Create Datasource
-jms-topic add --topic-address=audit --entries=java:/jms/topic/audit,java:jboss/exported/jms/topic/audit
+#
+# JMS for WildFly 10.0.0.Final https://docs.jboss.org/author/display/WFLY10/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
+/subsystem=messaging-activemq/server=default/jms-queue=TestQ/:add(entries=["jms/queue/test java:/jboss/exported/jms/queue/TestQ"])
+/subsystem=messaging-activemq/server=default/jms-topic=PublisherTopic/:add(entries=["jms/PublisherTopic java:/jboss/exported/jms/PublisherTopic"])
+#
+# JMS for WildFly 8.2.1.Final https://docs.jboss.org/author/display/WFLY8/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
+# "WorkManager is shutting down" in Arquillian tests, see https://issues.jboss.org/browse/WFLY-3355
+#jms-queue add --queue-address=testQueue --entries=queue/test,java:jboss/exported/jms/queue/test
+#jms-topic add --topic-address=audit --entries=topic/audit,java:jboss/exported/jms/topic/audit
+#jms-topic add --topic-address=auditquery/request --entries=java:/jms/topic/auditquery/request,java:jboss/exported/jms/topic/auditquery/request
 
 # Reload the server
 :reload

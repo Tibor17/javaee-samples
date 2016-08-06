@@ -16,9 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package audit.jms.consumer;
-
-import audit.domain.Audit;
+package impl;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -26,24 +24,27 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
-import java.lang.IllegalStateException;
+import java.util.logging.Logger;
 
-@MessageDriven(activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:/jms/topic/audit"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic")
-})
-public class AuditMessagingConsumerService implements MessageListener {
+@MessageDriven(name = "MyMDB", activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/queue/test"),
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto_acknowledge")})
+public class QueueTestMDB implements MessageListener {
+
+    private final static Logger LOG = Logger.getLogger(QueueTestMDB.class.getName());
 
     @Inject
-    private AuditListener auditListener;
+    QueueTestStats stats;
 
     @Override
     public void onMessage(Message message) {
         try {
-            Audit audit = message.getBody(Audit.class);
-            auditListener.onMessage(audit);
+            String text = message.getBody(String.class);
+            stats.setText(text);
+            LOG.info(text);
         } catch (JMSException e) {
-            throw new IllegalStateException(e.getLocalizedMessage(), e);
+            LOG.severe(e.getLocalizedMessage());
         }
     }
 }
