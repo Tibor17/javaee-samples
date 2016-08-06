@@ -140,6 +140,7 @@
                                     <artifactId>wildfly-dist</artifactId>
                                     <version>${org.jboss.wildfly.version}</version>
                                     <type>zip</type>
+                                    <!--overWrite=true to prevent from duplicate resource error with jms-add.cli-->
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
                                 </artifactItem>

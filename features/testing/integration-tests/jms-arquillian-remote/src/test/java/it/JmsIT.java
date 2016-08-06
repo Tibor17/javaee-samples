@@ -18,6 +18,9 @@
  */
 package it;
 
+import audit.domain.Audit;
+import audit.domain.AuditFlow;
+import audit.jms.producer.AuditMessagingProducerService;
 import impl.QueueTestStats;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
@@ -38,9 +41,11 @@ import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.Topic;
 import java.io.File;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import static java.lang.System.getProperty;
+import static java.util.UUID.randomUUID;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -63,6 +68,9 @@ public class JmsIT {
 
     @Inject
     QueueTestStats stats;
+
+    @Inject
+    AuditMessagingProducerService producer;
 
     @Deployment
     @OverProtocol("Servlet 3.0")
@@ -109,5 +117,22 @@ public class JmsIT {
     @Test
     public void publisherNameShouldBePublisherTopic() throws JMSException {
         assertThat(publisher.getTopicName(), is("PublisherTopic"));
+    }
+
+    @Test
+    public void auditConsumerShouldReceiveMessageFromProducer() {
+        Audit origin = new Audit();
+        UUID request = randomUUID();
+        origin.setRequest(request);
+        origin.setInitiator(5);
+        origin.setModule("test");
+        origin.setOperationKey("login");
+        origin.setDescription("desc");
+        origin.getFlows()
+                .add(new AuditFlow());
+
+        producer.send(origin);
+
+        assertThat(stats.awaitText(), is(request.toString()));
     }
 }

@@ -22,11 +22,15 @@ import audit.domain.Audit;
 import audit.jms.consumer.AuditListener;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 @ApplicationScoped
 public class AuditListenerImpl implements AuditListener {
+    @Inject
+    QueueTestStats stats;
+
     @Override
     public void onMessage(Audit audit) {
-
+        stats.setText(audit.getRequest().toString());
     }
 }
