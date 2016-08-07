@@ -22,4 +22,11 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
     <module-name>audit</module-name>
+    <!--
+    Similar to resource-ref in jboss-web.xml.
+    <resource-ref>
+      <res-ref-name></res-ref-name>
+      <lookup-name></lookup-name>
+    </resource-ref>
+    -->
 </web-app>

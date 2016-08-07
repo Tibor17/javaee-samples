@@ -66,8 +66,11 @@ public class JmsIT {
     @Resource(mappedName = "java:/jboss/exported/jms/queue/TestQ")
     Queue testQ;
 
-    @Resource(name = "topic/publisher")
+    @Resource(name = "jms/topic/publisher")
     Topic publisher;
+
+    @Resource(lookup = "jms/PublisherTopic")
+    Topic publisherByGlobalJndiName;
 
     @Inject
     JMSContext jmsContext;
@@ -123,6 +126,12 @@ public class JmsIT {
     @Test
     public void publisherNameShouldBePublisherTopic() throws JMSException {
         assertThat(publisher.getTopicName(), is("PublisherTopic"));
+        assertThat(publisherByGlobalJndiName.getTopicName(), is("PublisherTopic"));
+
+        /*jmsContext.createProducer()
+                .send(publisher, "some text");
+
+        assertThat(stats.awaitText(), is("some text"));*/
     }
 
     @Test

@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 @MessageDriven(name = "MyMDB", activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/queue/test"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto_acknowledge")})
+        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto_acknowledge")}) // use '_'
 public class QueueTestMDB implements MessageListener {
 
     private final static Logger LOG = Logger.getLogger(QueueTestMDB.class.getName());
