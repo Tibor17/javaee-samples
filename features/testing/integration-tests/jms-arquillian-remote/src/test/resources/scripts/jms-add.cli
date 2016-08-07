@@ -3,15 +3,33 @@ connect 127.0.0.1:${jboss.management.http.port}
 
 batch
 
-# Create Datasource
+# How to connect to a remote JMS Server:
+# https://docs.jboss.org/author/display/WFLY10/Connect+a+pooled-connection-factory+to+a+Remote+Artemis+Server
 #
-# JMS for WildFly 10.0.0.Final https://docs.jboss.org/author/display/WFLY10/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
+#/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=remote-artemis:add(host=127.0.0.1, port=61613)
+#/subsystem=messaging-activemq/server=default/remote-connector=remote-artemis:add(socket-binding=remote-artemis)
+#/subsystem=messaging-activemq/server=default/pooled-connection-factory=remote-artemis:add(connectors=[remote-artemis], entries=[java:/jms/remoteCF])
+/socket-binding-group=*:read-resource(recursive=true)
+#
+# Another references:
+# https://dzone.com/articles/connecting-jboss-wildfly-7
+# http://blog.coffeebeans.at/archives/category/java/jboss/wildfly
+# https://developer.jboss.org/thread/269851?start=0&tstart=0
+# http://everything-jboss.blogspot.sk/2013/07/remote-jms-messaging-with-hornetq-on.html
+# https://developer.jboss.org/wiki/HowToUseOutOfProcessActiveMQWithWildFly
+# http://stackoverflow.com/questions/24168069/remote-jms-queue-implementation
+
+# Create JMS queues/topics:
+#
+# JMS for WildFly 10.0.0.Final:
+# https://docs.jboss.org/author/display/WFLY10/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
 /subsystem=messaging-activemq/server=default/jms-queue=TestQ/:add(entries=["jms/queue/test java:/jboss/exported/jms/queue/TestQ"])
 /subsystem=messaging-activemq/server=default/jms-topic=PublisherTopic/:add(entries=["jms/PublisherTopic java:/jboss/exported/jms/PublisherTopic"])
 /subsystem=messaging-activemq/server=default/jms-topic=auditquery/:add(entries=["jms/topic/auditquery/request java:/jboss/exported/jms/topic/auditquery/request"])
 /subsystem=messaging-activemq/server=default/jms-topic=audit/:add(entries=["jms/topic/audit java:/jboss/exported/jms/topic/audit"])
 #
-# JMS for WildFly 8.2.1.Final https://docs.jboss.org/author/display/WFLY8/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
+# JMS for WildFly 8.2.1.Final:
+# https://docs.jboss.org/author/display/WFLY8/Messaging+configuration#Messagingconfiguration-JMSQueuesandTopics
 # "WorkManager is shutting down" in Arquillian tests, see https://issues.jboss.org/browse/WFLY-3355
 #jms-queue add --queue-address=testQueue --entries=queue/test,java:jboss/exported/jms/queue/test
 #jms-topic add --topic-address=audit --entries=topic/audit,java:jboss/exported/jms/topic/audit

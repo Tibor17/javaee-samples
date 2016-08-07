@@ -41,6 +41,9 @@
             <property name="username">admin</property>
             <property name="password">admin</property>
 
+            <!-- Somehow does not take effect - investigate with remote JMS -->
+            <!--<property name="org.apache.activemq.AMQ_PORT">61616</property>-->
+
             <!-- another possible properties -->
             <!--<property name="allowConnectingToRunningServer">true</property>-->
             <!--<property name="jmxPort">1190</property>-->
