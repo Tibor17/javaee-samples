@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<jboss-web xmlns="http://www.jboss.com/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-web_10_0.xsd"
+           version="10.0">
+    <!-- IntelliJ IDEA:
+        1. If schema is highlighted in red.
+        Press "Manually Setup External Resource" and select the schema file $JBOSS_HOME/docs/schema/jboss-web_10_0.xsd
+    -->
+    <resource-ref>
+        <!--
+        tutorial
+        https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/ENC_Usage_Conventions-Resource_Manager_Connection_Factory_References_with_jboss.xml_and_jboss_web.xml.html
+        https://docs.jboss.org/jbossweb/3.0.x/jndi-resources-howto.html
+        -->
+        <res-ref-name>mail/Session/Notifier</res-ref-name>
+        <jndi-name>java:/mail/Session/notifier</jndi-name>
+        <res-type>javax.mail.Session</res-type>
+    </resource-ref>
+    <resource-ref>
+        <res-ref-name>mail/Session</res-ref-name>
+        <jndi-name>java:/mail/Session/notifier</jndi-name>
+        <res-type>javax.mail.Session</res-type>
+    </resource-ref>
+</jboss-web>

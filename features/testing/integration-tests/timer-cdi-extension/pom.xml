@@ -311,6 +311,16 @@
                         <configuration>
                             <beforeDeployment>
                                 <commands>
+                                    <!--Add new Mail Session Resource-->
+                                    <!--you must not specify JNDI name java:comp/env/mail, use java:jboss/... or java:/...-->
+                                    <!--ref: https://github.com/danielsoro/send-mail-server-->
+                                    <command>/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=mail-smtp-gmail/:add(host=smtp.gmail.com, port=465)</command>
+                                    <command>/subsystem=mail/mail-session=webapp-gmail-session/:add(jndi-name=java:/mail/Session/notifier, from=email@gmail.com)</command>
+                                    <command>/subsystem=mail/mail-session=webapp-gmail-session:write-attribute(name=debug, value=true)</command>
+                                    <command>/subsystem=mail/mail-session=webapp-gmail-session/server=smtp:add(outbound-socket-binding-ref=mail-smtp-gmail, username=email@gmail.com, password=pswd)</command>
+                                    <command>/subsystem=mail/mail-session=webapp-gmail-session/server=smtp:write-attribute(name=ssl, value=true)</command>
+
+                                    <!--Update existing (default with jndi-name=java:jboss/mail/Default in standalone.xml) Mail Session destination 'mail-smtp'-->
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=jndi-name, value=java:jboss/mail/Default)</command>
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=from, value=noreply@cam.de)</command>
                                     <command>/subsystem=mail/mail-session=default:write-attribute(name=debug, value=true)</command>
