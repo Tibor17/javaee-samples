@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>javaee.samples.it</groupId>
+        <artifactId>integration-tests</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>arquillian-remote-port-offset</artifactId>
+    <packaging>war</packaging>
+
+    <properties>
+        <org.jboss.wildfly.version>10.0.0.Final</org.jboss.wildfly.version>
+        <jboss.home>${project.build.directory}/wildfly-${org.jboss.wildfly.version}</jboss.home>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.arquillian</groupId>
+                <artifactId>arquillian-universe</artifactId>
+                <version>1.0.0.Alpha3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.arquillian.universe</groupId>
+            <artifactId>arquillian-junit</artifactId>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.arquillian</groupId>
+            <artifactId>wildfly-arquillian-container-remote</artifactId>
+            <version>2.0.0.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>${project.basedir}/src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wildfly</groupId>
+                                    <artifactId>wildfly-dist</artifactId>
+                                    <version>${org.jboss.wildfly.version}</version>
+                                    <type>zip</type>
+                                    <!--overWrite=true to prevent from duplicate CLI configuration error-->
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.12</version>
+                <executions>
+                    <execution>
+                        <id>lookup-unused-port</id>
+                        <!--
+                        must not be phase=pre-integration-test; otherwise surefire system property
+                        'managementPort' would not reference maven property value nothing but its name.
+                        -->
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>bsh-property</goal>
+                        </goals>
+                        <configuration>
+                            <properties>
+                                <property>wildfly.management.portOffset</property>
+                                <property>wildfly.management.port</property>
+                            </properties>
+                            <source>
+                                <![CDATA[
+                                int offset = 3;// don't use 0,1,2=> 8081=McAfee, 8082=H2 web port
+                                do {
+                                    try {
+                                        Socket s = new Socket();
+                                        s.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 9990 + offset));
+                                        s.close();
+                                        break;
+                                    } catch (BindException e) {
+                                        ++offset;
+                                    }
+                                } while (offset < 100);
+                                wildfly.management.portOffset = "" + offset;
+                                wildfly.management.port = "" + (9990 + offset);
+                                ]]>
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>start-wildfly</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <!--do not use module path because reporting error with base directory-->
+                            <jbossHome>${jboss.home}</jbossHome>
+                            <!--<modulesPath>${jboss.home}/modules</modulesPath>-->
+                            <!-- these four (username,password,protocol,hostname) are maybe not necessary -->
+                            <!--<username>admin</username>
+                            <password>admin</password>-->
+                            <javaOpts>
+                                <javaOpt>-Xmx128m</javaOpt>
+                                <javaOpt>-XX:MaxMetaspaceSize=96m</javaOpt>
+                                <javaOpt>-Djava.net.preferIPv4Stack=true</javaOpt>
+                                <javaOpt>-Djboss.socket.binding.port-offset=${wildfly.management.portOffset}</javaOpt>
+                                <javaOpt>-Djboss.server.data.dir=${project.build.directory}/wildfly-data-${wildfly.management.portOffset}</javaOpt>
+                                <!--<javaOpt>-Xdebug</javaOpt>
+                                <javaOpt>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8787</javaOpt>-->
+                            </javaOpts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-wildfly</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <hostname>127.0.0.1</hostname>
+                    <port>${wildfly.management.port}</port>
+                    <protocol>http-remoting</protocol>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>it</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
+                                <arquillian.launch>arquillian-wildfly-remote</arquillian.launch>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>it-verify</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

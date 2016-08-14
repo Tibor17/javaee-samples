@@ -23,29 +23,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>javaee.samples</groupId>
-        <artifactId>testing</artifactId>
+        <groupId>javaee.samples.it</groupId>
+        <artifactId>integration-tests</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>javaee.samples.it</groupId>
-    <artifactId>integration-tests</artifactId>
-    <packaging>pom</packaging>
-
-    <properties>
-        <datasource.user>sa</datasource.user>
-        <datasource.password>sa</datasource.password>
-        <datasource.jndi>java:jboss/datasources/TestDS</datasource.jndi>
-    </properties>
-
-    <modules>
-        <module>timer-cdi-extension</module>
-        <module>timer-concurrency-util</module>
-        <module>timer-concurrency-util-arquillian</module>
-        <module>timer-concurrency-util-arquillian-remote</module>
-        <module>jms-arquillian-remote</module>
-        <module>arquillian-chameleon-remote</module>
-        <module>arquillian-remote-port-offset</module>
-    </modules>
+    <artifactId>arquillian-chameleon-remote</artifactId>
+    <packaging>war</packaging>
 
 </project>
