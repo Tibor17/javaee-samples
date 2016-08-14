@@ -224,6 +224,19 @@
                         <goals>
                             <goal>integration-test</goal>
                         </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
+                                <jboss-web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/jboss-web.xml</jboss-web.xml>
+                                <arquillian.launch>arquillian-wildfly-remote</arquillian.launch>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <jboss.home>${jboss.home}</jboss.home>
+                                <!--
+                                https://developer.jboss.org/thread/263582?start=0&tstart=0
+                                -->
+                                <module.path>${jboss.home}/modules</module.path>
+                            </systemPropertyVariables>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>it-verify</id>
@@ -233,19 +246,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <systemPropertyVariables>
-                        <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
-                        <jboss-web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/jboss-web.xml</jboss-web.xml>
-                        <arquillian.launch>arquillian-wildfly-remote</arquillian.launch>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <jboss.home>${jboss.home}</jboss.home>
-                        <!--
-                        https://developer.jboss.org/thread/263582?start=0&tstart=0
-                        -->
-                        <module.path>${jboss.home}/modules</module.path>
-                    </systemPropertyVariables>
-                </configuration>
             </plugin>
         </plugins>
     </build>
