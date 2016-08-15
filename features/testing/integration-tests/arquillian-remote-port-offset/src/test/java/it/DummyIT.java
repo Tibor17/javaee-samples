@@ -20,6 +20,7 @@ package it;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -38,6 +39,7 @@ import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
  * https://github.com/aslakknutsen/arquillian-showcase/tree/master/jms
  */
 @RunWith(Arquillian.class)
+@RunAsClient
 public class DummyIT {
 
     @Deployment
