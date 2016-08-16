@@ -28,13 +28,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>arquillian-chameleon-remote</artifactId>
+    <artifactId>arquillian-chameleon-managed</artifactId>
     <packaging>war</packaging>
-
-    <properties>
-        <org.jboss.wildfly.version>10.0.0.Final</org.jboss.wildfly.version>
-        <jboss.home>${project.build.directory}/wildfly-${org.jboss.wildfly.version}</jboss.home>
-    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -66,7 +61,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- We don't need to have wildfly-arquillian-container-remote -->
             <groupId>org.arquillian.universe</groupId>
             <artifactId>arquillian-chameleon</artifactId>
             <type>pom</type>
@@ -93,33 +87,6 @@
             </testResource>
         </testResources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${skipTests}</skip>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.wildfly</groupId>
-                                    <artifactId>wildfly-dist</artifactId>
-                                    <version>${org.jboss.wildfly.version}</version>
-                                    <type>zip</type>
-                                    <!--overWrite=true to prevent from duplicate CLI configuration error-->
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -162,49 +129,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>start-wildfly</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>start</goal>
-                        </goals>
-                        <configuration>
-                            <!--do not use module path because reporting error with base directory-->
-                            <jbossHome>${jboss.home}</jbossHome>
-                            <!--<modulesPath>${jboss.home}/modules</modulesPath>-->
-                            <!-- these four (username,password,protocol,hostname) are maybe not necessary -->
-                            <!--<username>admin</username>
-                            <password>admin</password>-->
-                            <javaOpts>
-                                <javaOpt>-Xmx128m</javaOpt>
-                                <javaOpt>-XX:MaxMetaspaceSize=96m</javaOpt>
-                                <javaOpt>-Djava.net.preferIPv4Stack=true</javaOpt>
-                                <javaOpt>-Djboss.socket.binding.port-offset=${wildfly.management.portOffset}</javaOpt>
-                                <javaOpt>-Djboss.server.data.dir=${jboss.home}/.data-${wildfly.management.portOffset}</javaOpt>
-                                <!--<javaOpt>-Xdebug</javaOpt>
-                                <javaOpt>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8787</javaOpt>-->
-                            </javaOpts>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>stop-wildfly</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>shutdown</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <skip>${skipTests}</skip>
-                    <hostname>127.0.0.1</hostname>
-                    <port>${wildfly.management.port}</port>
-                    <protocol>http-remoting</protocol>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
@@ -217,6 +141,10 @@
                         <configuration>
                             <systemPropertyVariables>
                                 <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
+                                <!--
+                                not necessary since default container is specified in arquillian.xml
+                                <arquillian.launch>arquillian-wildfly-managed</arquillian.launch>
+                                -->
                             </systemPropertyVariables>
                         </configuration>
                     </execution>

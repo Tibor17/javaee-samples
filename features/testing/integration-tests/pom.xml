@@ -46,6 +46,7 @@
         <module>jms-arquillian-remote</module>
         <module>arquillian-chameleon-remote</module>
         <module>arquillian-remote-port-offset</module>
+        <module>arquillian-chameleon-managed</module>
     </modules>
 
 </project>
