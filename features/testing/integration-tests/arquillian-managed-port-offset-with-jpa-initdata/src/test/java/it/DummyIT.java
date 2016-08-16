@@ -26,8 +26,8 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
-import org.jboss.shrinkwrap.resolver.api.maven.strategy.AcceptScopesStrategy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,7 +41,7 @@ import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.*;
+// import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.*; Do NOT use due to creates very big WAR new AcceptScopesStrategy(COMPILE, IMPORT, RUNTIME, TEST)
 
 /**
  * https://docs.jboss.org/arquillian/reference/1.0.0.Alpha1/en-US/html_single/
@@ -55,10 +55,18 @@ public class DummyIT {
     @Deployment
     @OverProtocol("Servlet 3.0")
     public static Archive<?> createTestArchive() {
+        /* unfortunately your test dependencies must be listed here */
+        File[] assertJ = Maven.resolver()
+                .loadPomFromFile("pom.xml")
+                .resolve("org.assertj:assertj-core:3.4.1")
+                .withTransitivity()
+                .asFile();
+
         return create(MavenImporter.class)
                 .loadPomFromFile("pom.xml")
-                .importBuildOutput(new AcceptScopesStrategy(COMPILE, IMPORT, RUNTIME, TEST))
+                .importBuildOutput(/*Do NOT use due to creates very big WAR new AcceptScopesStrategy(COMPILE, IMPORT, RUNTIME, TEST)*/)
                 .as(WebArchive.class)
+                .addAsLibraries(assertJ)
                 .addClass(TestDataCreator.class)
                 .addAsWebInfResource("META-INF/persistence.xml", "classes/META-INF/persistence.xml")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
