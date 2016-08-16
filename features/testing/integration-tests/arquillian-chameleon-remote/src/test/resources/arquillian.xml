@@ -45,11 +45,6 @@
             <!-- configure port offset for ports bound by application server so that they don't conflict with an another instance running parallely -->
             <property name="managementAddress">127.0.0.1</property>
             <property name="managementPort">${wildfly.management.port}</property>
-
-
-            <!-- https://developer.jboss.org/thread/263582?start=0&tstart=0 -->
-            <!--<property name="jbossHome">${jboss.home}</property>
-            <property name="modulePath">${jboss.home}/modules</property>-->
         </configuration>
     </container>
 </arquillian>
