@@ -47,6 +47,7 @@
         <module>arquillian-chameleon-remote</module>
         <module>arquillian-remote-port-offset</module>
         <module>arquillian-chameleon-managed</module>
+        <module>arquillian-managed-port-offset-with-jpa-initdata</module>
     </modules>
 
 </project>
