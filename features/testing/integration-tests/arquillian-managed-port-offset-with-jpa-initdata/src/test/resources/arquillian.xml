@@ -24,16 +24,30 @@
     <engine>
         <property name="deploymentExportPath">target/test-arquillian-deployments</property>
     </engine>
-    <container qualifier="arquillian-wildfly-managed" default="true">
-        <protocol type="jmx-as7">
-            <property name="executionType">MANAGED</property>
-        </protocol>
-        <configuration>
-            <property name="allowConnectingToRunningServer">false</property>
-            <property name="startupTimeoutInSeconds">10</property>
-            <property name="javaVmArguments">-Xmx256m -XX:MaxMetaspaceSize=196m -Djava.net.preferIPv4Stack=true -Djboss.socket.binding.port-offset=${wildfly.management.portOffset}</property>
-            <property name="managementAddress">127.0.0.1</property>
-            <property name="managementPort">${wildfly.management.port}</property>
-        </configuration>
-    </container>
+    <group qualifier="arquillian-wildfly-managed" default="true">
+        <container qualifier="arquillian-wildfly-managed-1">
+            <protocol type="jmx-as7">
+                <property name="executionType">MANAGED</property>
+            </protocol>
+            <configuration>
+                <property name="allowConnectingToRunningServer">false</property>
+                <property name="startupTimeoutInSeconds">10</property>
+                <property name="javaVmArguments">-Xmx128m -XX:MaxMetaspaceSize=192m -Djava.net.preferIPv4Stack=true -Djboss.socket.binding.port-offset=${wildfly.management.portOffset}</property>
+                <property name="managementAddress">127.0.0.1</property>
+                <property name="managementPort">${wildfly.management.port}</property>
+            </configuration>
+        </container>
+        <container qualifier="arquillian-wildfly-managed-2">
+            <protocol type="jmx-as7">
+                <property name="executionType">MANAGED</property>
+            </protocol>
+            <configuration>
+                <property name="allowConnectingToRunningServer">true</property>
+                <property name="startupTimeoutInSeconds">10</property>
+                <property name="javaVmArguments">-Xmx128m -XX:MaxMetaspaceSize=192m -Djava.net.preferIPv4Stack=true -Djboss.socket.binding.port-offset=${wildfly.management.portOffset}</property>
+                <property name="managementAddress">127.0.0.1</property>
+                <property name="managementPort">${wildfly.management.port}</property>
+            </configuration>
+        </container>
+    </group>
 </arquillian>

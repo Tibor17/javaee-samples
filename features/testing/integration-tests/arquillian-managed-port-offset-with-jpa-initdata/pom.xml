@@ -177,6 +177,7 @@
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
+                                <artifact.file>${project.build.directory}/${project.build.finalName}.war</artifact.file>
                                 <web.xml>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</web.xml>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <jboss.server.config.file.name>standalone-full.xml</jboss.server.config.file.name>

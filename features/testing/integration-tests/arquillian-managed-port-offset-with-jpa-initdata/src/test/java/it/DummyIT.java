@@ -21,7 +21,9 @@ package it;
 import init.TestDataCreator;
 import jpa.User;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -41,28 +43,37 @@ import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jboss.shrinkwrap.api.ShrinkWrap.createFromZipFile;
 // import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.*; Do NOT use due to creates very big WAR new AcceptScopesStrategy(COMPILE, IMPORT, RUNTIME, TEST)
 
 /**
- * https://docs.jboss.org/arquillian/reference/1.0.0.Alpha1/en-US/html_single/
- * https://github.com/aslakknutsen/arquillian-showcase/tree/master/jms
+ * http://arquillian.org/guides/shrinkwrap_introduction/
+ * http://stackoverflow.com/questions/13001371/adding-all-maven-dependencies-to-arquillian
+ * http://serviceorientedarchitect.com/
+ *
+ * too old Arquillian API but maybe a hint:
+ * https://developer.jboss.org/thread/237174?start=0&tstart=0
+ * https://dzone.com/articles/using-shrinkwrap-maven
  */
 @RunWith(Arquillian.class)
 public class DummyIT {
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
 
-    @Deployment
+    @Deployment(name = "as-maven-importer", order = 1)
+    @TargetsContainer("arquillian-wildfly-managed-1")
     @OverProtocol("Servlet 3.0")
-    public static Archive<?> createTestArchive() {
+    public static Archive<?> createTestArchive1() {
         /* unfortunately your test dependencies must be listed here */
         File[] assertJ = Maven.resolver()
                 .loadPomFromFile("pom.xml")
-                .resolve("org.assertj:assertj-core:3.4.1")
+                .resolve("org.assertj:assertj-core")
                 .withTransitivity()
                 .asFile();
 
-        return create(MavenImporter.class)
+        // important:: the deployment name is taken as artifact file name
+        // because we have two deployments we should rename one deployment to "customized-webcontent.war"
+        return create(MavenImporter.class, "customized-webcontent.war")
                 .loadPomFromFile("pom.xml")
                 .importBuildOutput(/*Do NOT use due to creates very big WAR new AcceptScopesStrategy(COMPILE, IMPORT, RUNTIME, TEST)*/)
                 .as(WebArchive.class)
@@ -73,8 +84,36 @@ public class DummyIT {
                 .addAsWebInfResource(new File(getProperty("web.xml")), "web.xml");
     }
 
+    @Deployment(name = "as-maven-artifact-file", order = 2)
+    @TargetsContainer("arquillian-wildfly-managed-2")
+    @OverProtocol("Servlet 3.0")
+    public static Archive<?> createTestArchive2() {
+        /* unfortunately your test dependencies must be listed here */
+        File[] assertJ = Maven.resolver()
+                .loadPomFromFile("pom.xml")
+                .resolve("org.assertj:assertj-core")
+                .withTransitivity()
+                .asFile();
+
+        // important:: the deployment name is taken as artifact file name
+        return createFromZipFile(WebArchive.class, new File(getProperty("artifact.file")))
+                .addAsLibraries(assertJ)
+                .addClass(TestDataCreator.class);
+    }
+
     @Test
-    public void justEmptyTest() {
+    @OperateOnDeployment("as-maven-importer")
+    public void shouldHaveInitDataAsMavenImporter() {
+        testShouldHaveInitData();
+    }
+
+    @Test
+    @OperateOnDeployment("as-maven-artifact-file")
+    public void shouldHaveInitDataAsMavenArtifactFile() {
+        testShouldHaveInitData();
+    }
+
+    private void testShouldHaveInitData() {
         Collection<User> users = em.createQuery("select e from User e", User.class)
                 .getResultList();
 
