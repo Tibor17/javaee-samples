@@ -45,6 +45,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -532,6 +533,16 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
         JPAQuery<E> q = newQuery().from(entity);
 
         predicate.accept(q, alias(entityType, entity));
+        return q.fetchFirst();
+    }
+
+    @Override
+    public E load(@NotNull Consumer<E> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+
+        JPAQuery<E> q = newQuery().from(entity);
+
+        predicate.accept(alias(entityType, entity));
         return q.fetchFirst();
     }
 

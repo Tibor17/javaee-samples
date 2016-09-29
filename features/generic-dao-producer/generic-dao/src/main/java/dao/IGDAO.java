@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -219,6 +220,8 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>> {
     E load(@NotNull Where<E> predicate);
 
     E load(@NotNull BiConsumer<JPAQuery, E> predicate);
+
+    E load(@NotNull Consumer<E> predicate);
 
     /**
      * Remove an object from persistent storage in the database.
