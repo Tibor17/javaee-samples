@@ -217,6 +217,8 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>> {
 
     List<E> loadAll(@NotNull BiConsumer<JPAQuery, E> predicate);
 
+    List<E> loadAll(@NotNull Consumer<E> predicate);
+
     E load(@NotNull Where<E> predicate);
 
     E load(@NotNull BiConsumer<JPAQuery, E> predicate);

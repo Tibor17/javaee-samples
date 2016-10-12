@@ -517,6 +517,16 @@ public abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>> im
     }
 
     @Override
+    public List<E> loadAll(@NotNull Consumer<E> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+
+        JPAQuery<E> q = newQuery().from(entity);
+
+        predicate.accept(alias(entityType, entity));
+        return q.fetch();
+    }
+
+    @Override
     public E load(@NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
