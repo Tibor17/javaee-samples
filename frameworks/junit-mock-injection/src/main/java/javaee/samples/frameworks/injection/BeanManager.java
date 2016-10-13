@@ -78,11 +78,11 @@ final class BeanManager {
     @SuppressWarnings("unchecked")
     <T> Bean<T> getReference(BeanType beanType, Class<? super T> returnType) {
         if (!beanType.getType().isAssignableFrom(returnType)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(returnType + " is not assignable to " + beanType.getType());
         }
         Bean<T> bean = (Bean<T>) getReference(beanType);
-        if (bean != null && !returnType.isAssignableFrom(bean.getProxy().getClass())) {
-            throw new IllegalArgumentException();
+        if (bean != null && bean.hasProxy() && !returnType.isAssignableFrom(bean.getProxy().getClass())) {
+            throw new IllegalArgumentException(bean.getProxy().getClass() + " is not assignable to " + returnType);
         }
         return bean;
     }
@@ -108,9 +108,13 @@ final class BeanManager {
     @SuppressWarnings("unchecked")
     Bean<?> createBean(BeanType beanType, Object beanDelegate) {
         if (!injectionPoints.containsKey(beanType)) {
-            Object[] bd = {beanDelegate};
-            CONTEXT.forEach(spi -> bd[0] = spi.bindContext(bd[0], beanType.getType()));
-            injectionPoints.put(beanType, new Bean<>((Class<Object>) beanType.getType(), bd[0], tryToProxy(beanDelegate)));
+            if (beanDelegate == null) {
+                injectionPoints.put(beanType, new Bean<>((Class<Object>) beanType.getType(), null));
+            } else {
+                Object[] bd = {beanDelegate};
+                CONTEXT.forEach(spi -> bd[0] = spi.bindContext(bd[0], beanType.getType()));
+                injectionPoints.put(beanType, new Bean<>((Class<Object>) beanType.getType(), bd[0], tryToProxy(beanDelegate)));
+            }
         }
         return injectionPoints.get(beanType);
     }

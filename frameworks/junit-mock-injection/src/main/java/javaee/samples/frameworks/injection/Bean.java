@@ -18,6 +18,9 @@
  */
 package javaee.samples.frameworks.injection;
 
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
+
 final class Bean<T> {
     private final Class<T> beanClass;
     private final T delegate;
@@ -32,7 +35,7 @@ final class Bean<T> {
     @SuppressWarnings("unused")
     Bean(Class<T> beanClass, T realObject) {
         this(beanClass, realObject, realObject);
-        if (beanClass != realObject.getClass()) {
+        if (realObject != null && beanClass != realObject.getClass()) {
             throw new IllegalArgumentException();
         }
     }
@@ -42,8 +45,16 @@ final class Bean<T> {
         return beanClass;
     }
 
+    boolean hasDelegate() {
+        return nonNull(delegate);
+    }
+
     T getDelegate() {
-        return delegate;
+        return requireNonNull(delegate, "null delegate must not be retrieved");
+    }
+
+    boolean hasProxy() {
+        return nonNull(proxy);
     }
 
     T getProxy() {

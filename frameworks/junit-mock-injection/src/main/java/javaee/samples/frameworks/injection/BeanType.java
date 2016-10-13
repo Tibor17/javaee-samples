@@ -72,6 +72,10 @@ final class BeanType {
         return type;
     }
 
+    int getTypeModifiers() {
+        return type.getModifiers();
+    }
+
     @SuppressWarnings("unused")
     Collection<Class<?>> getGenericTypes() {
         return genericTypes;

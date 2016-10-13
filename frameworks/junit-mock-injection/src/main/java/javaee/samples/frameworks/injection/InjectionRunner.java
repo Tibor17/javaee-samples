@@ -311,12 +311,19 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     private Object newBeanUnwrapped(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
         pathFinder = path(pathFinder, beanType.getType());
         if (!beanManager.contains(beanType)) {
-            Object newBean = newInstanceWithConstructorInjection(beanManager, beanType, pathFinder);
-            if (newBean == null) {
-                newBean = newInstanceWithNoArgConstructor(beanType, pathFinder);
+            Object newBean;
+            if (isAbstract(beanType.getTypeModifiers()) || isInterface(beanType.getTypeModifiers())) {
+                newBean = null;
+            } else {
+                newBean = newInstanceWithConstructorInjection(beanManager, beanType, pathFinder);
+                if (newBean == null) {
+                    newBean = newInstanceWithNoArgConstructor(beanType, pathFinder);
+                }
             }
             Bean<?> bean = beanManager.createBean(beanType, newBean);
-            inject(beanManager, beanType.getType(), bean.getDelegate(), pathFinder);
+            if (bean.hasDelegate()) {
+                inject(beanManager, beanType.getType(), bean.getDelegate(), pathFinder);
+            }
         }
         return beanManager.getReference(beanType)
                 .getProxy();
