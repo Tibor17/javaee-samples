@@ -27,13 +27,26 @@ import javax.inject.Inject;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *
+ * Injection point non-null reference not mandatory.
  */
 @RunWith(InjectionRunner.class)
 public class DoNotInjectUnusedTest {
     public interface I1 {}
     public interface I2 {}
     public class C2 implements I2 {}
+    public static class S1 { @Inject I1 i1; @Inject I2 i2; }
+    public static class S2 {
+        I1 i1;
+        I2 i2;
+        boolean constructorCalled;
+
+        @Inject
+        S2(I1 i1, I2 i2) {
+            this.i1 = i1;
+            this.i2 = i2;
+            constructorCalled = true;
+        }
+    }
 
     @Inject
     I1 i1;
@@ -44,9 +57,22 @@ public class DoNotInjectUnusedTest {
     @Produces
     I2 provided = new I2() {};
 
+    @Inject
+    S1 s1;
+
+    @Inject
+    S2 s2;
+
     @Test
-    public void shouldInjectI2() {
+    public void shouldInjectI2Only() {
         assertThat(i1).isNull();
         assertThat(i2).isNotNull();
+        assertThat(s1).isNotNull();
+        assertThat(s1.i1).isNull();
+        assertThat(s1.i2).isNotNull();
+        assertThat(s2).isNotNull();
+        assertThat(s2.constructorCalled).isTrue();
+        assertThat(s2.i1).isNull();
+        assertThat(s2.i2).isNotNull();
     }
 }

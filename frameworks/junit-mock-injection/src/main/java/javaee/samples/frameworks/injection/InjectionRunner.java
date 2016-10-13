@@ -380,7 +380,8 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                         p = bean.getProxy();
                     }
                     if (p == null) {
-                        throw new IllegalStateException(c + " could not resolve injection point with type " + parameter);
+                        System.out.println("@Inject " + c + " could not resolve injection point with type "
+                                + parameter + ". Passed NULL.");
                     }
                     args[i++] = p;
                 }
