@@ -33,7 +33,7 @@ import javax.persistence.EntityManager;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -81,16 +81,51 @@ public class DaoProducer {
         return buildDaoWithOneGenericType(ip, bm, (LDAOFactory<T>) f);
     }
 
+    @Produces
+    @Dependent
+    @DAO
     @SuppressWarnings("unchecked")
-    private static <R extends INumericDAO<E, PK>, E, PK extends Number & Comparable<PK>>
-    R buildDaoWithOneGenericType(InjectionPoint ip, BeanManager bm, GenericNumericDaoFactory<R, E, PK> factory) {
+    public <T> DaoWithoutId<T> produceDaoWithoutId(@TransientReference InjectionPoint ip,
+                                                   @TransientReference BeanManager bm,
+                                                   @New @TransientReference DAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (DAOFactory<T>) f);
+    }
 
+    @Produces
+    @Dependent
+    @Default
+    @SuppressWarnings("unchecked")
+    public <T> DaoWithoutId<T> produceUnqualifiedDaoWithoutId(@TransientReference InjectionPoint ip,
+                                                              @TransientReference BeanManager bm,
+                                                              @New @TransientReference DAOFactory f) {
+        return buildDaoWithOneGenericType(ip, bm, (DAOFactory<T>) f);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E>
+    DaoWithoutId<E> buildDaoWithOneGenericType(InjectionPoint ip, BeanManager bm, DAOFactory<E> factory) {
         Type daoType = ip.getType();
         if (daoType instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType) daoType;
             Type[] types = type.getActualTypeArguments();
             Class<E> entity = (Class<E>) types[0];
-            //Class<PK> id = (Class<PK>) types[1];
+            EntityManager em = lookupEntityManager(ip, bm);
+            return factory.build(entity, em);
+        } else {
+            throw new IllegalArgumentException("Use Generic Type in the interface "
+                    + DaoWithoutId.class.getSimpleName()
+                    + " in the injection point " + ip.toString());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R extends INumericDAO<E, PK>, E, PK extends Number & Comparable<PK>>
+    R buildDaoWithOneGenericType(InjectionPoint ip, BeanManager bm, GenericNumericDaoFactory<R, E, PK> factory) {
+        Type daoType = ip.getType();
+        if (daoType instanceof ParameterizedType) {
+            ParameterizedType type = (ParameterizedType) daoType;
+            Type[] types = type.getActualTypeArguments();
+            Class<E> entity = (Class<E>) types[0];
             EntityManager em = lookupEntityManager(ip, bm);
             return factory.build(entity, em);
         } else {
@@ -149,11 +184,31 @@ public class DaoProducer {
         R build(Class<E> entityType, EntityManager em);
     }
 
+    interface GenericDaoFactory<E> {
+        DaoWithoutId<E> build(Class<E> entityType, EntityManager em);
+    }
+
+    static class DAOFactory<E> implements GenericDaoFactory<E> {
+
+        @Override
+        public DaoWithoutId<E> build(Class<E> entityType, EntityManager em) {
+            return new GenericDaoWithoutId<E>(entityType) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected EntityManager em() {
+                    return em;
+                }
+            };
+        }
+    }
+
     static class IDAOFactory<E> implements GenericNumericDaoFactory<IDAO<E>, E, Integer> {
 
         @Override
         public IDAO<E> build(Class<E> entityType, EntityManager em) {
             class ID extends GenericNumericDAO<E, Integer> implements IDAO<E> {
+                private static final long serialVersionUID = 1L;
 
                 ID(Class<E> entityType) {
                     super(entityType, Integer.class);
@@ -174,6 +229,7 @@ public class DaoProducer {
         @Override
         public LDAO<E> build(Class<E> entityType, EntityManager em) {
             class LD extends GenericNumericDAO<E, Long> implements LDAO<E> {
+                private static final long serialVersionUID = 1L;
 
                 LD(Class<E> entityType) {
                     super(entityType, Long.class);

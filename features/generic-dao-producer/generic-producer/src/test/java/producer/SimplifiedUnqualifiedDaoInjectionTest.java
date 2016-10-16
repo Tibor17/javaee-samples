@@ -18,6 +18,7 @@
  */
 package producer;
 
+import dao.DaoWithoutId;
 import dao.IGDAO;
 import dao.LDAO;
 import org.apache.deltaspike.core.api.projectstage.ProjectStage;
@@ -40,6 +41,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SimplifiedUnqualifiedDaoInjectionTest {
     @Inject
     LDAO<MyEntity> dao;
+
+    @Inject
+    DaoWithoutId<MyEntity> dao2;
 
     @Inject
     TransactionalDeltaspikeHelper helper;
@@ -73,6 +77,31 @@ public class SimplifiedUnqualifiedDaoInjectionTest {
 
         assertThat(dao)
                 .extracting(IGDAO::count)
+                .containsExactly(1L);
+    }
+
+    @Test
+    public void test2() {
+        assertThat(dao2)
+                .isNotNull();
+
+        assertThat(dao2.count())
+                .isZero();
+
+        MyEntity e = helper.$(new MyEntity().setCourseName("Java EE"));
+
+        assertThat(e)
+                .extracting(MyEntity::getCourseName)
+                .containsExactly("Java EE");
+
+        assertThat(e.getId())
+                .isNotZero();
+
+        assertThat(dao2.count())
+                .isNotZero();
+
+        assertThat(dao2)
+                .extracting(DaoWithoutId::count)
                 .containsExactly(1L);
     }
 }
