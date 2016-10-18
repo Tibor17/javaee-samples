@@ -26,10 +26,32 @@ import com.querydsl.jpa.JPAQueryBase;
 import com.querydsl.jpa.impl.JPADeleteClause;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAUpdateClause;
-import com.querydsl.sql.*;
+import com.querydsl.sql.CUBRIDTemplates;
+import com.querydsl.sql.DerbyTemplates;
+import com.querydsl.sql.H2Templates;
+import com.querydsl.sql.HSQLDBTemplates;
+import com.querydsl.sql.MySQLTemplates;
+import com.querydsl.sql.OracleTemplates;
+import com.querydsl.sql.PostgreSQLTemplates;
+import com.querydsl.sql.RelationalPath;
+import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.SQLServer2005Templates;
+import com.querydsl.sql.SQLServer2012Templates;
+import com.querydsl.sql.SQLServerTemplates;
+import com.querydsl.sql.SQLTemplates;
+import com.querydsl.sql.SQLiteTemplates;
+import com.querydsl.sql.TeradataTemplates;
 import com.querydsl.sql.dml.SQLInsertClause;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
+import javax.persistence.PersistenceException;
+import javax.persistence.PersistenceUnitUtil;
+import javax.persistence.PessimisticLockException;
+import javax.persistence.TransactionRequiredException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -41,10 +63,14 @@ import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.querydsl.core.alias.Alias.alias;
@@ -294,18 +320,27 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public long count() {
+    public @Min(0) long count() {
         return newQuery()
                 .from(newQueryEntity())
                 .fetchCount();
     }
 
     @Override
-    public long count(Where<E> predicate) {
+    public @Min(0) long count(@NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
         JPAQuery<E> q = newQuery().from(entity);
         predicate.where(q, entity, alias(getEntityType(), entity));
         return q.fetchCount();
+    }
+
+    @Override
+    public @Min(0) long count(@NotNull Function<E, Predicate> predicate) {
+        PathBuilder<E> entity = newQueryEntity();
+        return newQuery()
+                .from(entity)
+                .where(predicate.apply(alias(getEntityType(), entity)))
+                .fetchCount();
     }
 
     /**
@@ -440,13 +475,12 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public List<E> loadAll(@NotNull Consumer<E> predicate) {
+    public List<E> loadAll(@NotNull Function<E, Predicate> predicate) {
         PathBuilder<E> entity = newQueryEntity();
-
-        JPAQuery<E> q = newQuery().from(entity);
-
-        predicate.accept(alias(getEntityType(), entity));
-        return q.fetch();
+        return newQuery()
+                .from(entity)
+                .where(predicate.apply(alias(getEntityType(), entity)))
+                .fetch();
     }
 
     @Override
@@ -470,13 +504,12 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public E load(@NotNull Consumer<E> predicate) {
+    public E load(@NotNull Function<E, Predicate> predicate) {
         PathBuilder<E> entity = newQueryEntity();
-
-        JPAQuery<E> q = newQuery().from(entity);
-
-        predicate.accept(alias(getEntityType(), entity));
-        return q.fetchFirst();
+        return newQuery()
+                .from(entity)
+                .where(predicate.apply(alias(getEntityType(), entity)))
+                .fetchFirst();
     }
 
     @Override

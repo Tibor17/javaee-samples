@@ -22,7 +22,14 @@ import com.querydsl.core.FilteredClause;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
+import javax.persistence.PersistenceException;
+import javax.persistence.PersistenceUnitUtil;
+import javax.persistence.PessimisticLockException;
+import javax.persistence.TransactionRequiredException;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -32,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 interface BaseDao<E> extends Serializable {
@@ -128,9 +135,11 @@ interface BaseDao<E> extends Serializable {
 
     boolean isAttached(@NotNull E entityObject);
 
-    long count();
+    @Min(0) long count();
 
-    long count(Where<E> predicate);
+    @Min(0) long count(@NotNull Where<E> predicate);
+
+    @Min(0) long count(@NotNull Function<E, Predicate> predicate);
 
     /**
      * Persists the <tt>newInstance</tt> object into database.
@@ -185,13 +194,13 @@ interface BaseDao<E> extends Serializable {
 
     List<E> loadAll(@NotNull BiConsumer<JPAQuery, E> predicate);
 
-    List<E> loadAll(@NotNull Consumer<E> predicate);
+    List<E> loadAll(@NotNull Function<E, Predicate> predicate);
 
     E load(@NotNull Where<E> predicate);
 
     E load(@NotNull BiConsumer<JPAQuery, E> predicate);
 
-    E load(@NotNull Consumer<E> predicate);
+    E load(@NotNull Function<E, Predicate> predicate);
 
     long delete(@NotNull BiConsumer<FilteredClause<?>, E> predicate);
 
