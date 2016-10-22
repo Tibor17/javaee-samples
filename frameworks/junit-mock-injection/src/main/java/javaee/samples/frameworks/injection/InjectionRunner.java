@@ -34,9 +34,22 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.lang.reflect.Modifier.isAbstract;
+import static java.lang.reflect.Modifier.isFinal;
+import static java.lang.reflect.Modifier.isInterface;
+import static java.lang.reflect.Modifier.isPrivate;
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparingInt;
 import static java.util.ServiceLoader.load;
@@ -48,9 +61,10 @@ import static javaee.samples.frameworks.injection.H2Storage.DEFAULT_STORAGE;
 import static javaee.samples.frameworks.injection.JPARuleBuilder.unitName;
 import static javaee.samples.frameworks.injection.Mode.DEFAULT_MODE;
 import static javaee.samples.frameworks.injection.PathFinder.path;
-import static java.lang.reflect.Modifier.*;
 
 public class InjectionRunner extends BlockJUnit4ClassRunner {
+    private static final Logger LOG = Logger.getGlobal();
+
     static class PersistenceContextWrapper {
         boolean usedInFieldInjection = true;
         PersistenceContext pc;
@@ -295,12 +309,14 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                 if (!foundSpi) {
                     if (!isStat && f.isAnnotationPresent(Inject.class)) {
                         Bean<?> newBean = beanManager.getReference(beanType);
-                        f.set(currentBean, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
-                    } else {
-                        if (f.isAnnotationPresent(Resource.class)) {
-                            Bean<?> newBean = beanManager.getReference(beanType);
-                            f.set(target, newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy());
-                        }
+                        Object beanInstance =
+                                newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy();
+                        f.set(currentBean, beanInstance);
+                    } else if (f.isAnnotationPresent(Resource.class)) {
+                        Bean<?> newBean = beanManager.getReference(beanType);
+                        Object beanInstance =
+                                newBean == null ? newBeanUnwrapped(beanManager, beanType, pathFinder) : newBean.getProxy();
+                        f.set(target, beanInstance);
                     }
                 }
 
@@ -380,8 +396,8 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                         p = bean.getProxy();
                     }
                     if (p == null) {
-                        System.out.println("@Inject " + c + " could not resolve injection point with type "
-                                + parameter + ". Passed NULL.");
+                        LOG.warning("@Inject " + c + " could not resolve injection point with type " + parameter
+                                + ". Passed NULL.");
                     }
                     args[i++] = p;
                 }

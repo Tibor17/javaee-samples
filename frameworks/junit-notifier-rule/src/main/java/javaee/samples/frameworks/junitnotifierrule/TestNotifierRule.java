@@ -25,10 +25,12 @@ import org.junit.runner.Description;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.logging.Logger;
 
 import static java.lang.String.format;
 
 public class TestNotifierRule extends Stopwatch {
+    private static final Logger LOG = Logger.getGlobal();
 
     private static final BigDecimal MICRO_SECOND = new BigDecimal(BigInteger.ONE, 6);
     private static final BigDecimal MILLI_SECOND = new BigDecimal(BigInteger.ONE, 3);
@@ -55,7 +57,7 @@ public class TestNotifierRule extends Stopwatch {
         Class<?> clazz = description.getTestClass();
         String thread = Thread.currentThread().toString();
         BigDecimal seconds = BigDecimal.valueOf(nanos, 9);
-        System.out.println(format("### Test [%s#%s] %s in %s after [%s].", clazz.getSimpleName(), method, detail, thread, convertDuration(seconds)));
+        LOG.info(format("### Test [%s#%s] %s in %s after [%s].", clazz.getSimpleName(), method, detail, thread, convertDuration(seconds)));
     }
 
     private static String convertDuration(BigDecimal duration) {

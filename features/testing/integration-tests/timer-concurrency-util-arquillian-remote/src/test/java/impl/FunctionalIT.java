@@ -37,9 +37,9 @@ import javax.persistence.PersistenceContext;
 import java.io.File;
 import java.net.URL;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import static java.lang.System.getProperty;
-import static java.lang.System.out;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -48,6 +48,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(Arquillian.class)
 public class FunctionalIT {
+    private static final Logger LOG = Logger.getGlobal();
+
     @PersistenceContext(unitName = "pu")
     EntityManager em;
 
@@ -72,7 +74,7 @@ public class FunctionalIT {
                                          URL deployment)
             throws InterruptedException {
 
-        out.println(deployment.toExternalForm());
+        LOG.info(deployment.toExternalForm());
 
         MILLISECONDS.sleep(1500);
 

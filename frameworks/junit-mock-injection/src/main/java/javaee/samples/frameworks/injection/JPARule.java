@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static java.util.Optional.empty;
@@ -54,6 +55,8 @@ import static java.lang.String.format;
 import static javax.persistence.Persistence.createEntityManagerFactory;
 
 public final class JPARule extends TestWatcher {
+    private static final Logger LOG = Logger.getGlobal();
+
     static final ThreadLocal<JPARule> CURRENT_JPA_RULE = new InheritableThreadLocal<>();
 
     private static final String H2_STORAGE_PATH = "./target/h2/";
@@ -356,7 +359,7 @@ public final class JPARule extends TestWatcher {
         TransactionManager.clean();
         try {
             if (db == H2) {
-                System.out.println("H2 database appears in " + new File(dbPath).getCanonicalPath());
+                LOG.info("H2 database appears in " + new File(dbPath).getCanonicalPath());
             }
             entityManagers.stream()
                     .filter(EntityManager::isOpen)

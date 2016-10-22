@@ -21,20 +21,22 @@ package impl.test;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
-import static java.lang.System.out;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Stateless
 @LocalBean
 public class AsyncReceiver {
+    private static final Logger LOG = Logger.getGlobal();
+
     @Resource
     SessionContext ctx;
 
     @Asynchronous
     public Future<String> forkTask() {
         pretendJob();
-        out.println("forTask() cancelled " + ctx.wasCancelCalled());
+        LOG.info("forTask() cancelled " + ctx.wasCancelCalled());
         return new AsyncResult<>(ctx.wasCancelCalled() ? null : "done");
     }
 

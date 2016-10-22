@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.logging.Logger;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.path.xml.XmlPath.with;
@@ -40,6 +42,7 @@ import static org.hamcrest.xml.HasXPath.hasXPath;
  * @apiNote http://wiremock.org/stubbing.html
  */
 public class HttpMockTest {
+    private static final Logger LOG = Logger.getGlobal();
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(getInteger("test.rest.server.port", 8089));
@@ -94,7 +97,7 @@ public class HttpMockTest {
                 .queryParam("jql", "project = MPROJECT AND issuetype = Bug")
                 .get("http://localhost:" + wireMockRule.port() + "/rest/api/2.0-alpha1/issues/id/{id}", 5)
                 .asString();
-        System.out.println(with(response).prettyPrint());
+        LOG.info(with(response).prettyPrint());
         assertThat(with(response).get("responses.response[1].content"), is("Another content"));
         assertThat(with(response).param("email", "marry@smith.com").get("**.findAll {it.@from != email}.content"), hasItems("Another content"));
 
