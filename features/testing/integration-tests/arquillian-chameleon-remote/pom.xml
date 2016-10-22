@@ -32,7 +32,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <org.jboss.wildfly.version>10.0.0.Final</org.jboss.wildfly.version>
+        <org.jboss.wildfly.version>10.1.0.Final</org.jboss.wildfly.version>
         <jboss.home>${project.build.directory}/wildfly-${org.jboss.wildfly.version}</jboss.home>
     </properties>
 
