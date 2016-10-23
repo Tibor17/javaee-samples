@@ -25,14 +25,15 @@ import audit.domain.AuditHeader;
 import audit.query.search.api.Matcher;
 import audit.query.search.api.Sorter;
 import audit.query.search.persistence.api.Predicates;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.FullTextQuery;
-import org.hibernate.search.query.dsl.*;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.core.types.dsl.PathBuilder;
+import org.hibernate.search.query.dsl.MustJunction;
+import org.hibernate.search.query.dsl.QueryBuilder;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -40,15 +41,21 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-import java.beans.*;
-import java.util.*;
+import java.beans.BeanInfo;
+import java.beans.Expression;
+import java.beans.PropertyDescriptor;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import static audit.query.search.persistence.api.Predicates.predicates;
-import static com.querydsl.core.alias.Alias.alias;
 import static com.querydsl.core.alias.Alias.$;
+import static com.querydsl.core.alias.Alias.alias;
 import static java.beans.Introspector.getBeanInfo;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
@@ -58,6 +65,8 @@ import static org.hibernate.search.jpa.Search.getFullTextEntityManager;
 
 @ApplicationScoped
 public class AuditService {
+    private static final long TIMEOUT = 5L;
+
     private static final Invoker INVOKER = (target, beanProperty, value) -> {
         try {
             BeanInfo beanInfo = getBeanInfo(Audit.class);
@@ -73,7 +82,7 @@ public class AuditService {
     };
 
     @Inject
-    EntityManager em;
+    private EntityManager em;
 
     public List<Audit> findAll() {
         return em.createNamedQuery("Audit.all", Audit.class)
@@ -85,7 +94,8 @@ public class AuditService {
                 .getSingleResult();
     }
 
-    public @NotNull Audit findAuditById(@NotNull String id) {
+    @NotNull
+    public Audit findAuditById(@NotNull String id) {
         return em.find(Audit.class, id);
     }
 
@@ -105,7 +115,8 @@ public class AuditService {
     }
 
     @Transactional
-    public void saveFlow(@NotNull Audit e, String error, @NotNull Collection<AuditHeader> headers, @NotNull Collection<AuditChange> changes) {
+    public void saveFlow(@NotNull Audit e, String error, @NotNull Collection<AuditHeader> headers,
+                         @NotNull Collection<AuditChange> changes) {
         headers.forEach(em::persist);
         changes.forEach(em::persist);
 
@@ -120,6 +131,7 @@ public class AuditService {
     }
 
     /**
+     * .
      * javax.persistence.PersistenceException: org.hibernate.HibernateException: could not parse date string?2
      * Caused by: java.text.ParseException: Unparseable date: "?2"
      * The fix would be com.querydsl:querydsl-mongodb but it does NOT work with EntityManager
@@ -127,7 +139,8 @@ public class AuditService {
      * https://github.com/mongodb/morphia
      * http://www.hascode.com/2014/02/creating-elegant-typesafe-queries-for-jpa-mongodbmorphia-and-lucene-using-querydsl/
      */
-    public List<Audit> searchQueryDSL(long fromRownum, long maxRownums, @NotNull String module, @NotNull Calendar from, @NotNull Calendar to) {
+    public List<Audit> searchQueryDSL(long fromRownum, long maxRownums, @NotNull String module, @NotNull Calendar from,
+                                      @NotNull Calendar to) {
         PathBuilder<Audit> entity = new PathBuilder<>(Audit.class, "audit");
         JPAQuery<Audit> q = new JPAQuery<Audit>(em).from(entity);
         Audit a = alias(Audit.class, entity);
@@ -138,6 +151,7 @@ public class AuditService {
                 .fetch();
     }
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public List<Audit> search(int fromRownum, int maxRownums,
                               Optional<Long> initiator,
                               Optional<String> module,
@@ -176,8 +190,9 @@ public class AuditService {
             query.append("a.storedAt <= :to");
         }  else {
             int rem = query.lastIndexOf(" and ");
-            if (rem != -1)
+            if (rem != -1) {
                 query.delete(rem, query.length());
+            }
         }
 
         TypedQuery<Audit> audits = em.createQuery(query.toString(), Audit.class)
@@ -218,8 +233,9 @@ public class AuditService {
         FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
 
         Sort sort = toSort(p.getSorters());
-        if (sort.getSort().length != 0)
+        if (sort.getSort().length != 0) {
             ftq.setSort(sort);
+        }
 
         return ftq.setFirstResult(fromRownum)
                 .setMaxResults(maxRownums)
@@ -255,11 +271,12 @@ public class AuditService {
         Query luceneQuery = junction.createQuery();
 
         FullTextQuery ftq = fullTextEntityManager.createFullTextQuery(luceneQuery, Audit.class);
-        ftq.limitExecutionTimeTo(5, SECONDS);
+        ftq.limitExecutionTimeTo(TIMEOUT, SECONDS);
 
         Sort sort = toSort(p.getSorters());
-        if (sort.getSort().length != 0)
+        if (sort.getSort().length != 0) {
             ftq.setSort(sort);
+        }
 
         return ftq.setFirstResult(fromRownum)
                 .setMaxResults(maxRownums)
@@ -287,12 +304,13 @@ public class AuditService {
 
     private static SortField toSortField(Sorter sorter) {
         Class<?> ft = sorter.getFieldType();
-        if (ft == String.class)
+        if (ft == String.class) {
             return new SortField(sorter.getFieldName(), STRING, !sorter.isAscending());
-        else if (ft == long.class || ft == Long.class || ft == Date.class || ft == Calendar.class)
+        } else if (ft == long.class || ft == Long.class || ft == Date.class || ft == Calendar.class) {
             return new SortField(sorter.getFieldName(), LONG, !sorter.isAscending());
-        else
+        } else {
             throw new IllegalStateException("no mapped field type " + ft);
+        }
     }
 
     private static Sort toSort(Collection<Sorter<?>> sorters) {

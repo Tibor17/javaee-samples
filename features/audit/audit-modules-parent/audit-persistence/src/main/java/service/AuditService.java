@@ -30,7 +30,10 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import static com.querydsl.core.alias.Alias.$;
 import static com.querydsl.core.alias.Alias.alias;
@@ -38,9 +41,10 @@ import static com.querydsl.core.alias.Alias.alias;
 @ApplicationScoped
 public class AuditService {
     @Inject
-    EntityManager em;
+    private EntityManager em;
 
-    public @NotNull List<Audit> findAll() {
+    @NotNull
+    public List<Audit> findAll() {
         return em.createNamedQuery("Audit.all", Audit.class)
                 .getResultList();
     }
@@ -50,7 +54,7 @@ public class AuditService {
                 .getSingleResult();
     }
 
-    public @NotNull Audit findAuditById(@NotNull String id) {
+    @NotNull public Audit findAuditById(@NotNull String id) {
         return em.find(Audit.class, id);
     }
 
@@ -75,7 +79,7 @@ public class AuditService {
         saveFlow(e);
     }
 
-    public @NotNull List<Audit> search(long fromRownum, long maxRownums, @NotNull String module,
+    @NotNull public List<Audit> search(long fromRownum, long maxRownums, @NotNull String module,
                               @NotNull Calendar from, @NotNull Calendar to) {
         PathBuilder<Audit> entity = new PathBuilder<>(Audit.class, "audit");
         JPAQuery<Audit> q = new JPAQuery<Audit>(em).from(entity);
@@ -87,7 +91,9 @@ public class AuditService {
                 .fetch();
     }
 
-    public @NotNull List<Audit> search(int fromRownum, int maxRownums,
+    @NotNull
+    @SuppressWarnings("checkstyle:parameternumber")
+    public List<Audit> search(int fromRownum, int maxRownums,
                               @NotNull Optional<Long> initiator,
                               @NotNull Optional<String> module,
                               @NotNull Optional<String> operationKey,

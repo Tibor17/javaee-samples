@@ -23,32 +23,34 @@ import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
+import static java.math.BigDecimal.ZERO;
+import static java.math.BigInteger.ONE;
+import static java.math.RoundingMode.HALF_UP;
 
 public class TestNotifierRule extends Stopwatch {
     private static final Logger LOG = Logger.getGlobal();
+    private static final int MICROSECONDS = 9;
 
-    private static final BigDecimal MICRO_SECOND = new BigDecimal(BigInteger.ONE, 6);
-    private static final BigDecimal MILLI_SECOND = new BigDecimal(BigInteger.ONE, 3);
+    private static final BigDecimal MICRO_SECOND = new BigDecimal(ONE, 6);
+    private static final BigDecimal MILLI_SECOND = new BigDecimal(ONE, 3);
     private static final BigDecimal SECOND = BigDecimal.ONE;
     private static final BigDecimal MINUTE = BigDecimal.valueOf(60);
 
     @Override
-    protected void failed(long nanos, Throwable e, Description description) {
+    protected final void failed(long nanos, Throwable e, Description description) {
         completed(nanos, description, "failed");
     }
 
     @Override
-    protected void skipped(long nanos, AssumptionViolatedException e, Description description) {
+    protected final void skipped(long nanos, AssumptionViolatedException e, Description description) {
         completed(nanos, description, "skipped");
     }
 
     @Override
-    protected void succeeded(long nanos, Description description) {
+    protected final void succeeded(long nanos, Description description) {
         completed(nanos, description, "succeeded");
     }
 
@@ -56,8 +58,9 @@ public class TestNotifierRule extends Stopwatch {
         String method = description.getMethodName();
         Class<?> clazz = description.getTestClass();
         String thread = Thread.currentThread().toString();
-        BigDecimal seconds = BigDecimal.valueOf(nanos, 9);
-        LOG.info(format("### Test [%s#%s] %s in %s after [%s].", clazz.getSimpleName(), method, detail, thread, convertDuration(seconds)));
+        BigDecimal seconds = BigDecimal.valueOf(nanos, MICROSECONDS);
+        LOG.info(format("### Test [%s#%s] %s in %s after [%s].", clazz.getSimpleName(), method, detail, thread,
+                convertDuration(seconds)));
     }
 
     private static String convertDuration(BigDecimal duration) {
@@ -71,9 +74,9 @@ public class TestNotifierRule extends Stopwatch {
                 previous = quotientReminder[0].stripTrailingZeros().toPlainString();
                 previous += " min ";
                 return convertDuration(previous, quotientReminder[1]);
-            } else if (quotientReminder[0].compareTo(BigDecimal.ZERO) != 0) {
+            } else if (quotientReminder[0].compareTo(ZERO) != 0) {
                 BigDecimal quotient = round(quotientReminder[0].stripTrailingZeros());
-                return quotient.equals(BigDecimal.ZERO) ? previous.trim() : previous + quotient.toPlainString() + " min";
+                return quotient.equals(ZERO) ? previous.trim() : previous + quotient.toPlainString() + " min";
             }
         } else if (duration.compareTo(SECOND) >= 0) {
             BigDecimal[] quotientReminder = duration.divideAndRemainder(SECOND);
@@ -81,9 +84,9 @@ public class TestNotifierRule extends Stopwatch {
                 previous = quotientReminder[0].stripTrailingZeros().toPlainString();
                 previous += " sec ";
                 return convertDuration(previous, quotientReminder[1]);
-            } else if (quotientReminder[0].compareTo(BigDecimal.ZERO) != 0) {
+            } else if (quotientReminder[0].compareTo(ZERO) != 0) {
                 BigDecimal quotient = round(quotientReminder[0].stripTrailingZeros());
-                return quotient.equals(BigDecimal.ZERO) ? previous.trim() : previous + quotient.toPlainString() + " sec";
+                return quotient.equals(ZERO) ? previous.trim() : previous + quotient.toPlainString() + " sec";
             }
         } else if (duration.compareTo(MILLI_SECOND) >= 0) {
             BigDecimal[] quotientReminder = duration.divideAndRemainder(MILLI_SECOND);
@@ -91,9 +94,9 @@ public class TestNotifierRule extends Stopwatch {
                 previous = quotientReminder[0].stripTrailingZeros().toPlainString();
                 previous += " millis ";
                 return convertDuration(previous, quotientReminder[1]);
-            } else if (quotientReminder[0].compareTo(BigDecimal.ZERO) != 0) {
+            } else if (quotientReminder[0].compareTo(ZERO) != 0) {
                 BigDecimal quotient = round(quotientReminder[0].stripTrailingZeros());
-                return quotient.equals(BigDecimal.ZERO) ? previous.trim() : previous + quotient.toPlainString() + " millis";
+                return quotient.equals(ZERO) ? previous.trim() : previous + quotient.toPlainString() + " millis";
             }
         } else {
             BigDecimal[] quotientReminder = duration.divideAndRemainder(MICRO_SECOND);
@@ -102,15 +105,15 @@ public class TestNotifierRule extends Stopwatch {
                 previous += " micros ";
                 previous += quotientReminder[1].intValue();
                 return previous + " nanos";
-            } else if (quotientReminder[0].compareTo(BigDecimal.ZERO) != 0) {
+            } else if (quotientReminder[0].compareTo(ZERO) != 0) {
                 BigDecimal quotient = round(quotientReminder[0].stripTrailingZeros());
-                return quotient.equals(BigDecimal.ZERO) ? previous.trim() : previous + quotient.toPlainString() + " micros";
+                return quotient.equals(ZERO) ? previous.trim() : previous + quotient.toPlainString() + " micros";
             }
         }
         return previous;
     }
 
     private static BigDecimal round(BigDecimal number) {
-        return number.setScale(1, RoundingMode.HALF_UP);
+        return number.setScale(1, HALF_UP);
     }
 }

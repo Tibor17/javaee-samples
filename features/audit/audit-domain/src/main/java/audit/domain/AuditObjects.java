@@ -50,8 +50,9 @@ public final class AuditObjects implements Serializable {
      */
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
-        for (Audit audit : audits)
+        for (Audit audit : audits) {
             stream.writeObject(audit);
+        }
     }
 
     /**
@@ -60,7 +61,8 @@ public final class AuditObjects implements Serializable {
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
         audits = new Audit[size];
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++) {
             audits[i] = (Audit) stream.readObject();
+        }
     }
 }

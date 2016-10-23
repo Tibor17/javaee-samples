@@ -247,6 +247,12 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <suppressionsLocation>src/main/config/suppressions.xml</suppressionsLocation>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

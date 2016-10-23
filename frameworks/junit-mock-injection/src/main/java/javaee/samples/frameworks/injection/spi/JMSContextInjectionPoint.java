@@ -23,9 +23,11 @@ import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
 
 import javax.inject.Inject;
-import javax.jms.*;
-import java.lang.IllegalStateException;
-import java.util.*;
+import javax.jms.IllegalStateRuntimeException;
+import javax.jms.JMSContext;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static java.util.Arrays.asList;
@@ -33,7 +35,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
 
-public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
+public final class JMSContextInjectionPoint implements InjectionPoint<Inject> {
     private static final Collection<String> JMS_CTX_MANAGED_METHODS_FAIL =
             asList("setClientID", "setExceptionListener", "start", "stop", "setAutoStart", "close", "commit",
                     "rollback", "recover");
@@ -67,7 +69,7 @@ public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
     }
 
     /**
-     * todo use it if transactional session
+     * todo use it if transactional session.
      */
     private static JMSContext proxy(JMSContext ctx) {
         ProxyFactory factory = new ProxyFactory();
@@ -76,8 +78,9 @@ public class JMSContextInjectionPoint implements InjectionPoint<Inject> {
         try {
             Object proxy = proxyClass.newInstance();
             ((ProxyObject) proxy).setHandler((self, overridden, forwarder, args) -> {
-                if (JMS_CTX_MANAGED_METHODS_FAIL.contains(overridden.getName()))
+                if (JMS_CTX_MANAGED_METHODS_FAIL.contains(overridden.getName())) {
                     throw new IllegalStateRuntimeException("The JMSContext is container-managed (injected).");
+                }
 
                 return overridden.invoke(ctx, args);
             });

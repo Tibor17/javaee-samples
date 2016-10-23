@@ -35,9 +35,9 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @ConcurrencyManagement(BEAN)
 public class SyncCaller {
     @Inject
-    AsyncReceiver rx;
+    private AsyncReceiver rx;
 
-    volatile Future<String> forkedTask;
+    private volatile Future<String> forkedTask;
 
     @PostConstruct
     public void onConstruct() {

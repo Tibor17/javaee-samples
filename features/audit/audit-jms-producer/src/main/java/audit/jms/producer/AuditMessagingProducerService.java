@@ -32,10 +32,10 @@ import javax.validation.constraints.NotNull;
 public class AuditMessagingProducerService {
 
     @Inject
-    JMSContext ctx;
+    private JMSContext ctx;
 
     @Resource(mappedName = "java:/jms/topic/audit")
-    Topic topic;
+    private Topic topic;
 
     public void send(@NotNull @Valid Audit audit) {
         ctx.createProducer()

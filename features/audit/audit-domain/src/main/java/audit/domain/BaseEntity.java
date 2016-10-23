@@ -21,7 +21,11 @@ package audit.domain;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.enterprise.inject.Vetoed;
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.GenerationType.IDENTITY;

@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+import static java.util.ResourceBundle.getBundle;
+
 public final class PropertiesLoader {
     private static final Locale DEFAULT_FALLBACK = Locale.ENGLISH;
 
@@ -32,13 +34,13 @@ public final class PropertiesLoader {
     private final Locale fallback;
 
     public PropertiesLoader(String bundleName) {
-        ResourceBundle loader;
+        ResourceBundle resourceBundle;
         try {
-            loader = unlocalizedResourceLoader(bundleName);
+            resourceBundle = unlocalizedResourceLoader(bundleName);
         } catch (IllegalStateException | IOException e) {
-            loader = resourceLoader(bundleName, DEFAULT_FALLBACK);
+            resourceBundle = resourceLoader(bundleName, DEFAULT_FALLBACK);
         }
-        this.loader = loader;
+        loader = resourceBundle;
         fallback = DEFAULT_FALLBACK;
     }
 
@@ -47,13 +49,13 @@ public final class PropertiesLoader {
     }
 
     public PropertiesLoader(String bundleName, Class<?> bundleClass, Locale expectedLocale) {
-        ResourceBundle loader;
+        ResourceBundle resourceBundle;
         try {
-            loader = unlocalizedResourceLoader(bundleName, bundleClass, expectedLocale);
+            resourceBundle = unlocalizedResourceLoader(bundleName, bundleClass, expectedLocale);
         } catch (IllegalStateException | IOException e) {
-            loader = resourceLoader(bundleName, DEFAULT_FALLBACK);
+            resourceBundle = resourceLoader(bundleName, DEFAULT_FALLBACK);
         }
-        this.loader = loader;
+        loader = resourceBundle;
         fallback = DEFAULT_FALLBACK;
     }
 
@@ -63,7 +65,7 @@ public final class PropertiesLoader {
 
     public PropertiesLoader(String bundleName, Locale expectedLocale, Locale fallback) {
         this.fallback = fallback;
-        this.loader = resourceLoader(bundleName, expectedLocale);
+        loader = resourceLoader(bundleName, expectedLocale);
     }
 
     public String load(String key) {
@@ -115,7 +117,7 @@ public final class PropertiesLoader {
     }
 
     private ResourceBundle resourceLoader(String bundleName, Locale expectedLocale) {
-        return ResourceBundle.getBundle(bundleName, expectedLocale, new PropertiesLoaderControl());
+        return getBundle(bundleName, expectedLocale, new PropertiesLoaderControl());
     }
 
 }

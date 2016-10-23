@@ -44,13 +44,7 @@ import com.querydsl.sql.TeradataTemplates;
 import com.querydsl.sql.dml.SQLInsertClause;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.PersistenceException;
-import javax.persistence.PersistenceUnitUtil;
-import javax.persistence.PessimisticLockException;
-import javax.persistence.TransactionRequiredException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -93,10 +87,14 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      *
      * @transient
      */
-    Type optionalSecondGenericParameter;
+    private Type optionalSecondGenericParameter;
 
     protected BaseDaoImpl(Class<E> entityType) {
         this.entityType = entityType;
+    }
+
+    final Type getOptionalSecondGenericParameter() {
+        return optionalSecondGenericParameter;
     }
 
     @SuppressWarnings("unchecked")
@@ -114,72 +112,72 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
         optionalSecondGenericParameter = secondGenericParameter ? genericTypes[1] : null;
     }
 
-    protected abstract
     @NotNull
+    protected abstract
     EntityManager em();
 
     Query<E> createQuery() {
         return new Query<>(newQuery(), newQueryEntity(), alias(getEntityType()));
     }
 
-    protected
     @NotNull
+    protected
     Class<E> getEntityType() {
         return entityType;
     }
 
-    protected
     @NotNull
+    protected
     PathBuilder<E> newQueryEntity() {
         return newQueryEntity(decapitalize(getEntityType().getSimpleName()));
     }
 
-    protected
     @NotNull
+    protected
     PathBuilder<E> newQueryEntity(@NotNull @Size(min = 1) String alias) {
         return new PathBuilder<E>(getEntityType(), alias);
     }
 
-    protected
     @NotNull
+    protected
     JPAQuery<E> newQuery() {
         return new JPAQuery<>(em());
     }
 
-    protected
     @NotNull
+    protected
     JPAQuery newSubQuery() {
         return new JPAQuery();
     }
 
-    protected
     @NotNull
+    protected
     JPADeleteClause newDeleteClause(@NotNull EntityPath<?> q) {
         return new JPADeleteClause(em(), q);
     }
 
-    protected
     @NotNull
+    protected
     JPAUpdateClause newUpdateClause(@NotNull EntityPath<?> q) {
         return new JPAUpdateClause(em(), q);
     }
 
-    protected
     @NotNull
+    protected
     SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull SQLTemplates templates,
                                        @NotNull RelationalPath<?> q) throws SQLException {
         return new SQLInsertClause(connection, templates, q);
     }
 
-    protected
     @NotNull
+    protected
     SQLInsertClause newSQLInsertClause(@NotNull Connection connection, @NotNull RelationalPath<?> q)
             throws SQLException {
         return new SQLInsertClause(connection, findTemplates(connection), q);
     }
 
-    protected
     @NotNull
+    protected
     SQLInsertClause newSQLInsertClause(@NotNull RelationalPath<?> q) throws SQLException {
         EntityManager em = em();
         // JPQLTemplates templates = JPAProvider.getTemplates(em);
@@ -187,14 +185,14 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
         return new SQLInsertClause(connection, findTemplates(connection), q);
     }
 
-    protected
     @NotNull
+    protected
     SQLQuery newSQLQuery(@NotNull Connection connection, @NotNull SQLTemplates templates) {
         return new SQLQuery(connection, templates);
     }
 
-    protected
     @NotNull
+    protected
     SQLQuery newSQLQuery(@NotNull SQLTemplates templates) {
         return new SQLQuery(templates);
     }
@@ -210,7 +208,7 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     /**
-     * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
+     * @see javax.persistence.PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
      */
     @Override
     public boolean isLoaded(@NotNull E entityObject) {
@@ -233,12 +231,12 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * {@link java.util.concurrent.TimeUnit}.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object)}
+     * @throws javax.persistence.TransactionRequiredException see {@link EntityManager#refresh(Object)}
      * @see {@link EntityManager#refresh(Object)}
      */
     @Override
@@ -255,17 +253,17 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * {@link java.util.concurrent.TimeUnit}.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
      * @see {@link EntityManager#refresh(Object, LockModeType)}
      */
@@ -281,17 +279,17 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * Use the timeout if the default one elapsed too fast.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType, Map)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType, Map)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
      * @see {@link EntityManager#refresh(Object, LockModeType, Map)}
      */
@@ -303,7 +301,7 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     /**
-     * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attribute was loaded
+     * @see javax.persistence.PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attribute was loaded
      */
     @Override
     public boolean isLoaded(@NotNull E entityObject, @NotNull String attributeName) {
@@ -320,14 +318,16 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public @Min(0) long count() {
+    @Min(0)
+    public long count() {
         return newQuery()
                 .from(newQueryEntity())
                 .fetchCount();
     }
 
     @Override
-    public @Min(0) long count(@NotNull Where<E> predicate) {
+    @Min(0)
+    public long count(@NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
         JPAQuery<E> q = newQuery().from(entity);
         predicate.where(q, entity, alias(getEntityType(), entity));
@@ -335,7 +335,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public @Min(0) long count(@NotNull Function<E, Predicate> predicate) {
+    @Min(0)
+    public long count(@NotNull Function<E, Predicate> predicate) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
                 .from(entity)
@@ -370,8 +371,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * @return newly merged entity, attached to the persistence context
      */
     @Override
-    public
     @NotNull
+    public
     E merge(@NotNull E mergeFrom) {
         return em().merge(mergeFrom);
     }
@@ -381,8 +382,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * By proxying this method you can compare old entity with newly returned object in the interceptor.
      */
     @Override
-    public
     @NotNull
+    public
     E merge(@NotNull Supplier<E> mergeFrom) {
         return em().merge(mergeFrom.get());
     }
@@ -391,8 +392,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      * Retrieves all objects that were previously persisted to the database.
      */
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll() {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
@@ -401,8 +402,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
@@ -413,8 +414,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Collection<Predicate> predicates) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
@@ -426,8 +427,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@NotNull Collection<Predicate> predicates) {
         PathBuilder<E> entity = newQueryEntity();
         return newQuery()
@@ -437,8 +438,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@Min(0) int pagingOffset, @Min(1) int pageSize, @NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
@@ -451,8 +452,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@NotNull Where<E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
@@ -463,8 +464,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> loadAll(@NotNull BiConsumer<JPAQuery, E> predicate) {
         PathBuilder<E> entity = newQueryEntity();
 
@@ -527,7 +528,7 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
      *
      * @throws IllegalArgumentException     if the instance is not an
      *                                      entity or is a detached entity
-     * @throws TransactionRequiredException if invoked on a
+     * @throws javax.persistence.TransactionRequiredException if invoked on a
      *                                      container-managed entity manager of type
      *                                      <code>PersistenceContextType.TRANSACTION</code> and there is
      *                                      no transaction
@@ -543,52 +544,52 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @Min(0)
+    public
     int updateByNamedQuery(String sqlStatement) {
         return updateByNamedQuery(sqlStatement, new Object[0]);
     }
 
     @Override
-    public
     @Min(0)
+    public
     int updateByNamedQuery(@NotNull String sqlStatement, Object... attributes) {
         return buildNamedQuery(Integer.class, sqlStatement, attributes)
                 .executeUpdate();
     }
 
     @Override
-    public
     @Min(0)
+    public
     int updateByNamedQuery(@Size String sqlStatement, @Size String attributeName, Object attributeValue) {
         return updateByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue));
     }
 
     @Override
-    public
     @Min(0)
+    public
     int updateByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
         return buildNamedQuery(Integer.class, sqlStatement, attributes)
                 .executeUpdate();
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> selectByNamedQuery(@NotNull String sqlStatement) {
         return selectByNamedQuery(sqlStatement, new Object[0]);
     }
 
     @Override
-    public
     @NotNull
+    public
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass) {
         return selectByNamedQuery(sqlStatement, resultClass, new Object[0]);
     }
 
     @Override
-    public
     @NotNull
+    public
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass,
                                    @Min(0) int paginationOffset, @Min(1) int pageSize) {
         return buildNamedQuery(resultClass, sqlStatement, new Object[0])
@@ -598,45 +599,45 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> selectByNamedQuery(@NotNull String sqlStatement, Object... attributes) {
         return selectByNamedQuery(sqlStatement, getEntityType(), attributes);
     }
 
     @Override
-    public
     @NotNull
+    public
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Class<T> resultClass, Object... attributes) {
         return buildNamedQuery(resultClass, sqlStatement, attributes)
                 .getResultList();
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue) {
         return selectByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue));
     }
 
     @Override
-    public
     @NotNull
+    public
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName,
                                    Object attributeValue, @NotNull Class<T> resultClass) {
         return selectByNamedQuery(sqlStatement, singletonMap(attributeName, attributeValue), resultClass);
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes) {
         return selectByNamedQuery(sqlStatement, attributes, getEntityType());
     }
 
     @Override
-    public
     @NotNull
+    public
     <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes,
                                    @NotNull Class<T> resultClass) {
         return buildNamedQuery(resultClass, sqlStatement, attributes)
@@ -644,8 +645,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> findByAttributeAsPattern(@NotNull String attributeName, @NotNull String pattern) {
         CriteriaBuilder b = em().getCriteriaBuilder();
         CriteriaQuery<E> c = b.createQuery(getEntityType());
@@ -656,8 +657,8 @@ abstract class BaseDaoImpl<E> implements BaseDao<E> {
     }
 
     @Override
-    public
     @NotNull
+    public
     List<E> findByAttributeAsString(@NotNull String attributeName, @NotNull String attributeValue,
                                     boolean ignoreCase) {
         CriteriaBuilder b = em().getCriteriaBuilder();

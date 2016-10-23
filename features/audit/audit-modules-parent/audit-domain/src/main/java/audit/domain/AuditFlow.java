@@ -19,9 +19,19 @@
 package audit.domain;
 
 import javax.enterprise.inject.Vetoed;
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.Size;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamField;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,12 +105,14 @@ public class AuditFlow extends BaseEntity implements Serializable {
 
         int headersCount = stream.readInt();
         headers = new ArrayList<>(headersCount);
-        while (headersCount-- > 0)
+        while (headersCount-- > 0) {
             headers.add((AuditHeader) stream.readObject());
+        }
 
         int changesCount = stream.readInt();
         changes = new ArrayList<>(changesCount);
-        while (changesCount-- > 0)
+        while (changesCount-- > 0) {
             changes.add((AuditChange) stream.readObject());
+        }
     }
 }

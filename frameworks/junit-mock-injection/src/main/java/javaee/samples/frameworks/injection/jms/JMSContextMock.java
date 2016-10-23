@@ -20,9 +20,36 @@ package javaee.samples.frameworks.injection.jms;
 
 import org.apache.activemq.ActiveMQSession;
 
-import javax.jms.*;
+import javax.jms.BytesMessage;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.ConnectionMetaData;
+import javax.jms.Destination;
+import javax.jms.ExceptionListener;
+import javax.jms.IllegalStateRuntimeException;
+import javax.jms.InvalidDestinationException;
+import javax.jms.InvalidDestinationRuntimeException;
+import javax.jms.InvalidSelectorException;
+import javax.jms.InvalidSelectorRuntimeException;
+import javax.jms.JMSConsumer;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.JMSProducer;
+import javax.jms.JMSRuntimeException;
+import javax.jms.MapMessage;
+import javax.jms.Message;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.QueueBrowser;
+import javax.jms.Session;
+import javax.jms.StreamMessage;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
+import javax.jms.TransactionRolledBackException;
+import javax.jms.TransactionRolledBackRuntimeException;
 import java.io.Serializable;
-import java.lang.IllegalStateException;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 
@@ -30,7 +57,7 @@ public final class JMSContextMock implements JMSContext {
     private final Connection connection;
     private final Session session;
 
-    private static class SessionThreadLocal extends ThreadLocal<Session> {
+    private static final class SessionThreadLocal extends ThreadLocal<Session> {
         private final boolean transacted;
         private final int acknowledgeMode;
         private final Connection connection;
@@ -82,8 +109,8 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public JMSContext createContext(int sessionMode) {
-        throw new JMSRuntimeException("The method JMSContext.createContext() " +
-                "is being called in a Java EE web or EJB application.");
+        throw new JMSRuntimeException("The method JMSContext.createContext() is being called in a Java EE web or EJB "
+                + "application.");
     }
 
     @Override
@@ -447,12 +474,14 @@ public final class JMSContextMock implements JMSContext {
 
     @Override
     public void acknowledge() {
-        ActiveMQSession session = (ActiveMQSession) this.session;
-        if (session.isClosed())
-            throw new IllegalStateRuntimeException("JMSContext is closed");//todo throw always if managed
-        //todo create variable isManaged
+        final ActiveMQSession amqSession = (ActiveMQSession) session;
+        if (amqSession.isClosed()) {
+            throw new IllegalStateRuntimeException("JMSContext is closed");
+            // todo throw always if managed
+        }
+        // todo create variable isManaged
         try {
-            session.acknowledge();
+            amqSession.acknowledge();
         } catch (JMSException e) {
             throw new JMSRuntimeException(e.getLocalizedMessage(), e.getErrorCode(), e);
         }

@@ -26,8 +26,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 
-import static audit.query.search.persistence.api.Matchers.*;
-import static audit.query.search.persistence.api.Sorters.*;
+import static audit.query.search.persistence.api.Matchers.description;
+import static audit.query.search.persistence.api.Matchers.error;
+import static audit.query.search.persistence.api.Matchers.initiator;
+import static audit.query.search.persistence.api.Matchers.module;
+import static audit.query.search.persistence.api.Matchers.storedAt;
+import static audit.query.search.persistence.api.Sorters.description;
+import static audit.query.search.persistence.api.Sorters.error;
+import static audit.query.search.persistence.api.Sorters.initiator;
+import static audit.query.search.persistence.api.Sorters.module;
+import static audit.query.search.persistence.api.Sorters.storedAt;
 
 public final class Predicates {
     private final Collection<Matcher<?>> matchers = new ArrayList<>();

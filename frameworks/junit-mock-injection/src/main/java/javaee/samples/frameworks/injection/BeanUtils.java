@@ -29,6 +29,7 @@ final class BeanUtils {
         throw new IllegalStateException("not instantiable constructor");
     }
 
+    @SuppressWarnings("checkstyle:innerassignment")
     static <T extends Annotation> T getAnnotation(Class<?> type, Class<T> annotationType) {
         Class<?> discoveredType = type;
         do {
@@ -79,7 +80,8 @@ final class BeanUtils {
         return getAnnotationDeep(type, annotation) != null;
     }
 
-    private static <T extends Annotation> T hasAnnotationInStereotypes(Annotation[] declaredAnnotations, Class<T> expectedAnnotationType) {
+    private static <T extends Annotation> T hasAnnotationInStereotypes(Annotation[] declaredAnnotations,
+                                                                       Class<T> expectedAnnotationType) {
         for (Annotation declaredAnnotation : declaredAnnotations) {
             Class<? extends Annotation> declaredAnnotationType = declaredAnnotation.annotationType();
             if (declaredAnnotationType == expectedAnnotationType) {

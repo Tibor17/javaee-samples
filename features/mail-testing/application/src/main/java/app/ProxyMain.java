@@ -24,8 +24,10 @@ import java.net.*;
 import static java.net.Proxy.Type.HTTP;
 
 public final class ProxyMain {
+    private static final int PROXY_PORT = 3128;
+
     public void main(String... args) throws Exception {
-        SocketAddress proxy = new InetSocketAddress(InetAddress.getByName("isaserver.vsb"), 3128);
+        SocketAddress proxy = new InetSocketAddress(InetAddress.getByName("proxyhostserver"), PROXY_PORT);
         URLConnection connection = new URL("http://www.google.com").openConnection(new Proxy(HTTP, proxy));
         InputStream is = connection.getInputStream();
         System.out.println(is.available());

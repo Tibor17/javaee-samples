@@ -22,52 +22,59 @@ import com.querydsl.core.types.dsl.DslExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
 public abstract class WheresAdapter implements Wheres {
-  private final List<Class<?>> aliasTypes = new ArrayList<>();
-  private final Map<String, Object> embeddedCriteria;
+    private final List<Class<?>> aliasTypes = new ArrayList<>();
+    private final Map<String, Object> embeddedCriteria;
 
-  public WheresAdapter(Map<String, Object> embeddedCriteria) {
-    this.embeddedCriteria = embeddedCriteria;
-  }
-
-  public abstract JPAQuery where(JPAQuery query, Map<Alias, PathBuilder<?>> builders, Map<Entry, Object> params);
-  protected abstract boolean isKeyFilterable(String key);
-  protected abstract String filterableAlias(String key);
-  protected abstract String filterableProperty(String key);
-
-  @Override
-  public void where(JPAQuery query, Map<Alias, PathBuilder<?>> builders) {
-    Map<Entry, Object> customCriteria = new HashMap<>();
-    for (Iterator<Map.Entry<String, Object>> all = embeddedCriteria.entrySet().iterator(); all.hasNext(); ) {
-      Map.Entry<String, Object> embedded = all.next();
-      if (isKeyFilterable(embedded.getKey())) {
-        Alias alias = new Alias(filterableAlias(embedded.getKey()));
-        if (builders.containsKey(alias)) {
-          customCriteria.put(new Entry(alias, filterableProperty(embedded.getKey())), embedded.getValue());
-          all.remove();
-        }
-      }
+    public WheresAdapter(Map<String, Object> embeddedCriteria) {
+        this.embeddedCriteria = embeddedCriteria;
     }
-    aliasTypes.clear();
 
-    aliasTypes.addAll(builders.values()
-            .stream()
-            .map(DslExpression::getType)
-            .collect(toList()));
+    public abstract JPAQuery where(JPAQuery query, Map<Alias, PathBuilder<?>> builders, Map<Entry, Object> params);
 
-    where(query, builders, customCriteria);
-  }
+    protected abstract boolean isKeyFilterable(String key);
 
-  public List<Class<?>> getAliasTypes() {
-    return aliasTypes;
-  }
+    protected abstract String filterableAlias(String key);
 
-  public Class<?>[] aliasTypes() {
-    return aliasTypes.toArray(new Class<?>[aliasTypes.size()]);
-  }
+    protected abstract String filterableProperty(String key);
+
+    @Override
+    public void where(JPAQuery query, Map<Alias, PathBuilder<?>> builders) {
+        Map<Entry, Object> customCriteria = new HashMap<>();
+        for (@SuppressWarnings("checkstyle:emptyforiteratorpad")
+             Iterator<Map.Entry<String, Object>> all = embeddedCriteria.entrySet().iterator(); all.hasNext(); ) {
+            Map.Entry<String, Object> embedded = all.next();
+            if (isKeyFilterable(embedded.getKey())) {
+                Alias alias = new Alias(filterableAlias(embedded.getKey()));
+                if (builders.containsKey(alias)) {
+                    customCriteria.put(new Entry(alias, filterableProperty(embedded.getKey())), embedded.getValue());
+                    all.remove();
+                }
+            }
+        }
+        aliasTypes.clear();
+
+        aliasTypes.addAll(builders.values()
+                .stream()
+                .map(DslExpression::getType)
+                .collect(toList()));
+
+        where(query, builders, customCriteria);
+    }
+
+    public List<Class<?>> getAliasTypes() {
+        return aliasTypes;
+    }
+
+    public Class<?>[] aliasTypes() {
+        return aliasTypes.toArray(new Class<?>[aliasTypes.size()]);
+    }
 }

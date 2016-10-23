@@ -28,7 +28,7 @@ import javax.inject.Inject;
 @Typed(AuditListener.class)
 public class AuditStorageListener implements AuditListener {
     @Inject
-    AuditService service;
+    private AuditService service;
 
     @Override
     public void onMessage(Audit audit) {

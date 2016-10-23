@@ -59,11 +59,18 @@ public final class Jms20MessageBuilder<T extends Message> {
     }
 
     private static Class<? extends Message> resolveToMessageClass(Message message) {
-        if (message instanceof BytesMessage) return BytesMessage.class;
-        else if (message instanceof MapMessage) return MapMessage.class;
-        else if (message instanceof ObjectMessage) return ObjectMessage.class;
-        else if (message instanceof StreamMessage) return StreamMessage.class;
-        else if (message instanceof TextMessage) return TextMessage.class;
-        else return Message.class;
+        if (message instanceof BytesMessage) {
+            return BytesMessage.class;
+        } else if (message instanceof MapMessage) {
+            return MapMessage.class;
+        } else if (message instanceof ObjectMessage) {
+            return ObjectMessage.class;
+        } else if (message instanceof StreamMessage) {
+            return StreamMessage.class;
+        } else if (message instanceof TextMessage) {
+            return TextMessage.class;
+        } else {
+            return Message.class;
+        }
     }
 }

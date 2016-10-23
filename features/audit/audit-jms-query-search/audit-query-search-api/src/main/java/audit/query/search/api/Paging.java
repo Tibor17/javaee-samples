@@ -27,7 +27,8 @@ public interface Paging {
 
     Paging setStartRowNum(@Min(0) int startRowNum);
 
-    default @Min(1) int getPageSize() {
+    @Min(1)
+    default int getPageSize() {
         return 0;
     }
 

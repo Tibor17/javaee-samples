@@ -34,10 +34,10 @@ import java.util.logging.Logger;
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto_acknowledge")}) // use '_'
 public class QueueTestMDB implements MessageListener {
 
-    private final static Logger LOG = Logger.getLogger(QueueTestMDB.class.getName());
+    private static final Logger LOG = Logger.getLogger(QueueTestMDB.class.getName());
 
     @Inject
-    QueueTestStats stats;
+    private QueueTestStats stats;
 
     @Override
     public void onMessage(Message message) {

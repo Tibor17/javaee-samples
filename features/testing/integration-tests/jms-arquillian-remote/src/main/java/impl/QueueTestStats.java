@@ -33,6 +33,8 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 public class QueueTestStats implements Serializable {
+    private static final long TEST_DELAY = 10L;
+
     private volatile String text;
 
     public String getText() {
@@ -47,9 +49,10 @@ public class QueueTestStats implements Serializable {
     public String awaitText() {
         for (;;) {
             try {
-                if (text != null)
+                if (text != null) {
                     return text;
-                MILLISECONDS.sleep(10);
+                }
+                MILLISECONDS.sleep(TEST_DELAY);
             } catch (InterruptedException e) {
                 return null;
             }

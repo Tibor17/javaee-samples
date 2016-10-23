@@ -21,24 +21,34 @@ package jms.wrappers;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 
-import javax.jms.*;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.Queue;
+import javax.jms.Topic;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
 public class JMSConsumer extends BaseJMS {
-    public static JMSConsumer createConsumerOnTopic(String uri, String clientId, Optional<MessageListener> onMessage) throws JMSException {
+    public static JMSConsumer createConsumerOnTopic(String uri, String clientId, Optional<MessageListener> onMessage)
+            throws JMSException {
         return new JMSConsumer(uri, new ActiveMQTopic(clientId), onMessage);
     }
-    public static JMSConsumer createConsumerOnTopic(ConnectionFactory connectionFactory, String clientId, Optional<MessageListener> onMessage) throws JMSException {
+    public static JMSConsumer createConsumerOnTopic(ConnectionFactory connectionFactory, String clientId,
+                                                    Optional<MessageListener> onMessage) throws JMSException {
         return new JMSConsumer(connectionFactory, new ActiveMQTopic(clientId), onMessage);
     }
 
-    public static JMSConsumer createConsumerOnQueue(String uri, String clientId, Optional<MessageListener> onMessage) throws JMSException {
+    public static JMSConsumer createConsumerOnQueue(String uri, String clientId, Optional<MessageListener> onMessage)
+            throws JMSException {
         return new JMSConsumer(uri, new ActiveMQQueue(clientId), onMessage);
     }
 
-    public static JMSConsumer createConsumerOnQueue(ConnectionFactory connectionFactory, String clientId, Optional<MessageListener> onMessage) throws JMSException {
+    public static JMSConsumer createConsumerOnQueue(ConnectionFactory connectionFactory, String clientId,
+                                                    Optional<MessageListener> onMessage) throws JMSException {
         return new JMSConsumer(connectionFactory, new ActiveMQQueue(clientId), onMessage);
     }
 
@@ -46,12 +56,15 @@ public class JMSConsumer extends BaseJMS {
     private final Destination destination;
     private final MessageConsumer consumer;
 
-    public JMSConsumer(ConnectionFactory connectionFactory, Topic topic, Optional<MessageListener> onMessage) throws JMSException {
+    public JMSConsumer(ConnectionFactory connectionFactory, Topic topic, Optional<MessageListener> onMessage)
+            throws JMSException {
         super(connectionFactory, ofNullable(topic.getTopicName()));
         destination = topic;
         connectionId = topic.getTopicName();
         consumer = getSession().createDurableSubscriber(topic, connectionId);
-        if (onMessage.isPresent()) consumer.setMessageListener(onMessage.get());
+        if (onMessage.isPresent()) {
+            consumer.setMessageListener(onMessage.get());
+        }
         getConnection().start();
     }
 
@@ -60,16 +73,21 @@ public class JMSConsumer extends BaseJMS {
         destination = topic;
         connectionId = topic.getTopicName();
         consumer = getSession().createDurableSubscriber(topic, connectionId);
-        if (onMessage.isPresent()) consumer.setMessageListener(onMessage.get());
+        if (onMessage.isPresent()) {
+            consumer.setMessageListener(onMessage.get());
+        }
         getConnection().start();
     }
 
-    public JMSConsumer(ConnectionFactory connectionFactory, Queue queue, Optional<MessageListener> onMessage) throws JMSException {
+    public JMSConsumer(ConnectionFactory connectionFactory, Queue queue, Optional<MessageListener> onMessage)
+            throws JMSException {
         super(connectionFactory, ofNullable(queue.getQueueName()));
         destination = queue;
         connectionId = queue.getQueueName();
         consumer = getSession().createConsumer(queue);
-        if (onMessage.isPresent()) consumer.setMessageListener(onMessage.get());
+        if (onMessage.isPresent()) {
+            consumer.setMessageListener(onMessage.get());
+        }
         getConnection().start();
     }
 
@@ -78,7 +96,9 @@ public class JMSConsumer extends BaseJMS {
         destination = queue;
         connectionId = queue.getQueueName();
         consumer = getSession().createConsumer(queue);
-        if (onMessage.isPresent()) consumer.setMessageListener(onMessage.get());
+        if (onMessage.isPresent()) {
+            consumer.setMessageListener(onMessage.get());
+        }
         getConnection().start();
     }
 

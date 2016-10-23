@@ -39,8 +39,8 @@ import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
 import static javax.jms.Session.AUTO_ACKNOWLEDGE;
 import static javax.jms.Session.DUPS_OK_ACKNOWLEDGE;
 
-public class MessageDrivenContext implements ContextInjector {
-    public static class MessageDrivenBeanContext extends ThreadLocal<Map<Object, JMSContextMock>> {
+public final class MessageDrivenContext implements ContextInjector {
+    public static final class MessageDrivenBeanContext extends ThreadLocal<Map<Object, JMSContextMock>> {
         @Override
         protected Map<Object, JMSContextMock> initialValue() {
             return new WeakHashMap<>();
@@ -152,8 +152,9 @@ public class MessageDrivenContext implements ContextInjector {
                 .filter(p -> "subscriptionDurability".equals(p.propertyName()))
                 .findFirst();
 
-        if (!property.isPresent())
+        if (!property.isPresent()) {
             return false;
+        }
 
         return property.map(ActivationConfigProperty::propertyValue)
                 .map(v -> "Durable".equals(v) ? TRUE : ("NonDurable".equals(v) ? FALSE : null))
@@ -169,8 +170,12 @@ public class MessageDrivenContext implements ContextInjector {
     }
 
     private static ActiveMQDestination toDestination(String type, String jndi) {
-        if (type.equals(Queue.class.getName())) return new ActiveMQQueue(jndi);
-        else if (type.equals(Topic.class.getName())) return new ActiveMQTopic(jndi);
-        return null;
+        if (type.equals(Queue.class.getName())) {
+            return new ActiveMQQueue(jndi);
+        } else if (type.equals(Topic.class.getName())) {
+            return new ActiveMQTopic(jndi);
+        } else {
+            return null;
+        }
     }
 }

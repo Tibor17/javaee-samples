@@ -31,7 +31,7 @@ import static java.lang.System.err;
 @ApplicationScoped
 public class Job implements Runnable {
     @PersistenceContext(unitName = "pu")
-    EntityManager em;
+    private EntityManager em;
 
     @Transactional
     public void run() {

@@ -31,7 +31,8 @@ public class JMSProducer<T extends Destination> extends BaseJMS {
         return new JMSProducer<>(uri, new ActiveMQTopic(connectionId));
     }
 
-    public static JMSProducer<Topic> createProducerOnTopic(ConnectionFactory connectionFactory, String connectionId) throws JMSException {
+    public static JMSProducer<Topic> createProducerOnTopic(ConnectionFactory connectionFactory, String connectionId)
+            throws JMSException {
         return new JMSProducer<>(connectionFactory, new ActiveMQTopic(connectionId));
     }
 
@@ -39,7 +40,8 @@ public class JMSProducer<T extends Destination> extends BaseJMS {
         return new JMSProducer<>(uri, topic);
     }
 
-    public static <T extends Topic> JMSProducer<T> createProducerOnTopic(ConnectionFactory connectionFactory, T topic) throws JMSException {
+    public static <T extends Topic> JMSProducer<T> createProducerOnTopic(ConnectionFactory connectionFactory, T topic)
+            throws JMSException {
         return new JMSProducer<>(connectionFactory, topic);
     }
 
@@ -47,7 +49,8 @@ public class JMSProducer<T extends Destination> extends BaseJMS {
         return new JMSProducer<>(uri, queue);
     }
 
-    public static <T extends Queue> JMSProducer<T> createProducerOnQueue(ConnectionFactory connectionFactory, T queue) throws JMSException {
+    public static <T extends Queue> JMSProducer<T> createProducerOnQueue(ConnectionFactory connectionFactory, T queue)
+            throws JMSException {
         return new JMSProducer<>(connectionFactory, queue);
     }
 
@@ -55,7 +58,8 @@ public class JMSProducer<T extends Destination> extends BaseJMS {
         return new JMSProducer<>(uri, new ActiveMQQueue(connectionId));
     }
 
-    public static JMSProducer<Queue> createProducerOnQueue(ConnectionFactory connectionFactory, String connectionId) throws JMSException {
+    public static JMSProducer<Queue> createProducerOnQueue(ConnectionFactory connectionFactory, String connectionId)
+            throws JMSException {
         return new JMSProducer<>(connectionFactory, new ActiveMQQueue(connectionId));
     }
 

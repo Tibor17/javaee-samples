@@ -26,7 +26,11 @@ import org.slf4j.Logger;
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.jms.*;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.jms.TemporaryQueue;
+import javax.jms.Topic;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
@@ -38,10 +42,10 @@ public class AuditQueryRequestAuditReplyService {
     private static final Logger LOG = getLogger(AuditQueryRequestAuditReplyService.class);
 
     @Inject
-    JMSContext ctx;
+    private JMSContext ctx;
 
     @Resource(mappedName = "java:jms/topic/auditquery/request")
-    Topic requestTopic;
+    private Topic requestTopic;
 
     public void queryAuditAsync(AuditQuery auditQuery, BiConsumer<Iterable<Audit>, JMSException> asyncConsumer)
             throws JMSException {

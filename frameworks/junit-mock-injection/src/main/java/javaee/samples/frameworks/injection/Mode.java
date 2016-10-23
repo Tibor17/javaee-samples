@@ -19,7 +19,7 @@
 package javaee.samples.frameworks.injection;
 
 /**
- * H2 Mode setting
+ * H2 Mode setting.
  */
 public enum Mode {
     DEFAULT_MODE(null),

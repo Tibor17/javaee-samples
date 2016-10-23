@@ -37,8 +37,11 @@ import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static javaee.samples.frameworks.injection.BeanUtils.*;
-import static javaee.samples.frameworks.injection.TransactionManager.*;
+import static javaee.samples.frameworks.injection.BeanUtils.getAnnotation;
+import static javaee.samples.frameworks.injection.BeanUtils.hasAnnotationDeep;
+import static javaee.samples.frameworks.injection.TransactionManager.canStartOrCloseTransaction;
+import static javaee.samples.frameworks.injection.TransactionManager.decreaseTransactionBarriers;
+import static javaee.samples.frameworks.injection.TransactionManager.increaseTransactionBarriers;
 import static java.lang.reflect.Modifier.isFinal;
 import static javax.transaction.Transactional.TxType;
 
@@ -58,21 +61,21 @@ final class BeanManager {
         return useManagedTransactions;
     }
 
-    void useManagedTransactions(boolean useManagedTransactions) {
-        this.useManagedTransactions = useManagedTransactions;
+    void useManagedTransactions(boolean use) {
+        this.useManagedTransactions = use;
     }
 
-    void scanEntities(boolean scanEntities) {
-        this.scanEntities = scanEntities;
+    void scanEntities(boolean scan) {
+        this.scanEntities = scan;
     }
 
     boolean scanEntities() {
         return scanEntities;
     }
 
-    void setEntityManagerFactory(EntityManagerFactory entityManagerFactory, Map<String, String> emProps) {
-        this.entityManagerFactory = entityManagerFactory;
-        this.emProps = emProps;
+    void setEntityManagerFactory(EntityManagerFactory emf, Map<String, String> props) {
+        this.entityManagerFactory = emf;
+        this.emProps = props;
     }
 
     @SuppressWarnings("unchecked")
@@ -170,7 +173,8 @@ final class BeanManager {
                             EntityTransaction transaction = null;
                             SynchronizedEntityManager em = null;
                             if (canStartOrCloseTransaction()) {
-                                Bean<SynchronizedEntityManager> emBean = getReference(EM_BEAN_TYPE, SynchronizedEntityManager.class);
+                                final Bean<SynchronizedEntityManager> emBean =
+                                        getReference(EM_BEAN_TYPE, SynchronizedEntityManager.class);
                                 if (emBean == null) {
                                     throw new InvalidTransactionException("no EntityManager found!");
                                 }
@@ -265,7 +269,6 @@ final class BeanManager {
         throw new TransactionalException("Transaction not applicable to "
                 + "@Transactional(value = Transactional.TxType." + txType + ") "
                 + "in bean method call "
-                + m.toGenericString()
-                , cause);
+                + m.toGenericString(), cause);
     }
 }

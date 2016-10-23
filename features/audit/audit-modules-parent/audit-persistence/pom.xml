@@ -28,7 +28,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-persistence</artifactId>
+    <artifactId>audit-persistence-ext</artifactId>
 
     <dependencies>
         <dependency>

@@ -18,7 +18,10 @@
  */
 package audit.domain;
 
-import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.TermVector;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.Access;
@@ -79,11 +82,14 @@ public class AuditHeader extends BaseEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         AuditHeader that = (AuditHeader) o;
-        return Objects.equals(getKey(), that.getKey()) &&
-                Objects.equals(getValue(), that.getValue());
+        return Objects.equals(getKey(), that.getKey()) && Objects.equals(getValue(), that.getValue());
     }
 
     @Override

@@ -18,15 +18,19 @@ package jpa;
  * under the License.
  */
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Access(FIELD)
 public class MyEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {

@@ -19,7 +19,7 @@
 package javaee.samples.frameworks.injection;
 
 /**
- * H2 database setting
+ * H2 database setting.
  */
 public enum DBLock {
     FILE, SOCKET, NO

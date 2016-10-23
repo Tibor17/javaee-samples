@@ -37,7 +37,9 @@ public abstract class BaseJMS {
     public BaseJMS(ConnectionFactory connectionFactory, Optional<String> connectionId) throws JMSException {
         this.connectionFactory = connectionFactory;
         connection = connectionFactory.createConnection();
-        if (connectionId.isPresent()) connection.setClientID(connectionId.get());
+        if (connectionId.isPresent()) {
+            connection.setClientID(connectionId.get());
+        }
         session = connection.createSession(false, AUTO_ACKNOWLEDGE);
 
     }

@@ -18,7 +18,11 @@ package jpa;
  * under the License.
  */
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.GenerationType.IDENTITY;

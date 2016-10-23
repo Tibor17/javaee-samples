@@ -22,8 +22,13 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAQueryBase;
 
 public final class Query<E> {
+    @SuppressWarnings("checkstyle:visibilitymodifier")
     public final JPAQueryBase<E, ?> q;
+
+    @SuppressWarnings("checkstyle:visibilitymodifier")
     public final PathBuilder<E> b;
+
+    @SuppressWarnings("checkstyle:visibilitymodifier")
     public final E e;
 
     Query(JPAQueryBase<E, ?> q, PathBuilder<E> b, E e) {

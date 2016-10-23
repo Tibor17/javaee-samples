@@ -32,24 +32,27 @@ import javax.transaction.Transactional;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.System.err;
 
+//CHECKSTYLE:OFF: LineLength
 /**
- * https://docs.oracle.com/cd/E19857-01/820-1639/bhano/index.html
- * https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/ENC_Usage_Conventions-Resource_Manager_Connection_Factory_References_with_jboss.xml_and_jboss_web.xml.html
+ * https://docs.oracle.com/cd/E19857-01/820-1639/bhano/index.html .
+ * https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/
+ * ENC_Usage_Conventions-Resource_Manager_Connection_Factory_References_with_jboss.xml_and_jboss_web.xml.html
  * https://docs.jboss.org/jbossweb/3.0.x/jndi-resources-howto.html
  */
+//CHECKSTYLE:ON: LineLength
 @ApplicationScoped
 public class Job implements Runnable {
     @PersistenceContext(unitName = "pu")
-    EntityManager em;
+    private EntityManager em;
 
     @Resource(lookup = "java:comp/env")
-    Context ctx;
+    private Context ctx;
 
     @Resource(lookup = "java:comp/env/mail/Session")
-    Session session;
+    private Session session;
 
     @Resource(lookup = "java:comp/env/mail/Session/Notifier")
-    Session sessionNotifier;
+    private Session sessionNotifier;
 
     @Transactional
     public void run() {

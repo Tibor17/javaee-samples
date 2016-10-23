@@ -22,17 +22,17 @@ import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 
 import javax.annotation.Resource;
-import javax.jms.*;
 import javax.jms.Queue;
-import java.lang.IllegalStateException;
-import java.util.*;
+import javax.jms.Topic;
+import java.util.Collection;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static javaee.samples.frameworks.injection.spi.JMSResourceCtx.CTX;
 
-public class JMSResourcePoint implements InjectionPoint<Resource> {
+public final class JMSResourcePoint implements InjectionPoint<Resource> {
     private static final Collection<String> JNDI_CF = asList("jms/ConnectionFactory", "java:/ConnectionFactory",
             "/ConnectionFactory", "java:comp/DefaultJMSConnectionFactory", "java:jboss/DefaultJMSConnectionFactory",
             "java:/JmsXA");
@@ -46,7 +46,11 @@ public class JMSResourcePoint implements InjectionPoint<Resource> {
     public <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, Resource injectionAnnotation, T bean,
                                          Class<? extends T> beanType) {
         String mapping = injectionAnnotation.mappedName();
-        if (mapping == null) mapping = injectionAnnotation.lookup();
+
+        if (mapping == null) {
+            mapping = injectionAnnotation.lookup();
+        }
+
         if (JNDI_CF.contains(mapping)) {
             CTX.startBrokerIfAbsent();
             return of(CTX.getConnectionFactory());

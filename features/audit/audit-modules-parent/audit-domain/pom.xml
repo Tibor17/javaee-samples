@@ -28,7 +28,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-domain</artifactId>
+    <artifactId>audit-domain-ext</artifactId>
 
     <dependencies>
         <dependency>

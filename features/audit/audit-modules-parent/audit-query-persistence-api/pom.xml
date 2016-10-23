@@ -28,6 +28,6 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-query-persistence-api</artifactId>
+    <artifactId>audit-query-persistence-api-ext</artifactId>
 
 </project>

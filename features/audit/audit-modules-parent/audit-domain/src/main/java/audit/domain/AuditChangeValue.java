@@ -19,7 +19,13 @@
 package audit.domain;
 
 import javax.enterprise.inject.Vetoed;
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.ObjectStreamField;
@@ -27,7 +33,14 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static audit.domain.AuditChangeValueType.*;
+import static audit.domain.AuditChangeValueType.BOOLEAN;
+import static audit.domain.AuditChangeValueType.BYTE;
+import static audit.domain.AuditChangeValueType.BYTE_ARRAY;
+import static audit.domain.AuditChangeValueType.DOUBLE;
+import static audit.domain.AuditChangeValueType.FLOAT;
+import static audit.domain.AuditChangeValueType.INTEGER;
+import static audit.domain.AuditChangeValueType.LONG;
+import static audit.domain.AuditChangeValueType.SHORT;
 import static java.nio.ByteBuffer.allocate;
 import static java.util.Arrays.deepHashCode;
 import static javax.persistence.AccessType.FIELD;
@@ -92,56 +105,64 @@ public class AuditChangeValue extends BaseEntity implements Serializable {
     }
 
     public String getValueAsString() {
-        if (valueType != AuditChangeValueType.STRING)
+        if (valueType != AuditChangeValueType.STRING) {
             throw new IllegalStateException("expected value-type STRING");
+        }
         return value == null ? null : new String(value);
     }
 
     public Boolean getValueAsBoolean() {
-        if (valueType != BOOLEAN || value != null && value.length != 1)
+        if (valueType != BOOLEAN || value != null && value.length != 1) {
             throw new IllegalStateException("expected value-type BOOLEAN");
+        }
         return value == null ? null : value[0] != 0;
     }
 
     public Byte getValueAsByte() {
-        if (valueType != BYTE || value != null && value.length != 1)
+        if (valueType != BYTE || value != null && value.length != 1) {
             throw new IllegalStateException("expected value-type BYTE");
+        }
         return value == null ? null : value[0];
     }
 
     public Short getValueAsShort() {
-        if (valueType != SHORT || value != null && value.length != 2)
+        if (valueType != SHORT || value != null && value.length != 2) {
             throw new IllegalStateException("expected value-type SHORT");
+        }
         return value == null ? null : allocate(2).get(value).getShort();
     }
 
     public Integer getValueAsInteger() {
-        if (valueType != INTEGER || value != null && value.length != 4)
+        if (valueType != INTEGER || value != null && value.length != 4) {
             throw new IllegalStateException("expected value-type INTEGER");
+        }
         return value == null ? null : allocate(4).get(value).getInt();
     }
 
     public Long getValueAsLong() {
-        if (valueType != LONG || value != null && value.length != 8)
+        if (valueType != LONG || value != null && value.length != 8) {
             throw new IllegalStateException("expected value-type LONG");
+        }
         return value == null ? null : allocate(8).get(value).getLong();
     }
 
     public Float getValueAsFloat() {
-        if (valueType != FLOAT || value != null && value.length != 4)
+        if (valueType != FLOAT || value != null && value.length != 4) {
             throw new IllegalStateException("expected value-type FLOAT");
+        }
         return value == null ? null : allocate(4).get(value).getFloat();
     }
 
     public Double getValueAsDouble() {
-        if (valueType != DOUBLE || value != null && value.length != 8)
+        if (valueType != DOUBLE || value != null && value.length != 8) {
             throw new IllegalStateException("expected value-type DOUBLE");
+        }
         return value == null ? null : allocate(8).get(value).getDouble();
     }
 
-    private AuditChangeValue setValue(AuditChangeValueType valueType, byte[] value) {
-        this.valueType = valueType;
-        this.value = value.clone();
+    private AuditChangeValue setValue(AuditChangeValueType valType, byte[] val) {
+        this.valueType = valType;
+        this.value = val.clone();
         return this;
     }
 
@@ -199,8 +220,12 @@ public class AuditChangeValue extends BaseEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         AuditChangeValue that = (AuditChangeValue) o;
         return Objects.equals(getValueType(), that.getValueType())
                 && Objects.equals(getDiscriminator(), that.getDiscriminator())

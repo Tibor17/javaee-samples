@@ -47,8 +47,7 @@ public final class Entry {
       return false;
     }
     Entry entry = (Entry) o;
-    return Objects.equals(alias, entry.alias) &&
-           Objects.equals(property, entry.property);
+    return Objects.equals(alias, entry.alias) && Objects.equals(property, entry.property);
   }
 
   @Override
@@ -58,9 +57,6 @@ public final class Entry {
 
   @Override
   public String toString() {
-    return "Entry{" +
-           "alias=" + alias.asString() +
-           ", property=" + property +
-           '}';
+    return "Entry{alias=" + alias.asString() + ", property=" + property + '}';
   }
 }

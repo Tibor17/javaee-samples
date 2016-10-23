@@ -93,8 +93,8 @@ public final class Dates {
         TimeZone utc = getTimeZone(UTC);
         TimeZone timeZone = xmlCalendar.getTimeZone(utc.getRawOffset());
         if (!timeZone.hasSameRules(utc)) {
-            throw new IllegalStateException(String.format("Declaring TimeZone %s is not according to XML standard" +
-                    " in xsd:dateTime and UTC must be used.", timeZone.getDisplayName()));
+            throw new IllegalStateException(String.format("Declaring TimeZone %s is not according to XML standard"
+                    + " in xsd:dateTime and UTC must be used.", timeZone.getDisplayName()));
         }
         try {
             int utcOffset = utc.getRawOffset();

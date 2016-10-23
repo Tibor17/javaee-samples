@@ -36,8 +36,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class AuditQueryConsumerService implements MessageListener {
     private static final Logger LOG = getLogger(AuditQueryConsumerService.class);
 
-    @Inject JMSContext ctx;
-    @Inject AuditSelector selector;
+    @Inject
+    private JMSContext ctx;
+    
+    @Inject
+    private AuditSelector selector;
 
     @Override
     public void onMessage(Message message) {

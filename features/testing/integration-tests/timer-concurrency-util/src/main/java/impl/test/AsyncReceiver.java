@@ -19,7 +19,11 @@
 package impl.test;
 
 import javax.annotation.Resource;
-import javax.ejb.*;
+import javax.ejb.AsyncResult;
+import javax.ejb.Asynchronous;
+import javax.ejb.LocalBean;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
@@ -31,7 +35,7 @@ public class AsyncReceiver {
     private static final Logger LOG = Logger.getGlobal();
 
     @Resource
-    SessionContext ctx;
+    private SessionContext ctx;
 
     @Asynchronous
     public Future<String> forkTask() {

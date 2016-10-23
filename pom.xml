@@ -31,15 +31,18 @@
         <module>frameworks</module>
         <module>utils</module>
         <module>features</module>
+        <module>build-tools</module>
     </modules>
 
     <properties>
+        <!--<checkstyle.skip>true</checkstyle.skip>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <tagNameFormat>r@{project.version}</tagNameFormat>
+        <checkstyle.header.file>${project.basedir}/LICENSE</checkstyle.header.file>
     </properties>
 
     <dependencyManagement>
@@ -280,6 +283,10 @@
                     </dependencies>
                 </plugin>
                 <plugin>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.5.2</version>
                     <configuration>
@@ -325,6 +332,7 @@
                                 <exclude>.gitignore</exclude>
                                 <exclude>**/META-INF/services/*</exclude>
                                 <exclude>**/*.conf</exclude>
+                                <exclude>**/sun_checks_now.xml</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -379,6 +387,22 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>checkstyle-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectory>src/main/java</sourceDirectory>
+                    <testSourceDirectory>src/test/java</testSourceDirectory>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                </configuration>
             </plugin>
         </plugins>
     </build>

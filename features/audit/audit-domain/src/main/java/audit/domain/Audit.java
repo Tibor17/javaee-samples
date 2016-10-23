@@ -18,16 +18,39 @@
  */
 package audit.domain;
 
-import org.hibernate.search.annotations.*;
-import org.hibernate.search.annotations.Index;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.CalendarBridge;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.SortableField;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.TermVector;
 
 import javax.enterprise.inject.Vetoed;
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamField;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
 
 import static audit.util.Dates.format;
 import static java.nio.ByteBuffer.allocate;

@@ -38,16 +38,16 @@ public class AfterInitialized {
 
     /*
     @Resource
-    ContextService proxy;
+    private ContextService proxy;
     */
 
     @Inject
-    Job job;
+    private Job job;
 
     @Resource//(lookup = "java:comp/DefaultManagedScheduledExecutorService")
-    ManagedScheduledExecutorService executor;
+    private ManagedScheduledExecutorService executor;
 
-    volatile ScheduledFuture task;
+    private volatile ScheduledFuture task;
 
     @PostConstruct
     void onStartup() {

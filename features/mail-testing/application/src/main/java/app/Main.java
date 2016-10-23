@@ -28,6 +28,10 @@ import java.util.Properties;
 import static javax.mail.Message.RecipientType.TO;
 
 public final class Main {
+    private Main() {
+    }
+
+    @SuppressWarnings("checkstyle:hideutilityclassconstructor")
     public static void main(String... args) throws Exception {
 
         // https://nilhcem.github.io/FakeSMTP/index.html
@@ -39,7 +43,7 @@ public final class Main {
         props.setProperty("mail.smtp.port", "25"); // 25 is POP3
         props.setProperty("mail.smtp.user", "<smtp server account name>"); // surname.name
         props.setProperty("mail.smtp.auth", "true");
-        props.setProperty("mail.smtp.timeout", "" + 30 * 1000);
+        props.setProperty("mail.smtp.timeout", "" + 60 * 1000);
         props.setProperty("mail.transport.protocol", "smtp");
 
         Session session = Session.getInstance(props, null);
@@ -49,7 +53,8 @@ public final class Main {
         msg.setSubject("WTF");
         msg.setText("Hi There!");
         // Transport.send(msg); do not use
-        Transport tr = session.getTransport(); // use session.getTransport("smtp") unless props.setProperty("mail.transport.protocol", "smtp");
+        // use session.getTransport("smtp") unless props.setProperty("mail.transport.protocol", "smtp");
+        Transport tr = session.getTransport();
         tr.connect("mailserver", "<smtp server account name>", "<smtp server account password>");
         msg.saveChanges();
         tr.sendMessage(msg, msg.getAllRecipients());

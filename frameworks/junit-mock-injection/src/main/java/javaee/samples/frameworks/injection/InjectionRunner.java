@@ -62,15 +62,15 @@ import static javaee.samples.frameworks.injection.JPARuleBuilder.unitName;
 import static javaee.samples.frameworks.injection.Mode.DEFAULT_MODE;
 import static javaee.samples.frameworks.injection.PathFinder.path;
 
-public class InjectionRunner extends BlockJUnit4ClassRunner {
+public final class InjectionRunner extends BlockJUnit4ClassRunner {
     private static final Logger LOG = Logger.getGlobal();
 
-    static class PersistenceContextWrapper {
-        boolean usedInFieldInjection = true;
-        PersistenceContext pc;
-        JPARule rule;
+    private static final class PersistenceContextWrapper {
+        private boolean usedInFieldInjection = true;
+        private PersistenceContext pc;
+        private JPARule rule;
 
-        PersistenceContextWrapper(PersistenceContext pc) {
+        private PersistenceContextWrapper(PersistenceContext pc) {
             this.pc = pc;
         }
     }
@@ -145,7 +145,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
     }
 
     /**
-     * search non-Inherited annotation
+     * Search non-Inherited annotation.
      */
     private static <T extends Annotation> T findOnTest(Class<T> annotation, Object testInstance) {
         Class<?> type = testInstance.getClass();
@@ -177,6 +177,7 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
         setPersistenceConfigIfAbsent(pu);
     }
 
+    @SuppressWarnings("checkstyle:innerassignment")
     private void injectEntityManagerProxy(BeanManager beanManager, Object testInstance) throws Exception {
         if (!beanManager.containsEntityManager()) {
             boolean isNonFieldPuUsed = false;
@@ -190,7 +191,8 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                 for (Field field : discoveredType.getDeclaredFields()) {
                     if (JPARule.class.isAssignableFrom(field.getType())) {
                         if (alreadyRegistered) {
-                            throw new InitializationError(JPARule.class + " appears twice - not supported.");
+                            throw new InitializationError(JPARule.class
+                                    + " appears twice - not supported.");
                         }
 
                         PersistenceContext nonFieldPU = PERSISTENCE_CONFIG.get().pc;
@@ -231,8 +233,12 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                         }
                         field.set(testInstance, createJPARule(field.getAnnotation(PersistenceContext.class), testInstance));
                     } else if (nonFieldPU == null) {
-                        throw new InitializationError("Injectable field " + JPARule.class.getName() + " does not" +
-                                " declare " + PersistenceContext.class.getName() + " on the field or @Test-method or class.");
+                        throw new InitializationError("Injectable field "
+                                + JPARule.class.getName()
+                                + " does not"
+                                + " declare "
+                                + PersistenceContext.class.getName()
+                                + " on the field or @Test-method or class.");
                     } else {
                         field.set(testInstance, createJPARule(nonFieldPU, testInstance));
                     }
@@ -245,7 +251,8 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
         return false;
     }
 
-    private static void discoverExistingObjectsIfAbsent(BeanManager beanManager, Object currentBean) throws IllegalAccessException {
+    private static void discoverExistingObjectsIfAbsent(BeanManager beanManager, Object currentBean)
+            throws IllegalAccessException {
         for (Field f : currentBean.getClass().getDeclaredFields()) {
             /**
              * todo add annotations/qualfs
@@ -271,7 +278,9 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
         return ordinal == null ? MAX_VALUE : ordinal.value();
     }
 
-    private void inject(BeanManager beanManager, final Class<?> unproxyType, Object currentBean, PathFinder pathFinder) throws Exception {
+    @SuppressWarnings("checkstyle:innerassignment")
+    private void inject(BeanManager beanManager, final Class<?> unproxyType, Object currentBean, PathFinder pathFinder)
+            throws Exception {
         Class<?> discoveredType = unproxyType;
         do {
             for (Field f : orderFields(discoveredType.getDeclaredFields())) {
@@ -281,8 +290,9 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                  */
                 final BeanType beanType = new BeanType(f.getType(), filterGenericTypes(f));
 
-                if (f.isSynthetic() || isFinal(f.getModifiers()))
+                if (f.isSynthetic() || isFinal(f.getModifiers())) {
                     continue;
+                }
 
                 final boolean isStat = isStatic(f.getModifiers());
 
@@ -290,15 +300,19 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
 
                 f.setAccessible(true);
 
-                if (f.get(target) != null)
+                if (f.get(target) != null) {
                     continue;
+                }
 
                 boolean foundSpi = false;
                 for (InjectionPoint ip : SPI.get()) {
                     @SuppressWarnings("unchecked") Class<? extends Annotation> annType = ip.getAnnotationType();
                     Annotation ann = f.getAnnotation(annType);
-                    if (ann == null) continue;
-                    @SuppressWarnings("unchecked") Optional<Object> inject = ip.lookupOf(beanType.getType(), ann, currentBean, unproxyType);
+                    if (ann == null) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    Optional<Object> inject = ip.lookupOf(beanType.getType(), ann, currentBean, unproxyType);
                     foundSpi = inject.isPresent();
                     if (foundSpi) {
                         f.set(target, inject.get());
@@ -350,35 +364,56 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
             Constructor<?> c = beanType.getType().getDeclaredConstructor();
             int modifiers = c.getModifiers();
 
-            // CDI documentation chapter 3.15 Unproxyable bean types: http://docs.jboss.org/cdi/spec/1.1/cdi-spec.html#client_proxies
+            // CDI documentation chapter 3.15 Unproxyable bean types:
+            // http://docs.jboss.org/cdi/spec/1.1/cdi-spec.html#client_proxies
             if (isPrivate(modifiers)) {
-                throw new IllegalAccessException(beanType.getType() + " cannot use private and no-argument constructor");
+                throw new IllegalAccessException(beanType.getType()
+                        + " cannot use private and no-argument constructor");
             }
 
             if (c.isSynthetic()) {
-                throw new IllegalAccessException(beanType.getType() + " synthetic constructor is illegal to construct a bean");
+                throw new IllegalAccessException(beanType.getType()
+                        + " synthetic constructor is illegal to construct a bean");
             }
 
             c.setAccessible(true);
             return c.newInstance();
         } catch (NoSuchMethodException e) {
-            throw new NoSuchMethodException(e.getLocalizedMessage() + ": Default constructor not found." + "\n" + pathFinder.toString());
+            throw new NoSuchMethodException(e.getLocalizedMessage()
+                    + ": Default constructor not found."
+                    + "\n"
+                    + pathFinder.toString());
         } catch (InvocationTargetException e) {
-            throw new RuntimeException("Exception in constructor: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+            throw new RuntimeException("Exception in constructor: "
+                    + e.getLocalizedMessage()
+                    + "\n"
+                    + pathFinder.toString());
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("use private-package, protected or public constructor: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+            throw new RuntimeException("use private-package, protected or public constructor: "
+                    + e.getLocalizedMessage()
+                    + "\n"
+                    + pathFinder.toString());
         } catch (ExceptionInInitializerError e) {
-            throw new RuntimeException("exception in a static initializer: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+            throw new RuntimeException("exception in a static initializer: "
+                    + e.getLocalizedMessage()
+                    + "\n"
+                    + pathFinder.toString());
         } catch (InstantiationException e) {
-            throw new RuntimeException("exception in a initializer while creating new object: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+            throw new RuntimeException("exception in a initializer while creating new object: "
+                    + e.getLocalizedMessage()
+                    + "\n"
+                    + pathFinder.toString());
         }
     }
 
-    private Object newInstanceWithConstructorInjection(BeanManager beanManager, BeanType beanType, PathFinder pathFinder) throws Exception {
+    private Object newInstanceWithConstructorInjection(BeanManager beanManager, BeanType beanType, PathFinder pathFinder)
+            throws Exception {
         for (Constructor<?> c : beanType.getType().getDeclaredConstructors()) {
             int modifiers = c.getModifiers();
-            Class<?>[] parameters = c.getParameterTypes();//todo observe annotation/qualifier and a type via c.getParameters()
-            // CDI documentation chapter 3.15 Unproxyable bean types: http://docs.jboss.org/cdi/spec/1.1/cdi-spec.html#client_proxies
+            //todo observe annotation/qualifier and a type via c.getParameters()
+            Class<?>[] parameters = c.getParameterTypes();
+            // CDI documentation chapter 3.15 Unproxyable bean types:
+            // http://docs.jboss.org/cdi/spec/1.1/cdi-spec.html#client_proxies
             if (c.isAnnotationPresent(Inject.class) && (!isPrivate(modifiers) || parameters.length != 0)) {
                 Object[] args = new Object[parameters.length];
                 int i = 0;
@@ -396,7 +431,10 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                         p = bean.getProxy();
                     }
                     if (p == null) {
-                        LOG.warning("@Inject " + c + " could not resolve injection point with type " + parameter
+                        LOG.warning("@Inject "
+                                + c
+                                + " could not resolve injection point with type "
+                                + parameter
                                 + ". Passed NULL.");
                     }
                     args[i++] = p;
@@ -406,11 +444,20 @@ public class InjectionRunner extends BlockJUnit4ClassRunner {
                     c.setAccessible(true);
                     return c.newInstance(args);
                 } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Exception in constructor: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+                    throw new RuntimeException("Exception in constructor: "
+                            + e.getLocalizedMessage()
+                            + "\n"
+                            + pathFinder.toString());
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException("use whatever constructor modifier except for no-parameter private: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+                    throw new RuntimeException("use whatever constructor modifier except for no-parameter private: "
+                            + e.getLocalizedMessage()
+                            + "\n"
+                            + pathFinder.toString());
                 } catch (ExceptionInInitializerError e) {
-                    throw new RuntimeException("exception in a static initializer: " + e.getLocalizedMessage() + "\n" + pathFinder.toString());
+                    throw new RuntimeException("exception in a static initializer: "
+                            + e.getLocalizedMessage()
+                            + "\n"
+                            + pathFinder.toString());
                 }
 
             }

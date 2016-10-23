@@ -18,13 +18,23 @@
  */
 package producer;
 
-import dao.*;
+import dao.DAO;
+import dao.DaoWithoutId;
+import dao.GenericDaoWithoutId;
+import dao.GenericNumericDAO;
+import dao.IDAO;
+import dao.INumericDAO;
+import dao.LDAO;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.ContextNotActiveException;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.*;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Default;
+import javax.enterprise.inject.New;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.TransientReference;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -144,6 +154,7 @@ public class DaoProducer {
         return EntityManager.class.cast(bm.getReference(bean, EntityManager.class, ctx));
     }
 
+    @SuppressWarnings("checkstyle:whitespacearound")
     private static EntityManager lookupEntityManager(BeanManager bm, Class<? extends Annotation> qualifier) {
         Set<Bean<?>> beans = bm.getBeans(EntityManager.class, new AnnotationLiteral<Any>() {})
                 .stream()
@@ -168,8 +179,8 @@ public class DaoProducer {
         if (bm.isQualifier(annotation)) {
             return lookupEntityManager(bm, annotation);
         } else {
-            throw new ContextNotActiveException("no datasource qualifier nor stereotype presents in the " +
-                    "injection point " + ip);
+            throw new ContextNotActiveException("no datasource qualifier nor stereotype presents in the "
+                    + "injection point " + ip);
         }
     }
 

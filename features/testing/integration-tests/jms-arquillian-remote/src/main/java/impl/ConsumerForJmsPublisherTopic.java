@@ -17,7 +17,7 @@
  * under the License.
  */
 package impl;
-
+//CHECKSTYLE:OFF
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;

@@ -52,8 +52,6 @@ public final class Alias {
 
   @Override
   public String toString() {
-    return "Alias{" +
-           alias +
-           '}';
+    return "Alias{" + alias + '}';
   }
 }

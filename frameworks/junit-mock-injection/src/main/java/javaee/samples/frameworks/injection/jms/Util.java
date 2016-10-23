@@ -18,9 +18,15 @@
  */
 package javaee.samples.frameworks.injection.jms;
 
-import javax.jms.*;
+import javax.jms.BytesMessage;
+import javax.jms.JMSException;
+import javax.jms.MapMessage;
+import javax.jms.Message;
+import javax.jms.MessageFormatRuntimeException;
+import javax.jms.ObjectMessage;
+import javax.jms.StreamMessage;
+import javax.jms.TextMessage;
 import java.io.Serializable;
-import java.lang.IllegalStateException;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,7 +38,8 @@ public final class Util {
 
     public static Map<String, Object> resolveMapMessage(MapMessage mapMessage) throws JMSException {
         Map<String, Object> map = new LinkedHashMap<>();
-        for (@SuppressWarnings("unchecked") Enumeration<String> e = mapMessage.getMapNames(); e.hasMoreElements(); ) {
+        for (@SuppressWarnings({"unchecked", "checkstyle:emptyforiteratorpad"})
+             Enumeration<String> e = mapMessage.getMapNames(); e.hasMoreElements(); ) {
             String key = e.nextElement();
             map.put(key, mapMessage.getObject(key));
         }
@@ -61,7 +68,9 @@ public final class Util {
             bytesMessage.reset();
             try {
                 byte[] bytes = new byte[(int) bytesMessage.getBodyLength()];
-                for (int i = 0; i < bytes.length; i++) bytes[i] = bytesMessage.readByte();
+                for (int i = 0; i < bytes.length; i++) {
+                    bytes[i] = bytesMessage.readByte();
+                }
                 return c.cast(bytes);
             } finally {
                 bytesMessage.reset();

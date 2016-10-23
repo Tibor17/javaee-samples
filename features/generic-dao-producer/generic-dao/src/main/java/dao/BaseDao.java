@@ -22,14 +22,7 @@ import com.querydsl.core.FilteredClause;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.PersistenceException;
-import javax.persistence.PersistenceUnitUtil;
-import javax.persistence.PessimisticLockException;
-import javax.persistence.TransactionRequiredException;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -54,7 +47,7 @@ interface BaseDao<E> extends Serializable {
     <Q> Q query(@NotNull Queries.I1<Query<E>> q);
 
     /**
-     * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
+     * @see javax.persistence.PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attributes are loaded
      */
     boolean isLoaded(@NotNull E entityObject);
 
@@ -71,13 +64,13 @@ interface BaseDao<E> extends Serializable {
      * {@link java.util.concurrent.TimeUnit}.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object)}
-     * @see {@link EntityManager#refresh(Object)}
+     * @throws javax.persistence.TransactionRequiredException see {@link javax.persistence.EntityManager#refresh(Object)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object)}
      */
     @NotNull
     E refresh(@NotNull E e);
@@ -89,19 +82,20 @@ interface BaseDao<E> extends Serializable {
      * {@link java.util.concurrent.TimeUnit}.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see
+     * {@link javax.persistence.EntityManager#refresh(Object, LockModeType)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
-     * @see {@link EntityManager#refresh(Object, LockModeType)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType)}
      */
     @NotNull
     E refresh(@NotNull E e, @NotNull LockModeType lockMode);
@@ -111,25 +105,26 @@ interface BaseDao<E> extends Serializable {
      * Use the timeout if the default one elapsed too fast.
      *
      * @return returns <code>e</code> to be compliant with {@link IGDAO}
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity is not attached
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType, Map)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see
+     * {@link javax.persistence.EntityManager#refresh(Object, LockModeType, Map)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
-     * @see {@link EntityManager#refresh(Object, LockModeType, Map)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType, Map)}
      */
     @NotNull
     E refresh(@NotNull E e, @NotNull LockModeType lockMode, @NotNull TimeUnit timeoutUnits, @Min(0) long timeout);
 
     /**
-     * @see PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attribute was loaded
+     * @see javax.persistence.PersistenceUnitUtil#isLoaded(Object) if all <code>FetchType.EAGER</code> attribute was loaded
      */
     boolean isLoaded(@NotNull E entityObject, @NotNull String attributeName);
 
@@ -209,7 +204,7 @@ interface BaseDao<E> extends Serializable {
      *
      * @throws IllegalArgumentException     if the instance is not an
      *                                      entity or is a detached entity
-     * @throws TransactionRequiredException if invoked on a
+     * @throws javax.persistence.TransactionRequiredException if invoked on a
      *                                      container-managed entity manager of type
      *                                      <code>PersistenceContextType.TRANSACTION</code> and there is
      *                                      no transaction
@@ -250,13 +245,15 @@ interface BaseDao<E> extends Serializable {
     List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue);
 
     @NotNull
-    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue, @NotNull Class<T> resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull String attributeName, Object attributeValue,
+                                   @NotNull Class<T> resultClass);
 
     @NotNull
     List<E> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes);
 
     @NotNull
-    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes, @NotNull Class<T> resultClass);
+    <T> List<T> selectByNamedQuery(@NotNull String sqlStatement, @NotNull Map<String, ?> attributes,
+                                   @NotNull Class<T> resultClass);
 
     @NotNull
     List<E> findByAttributeAsPattern(@NotNull String attributeName, @NotNull String pattern);

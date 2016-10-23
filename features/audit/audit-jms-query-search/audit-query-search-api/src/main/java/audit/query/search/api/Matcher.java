@@ -38,8 +38,12 @@ public abstract class Matcher<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Matcher<?> matcher = (Matcher<?>) o;
         return Objects.equals(getFieldName(), matcher.getFieldName())
                 && Objects.equals(getEntityType(), matcher.getEntityType());

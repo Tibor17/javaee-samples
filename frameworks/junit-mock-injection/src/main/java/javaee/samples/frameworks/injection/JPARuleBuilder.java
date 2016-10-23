@@ -18,22 +18,36 @@
  */
 package javaee.samples.frameworks.injection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Collections.addAll;
 import static javaee.samples.frameworks.injection.DB.H2;
-import static javaee.samples.frameworks.injection.H2Storage.*;
-import static javaee.samples.frameworks.injection.Mode.*;
+import static javaee.samples.frameworks.injection.H2Storage.DEFAULT_STORAGE;
+import static javaee.samples.frameworks.injection.H2Storage.DISABLE_MV_STORE;
+import static javaee.samples.frameworks.injection.H2Storage.ENABLE_MVCC;
+import static javaee.samples.frameworks.injection.H2Storage.ENABLE_MV_STORE;
+import static javaee.samples.frameworks.injection.H2Storage.MULTI_THREADED_1;
+import static javaee.samples.frameworks.injection.Mode.DB2;
+import static javaee.samples.frameworks.injection.Mode.DEFAULT_MODE;
+import static javaee.samples.frameworks.injection.Mode.DERBY;
+import static javaee.samples.frameworks.injection.Mode.HSQLDB;
+import static javaee.samples.frameworks.injection.Mode.MSSQL;
+import static javaee.samples.frameworks.injection.Mode.MYSQL;
+import static javaee.samples.frameworks.injection.Mode.ORACLE;
+import static javaee.samples.frameworks.injection.Mode.PostgreSQL;
 
 public final class JPARuleBuilder {
-    final Collection<Class<?>> preferableDomains = new ArrayList<>();
-    final Map<String, String> properties;
-    String unitName;
-    H2Storage storage;
-    Mode mode;
-    boolean useProperties = true, useAutoServerMode, closeSessionOnExitJVM;
-    int closeDbDelayInSeconds = -1;
-    DB db = H2;
+    private final Collection<Class<?>> preferableDomains = new ArrayList<>();
+    private final Map<String, String> properties;
+    private String unitName;
+    private H2Storage storage;
+    private Mode mode;
+    private boolean useProperties = true, useAutoServerMode, closeSessionOnExitJVM;
+    private int closeDbDelayInSeconds = -1;
+    private DB db = H2;
 
     private JPARuleBuilder(String unitName) {
         properties = new HashMap<>();
@@ -46,8 +60,8 @@ public final class JPARuleBuilder {
         return new JPARuleBuilder(unitName);
     }
 
-    public JPARuleBuilder database(DB db) {
-        this.db = db;
+    public JPARuleBuilder database(DB database) {
+        this.db = database;
         return this;
     }
 
@@ -66,8 +80,8 @@ public final class JPARuleBuilder {
         return this;
     }
 
-    public JPARuleBuilder closeDbDelayInSeconds(int closeDbDelayInSeconds) {
-        this.closeDbDelayInSeconds = closeDbDelayInSeconds;
+    public JPARuleBuilder closeDbDelayInSeconds(int maxDelayToDie) {
+        this.closeDbDelayInSeconds = maxDelayToDie;
         return this;
     }
 
@@ -76,9 +90,9 @@ public final class JPARuleBuilder {
         return this;
     }
 
-    public JPARuleBuilder properties(Map<String, String> properties) {
-        if (properties != null) {
-            this.properties.putAll(properties);
+    public JPARuleBuilder properties(Map<String, String> props) {
+        if (props != null) {
+            properties.putAll(props);
         }
         return this;
     }
@@ -150,5 +164,45 @@ public final class JPARuleBuilder {
 
     public JPARule build() {
         return new JPARule(this);
+    }
+
+    Collection<Class<?>> getPreferableDomains() {
+        return preferableDomains;
+    }
+
+    Map<String, String> getProperties() {
+        return properties;
+    }
+
+    String getUnitName() {
+        return unitName;
+    }
+
+    H2Storage getStorage() {
+        return storage;
+    }
+
+    Mode getMode() {
+        return mode;
+    }
+
+    boolean isUseProperties() {
+        return useProperties;
+    }
+
+    boolean isUseAutoServerMode() {
+        return useAutoServerMode;
+    }
+
+    boolean isCloseSessionOnExitJVM() {
+        return closeSessionOnExitJVM;
+    }
+
+    int getCloseDbDelayInSeconds() {
+        return closeDbDelayInSeconds;
+    }
+
+    DB getDb() {
+        return db;
     }
 }

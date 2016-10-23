@@ -41,7 +41,7 @@ final class PathFinder {
     public String toString() {
         String separator = "";
         String humanReadablePath = "";
-        for (String path : this.path) {
+        for (String subPath : this.path) {
             if (humanReadablePath.isEmpty()) {
                 humanReadablePath = ": ";
             } else {
@@ -49,7 +49,7 @@ final class PathFinder {
                 humanReadablePath += separator;
                 humanReadablePath += "< ";
             }
-            humanReadablePath += path;
+            humanReadablePath += subPath;
             separator += "  ";
         }
         return humanReadablePath;

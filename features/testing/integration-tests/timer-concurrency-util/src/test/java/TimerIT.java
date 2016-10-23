@@ -32,7 +32,8 @@ import java.util.Collection;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static javaee.samples.frameworks.injection.DB.UNDEFINED;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(InjectionRunner.class)
@@ -41,7 +42,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @WithManagedTransactions
 public class TimerIT {
     @Inject
-    EntityManager em;
+    private EntityManager em;
 
     @Test
     public void shouldFindTimerTicks() throws InterruptedException {

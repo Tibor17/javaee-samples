@@ -28,7 +28,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>unit</artifactId>
+    <artifactId>unit-rest</artifactId>
 
     <dependencies>
         <dependency>
@@ -159,6 +159,12 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <suppressionsLocation>src/main/config/suppressions.xml</suppressionsLocation>
+                </configuration>
             </plugin>
         </plugins>
     </build>

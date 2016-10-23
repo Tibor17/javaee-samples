@@ -27,7 +27,7 @@ import java.util.Collection;
 import static javaee.samples.frameworks.injection.NullFilter.NULL_FILTER;
 
 /**
- * Hint for classes http://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime
+ * Hint for classes http://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime .
  */
 final class FieldUtils {
     private FieldUtils() {

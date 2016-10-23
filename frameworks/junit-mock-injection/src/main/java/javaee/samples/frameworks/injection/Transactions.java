@@ -33,42 +33,52 @@ public final class Transactions {
         throw new IllegalStateException("cannot instantiate constructor");
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static void $(Consumer<EntityManager> block) {
         getCurrentRule().$(block);
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T> void $(Consumer<T> block, T o) {
         $(() -> block.accept(o));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T, R> R $$(Function<T, R> block, T o) {
         return $(() -> block.apply(o));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T, U, R> R $(BiFunction<T, U, R> block, T t, U u) {
         return $(() -> block.apply(t, u));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T, U, S, R> R $(TripleFunction<T, U, S, R> block, T t, U u, S s) {
         return $(() -> block.apply(t, u, s));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <S, T, U, O, R> R $(QuadFunction<S, T, U, O, R> block, S s, T t, U u, O o) {
         return $(() -> block.apply(s, t, u, o));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <S, T, U, O, W, R> R $(FiveFunction<S, T, U, O, W, R> block, S s, T t, U u, O o, W w) {
         return $(() -> block.apply(s, t, u, o, w));
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T> T $(Supplier<T> block) {
         return getCurrentRule().$(block);
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static void $(Runnable block) {
         getCurrentRule().$(block);
     }
 
+    @SuppressWarnings("checkstyle:methodname")
     public static <T> T $$(Function<EntityManager, T> block) {
         return getCurrentRule().$$(block);
     }

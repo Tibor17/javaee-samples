@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-final public class JMSProducerMock implements JMSProducer {
+public final class JMSProducerMock implements JMSProducer {
     private final Session session;
 
     public JMSProducerMock(Session session) {

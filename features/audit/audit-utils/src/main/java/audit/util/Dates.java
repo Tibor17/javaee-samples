@@ -25,13 +25,23 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.ZoneOffset.ofTotalSeconds;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.time.temporal.ChronoField.*;
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MILLI_OF_SECOND;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static java.time.temporal.ChronoField.OFFSET_SECONDS;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.time.temporal.ChronoField.YEAR;
 import static java.util.Calendar.MILLISECOND;
 import static java.util.Locale.ROOT;
 import static java.util.TimeZone.getTimeZone;
@@ -93,8 +103,8 @@ public final class Dates {
         TimeZone utc = getTimeZone(UTC);
         TimeZone timeZone = xmlCalendar.getTimeZone(utc.getRawOffset());
         if (!timeZone.hasSameRules(utc)) {
-            throw new IllegalStateException(String.format("Declaring TimeZone %s is not according to XML standard" +
-                    " in xsd:dateTime and UTC must be used.", timeZone.getDisplayName()));
+            throw new IllegalStateException(String.format("Declaring TimeZone %s is not according to XML standard"
+                    + " in xsd:dateTime and UTC must be used.", timeZone.getDisplayName()));
         }
         try {
             int utcOffset = utc.getRawOffset();

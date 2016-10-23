@@ -19,21 +19,22 @@
 package javaee.samples.frameworks.injection;
 
 /**
- * H2 database setting
+ * H2 database setting.
  */
 public enum H2Storage {
     DEFAULT_STORAGE,
 
     /*
-    * For H2 version 1.4 and newer, the MVStore is the default storage engine (supporting SQL, JDBC, transactions, MVCC, and so on).
-    * For older versions, append ;MV_STORE=TRUE to the database URL. Even though it can be used with the default table level
-    * locking, by default the MVCC mode is enabled when using the MVStore.
+    * For H2 version 1.4 and newer, the MVStore is the default storage engine (supporting SQL, JDBC, transactions,
+    * MVCC, and so on). For older versions, append ;MV_STORE=TRUE to the database URL. Even though it can be used with
+    * the default table level locking, by default the MVCC mode is enabled when using the MVStore.
     * */
     ENABLE_MV_STORE, DISABLE_MV_STORE,
 
     /**
-     * Please note MVCC is enabled in version 1.4.x by default, when using the MVStore. In this case, table level locking is not used.
-     * Instead, rows are locked for update, and read committed is used in all cases (changing the isolation level has no effect).
+     * Please note MVCC is enabled in version 1.4.x by default, when using the MVStore. In this case, table level
+     * locking is not used. Instead, rows are locked for update, and read committed is used in all cases (changing the
+     * isolation level has no effect).
      */
     ENABLE_MVCC,
 

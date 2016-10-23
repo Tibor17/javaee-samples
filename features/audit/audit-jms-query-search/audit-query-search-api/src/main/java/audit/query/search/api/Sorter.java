@@ -48,8 +48,12 @@ public class Sorter<T extends Serializable & Comparable<T>> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Sorter<?> sorter = (Sorter<?>) o;
         return Objects.equals(getFieldType(), sorter.getFieldType())
                 && Objects.equals(getFieldName(), sorter.getFieldName());

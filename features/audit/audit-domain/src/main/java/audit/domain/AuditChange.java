@@ -18,7 +18,10 @@
  */
 package audit.domain;
 
-import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.TermVector;
 
 import javax.enterprise.inject.Vetoed;
 import javax.persistence.Access;
@@ -27,8 +30,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import java.io.*;
+import java.io.ObjectStreamField;
+import java.io.Serializable;
 import java.util.Objects;
 
 import static java.util.Objects.hash;
@@ -98,12 +101,16 @@ public class AuditChange extends BaseEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         AuditChange that = (AuditChange) o;
-        return Objects.equals(getKey(), that.getKey()) &&
-                Objects.equals(getOldValue(), that.getOldValue()) &&
-                Objects.equals(getNewValue(), that.getNewValue());
+        return Objects.equals(getKey(), that.getKey())
+                && Objects.equals(getOldValue(), that.getOldValue())
+                && Objects.equals(getNewValue(), that.getNewValue());
     }
 
     @Override

@@ -18,10 +18,9 @@
  */
 package dao;
 
-import javax.persistence.*;
+import javax.persistence.LockModeType;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -29,13 +28,13 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
         extends BaseDao<E> {
 
     /**
-     * Behaves the same as {@link EntityManager#getReference EntityManager.getReference}.
+     * Behaves the same as {@link javax.persistence.EntityManager#getReference EntityManager.getReference}.
      */
     @NotNull
     E fetchLazily(@NotNull PK id);
 
     /**
-     * @see PersistenceUnitUtil#getIdentifier(Object) ID of given entity
+     * @see javax.persistence.PersistenceUnitUtil#getIdentifier(Object) ID of given entity
      */
     @NotNull
     PK getIdentifier(@NotNull E entityObject);
@@ -49,7 +48,7 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
     E update(@NotNull PK id, @NotNull Function<E, E> merge);
 
     /**
-     * @see EntityManager#getReference(Class, Object) load state lazily
+     * @see javax.persistence.EntityManager#getReference(Class, Object) load state lazily
      */
     @NotNull
     E loadReference(@NotNull PK id);
@@ -67,7 +66,7 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
      *
      * @param entityObject (detached) entity object to find (load)
      * @return never returns null
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} does not have id, or
      *                                  the object is found not to be an entity
      * @throws IllegalStateException    if the entity manager has been closed, or
@@ -81,7 +80,7 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
      *
      * @param entityObject (detached) entity object to refresh from
      * @return never returns null
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if the entity object is found not to be an entity
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
@@ -97,12 +96,12 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
      *
      * @return refreshed entity object: new attached object if given argument {@code e} was detached, or given entity
      * reference if argument {@code e} is attached to the persistence context.
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @see {@link EntityManager#refresh(Object)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object)}
      */
     @Override
     E refresh(E e);
@@ -115,12 +114,12 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
      *
      * @return refreshed entity object: new attached object if given argument {@code e} was detached, or given entity
      * reference if argument {@code e} is attached to the persistence context.
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @see {@link EntityManager#refresh(Object, LockModeType)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType)}
      */
     @Override
     E refresh(E e, LockModeType lockMode);
@@ -131,19 +130,20 @@ public interface IGDAO<E, PK extends Serializable & Comparable<PK>>
      *
      * @return refreshed entity object: new attached object if given argument {@code e} was detached, or given entity
      * reference if argument {@code e} is attached to the persistence context.
-     * @throws EntityNotFoundException  entity reference does not exist in database
+     * @throws javax.persistence.EntityNotFoundException  entity reference does not exist in database
      * @throws IllegalArgumentException if {@code entityObject} is found not to be an entity
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType, Map)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see
+     * {@link javax.persistence.EntityManager#refresh(Object, LockModeType, java.util.Map)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
-     * @see {@link EntityManager#refresh(Object, LockModeType, Map)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType, java.util.Map)}
      */
     @Override
     E refresh(E e, LockModeType lockMode, TimeUnit timeoutUnits, long timeout);

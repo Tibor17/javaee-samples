@@ -33,10 +33,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Typed(AuditListener.class)
 public class AuditStorageListener implements AuditListener {
     @Inject
-    AuditService service;
+    private AuditService service;
 
     @Inject
-    CyclicBarrier synchronizer;
+    private CyclicBarrier synchronizer;
 
     @Override
     public void onMessage(Audit audit) {

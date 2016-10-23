@@ -27,7 +27,8 @@ import static java.util.Objects.compare;
 
 public interface InjectionPoint<A extends Annotation> extends Comparable<InjectionPoint> {
     @NotNull Class<A> getAnnotationType();
-    @NotNull <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, A injectionAnnotation, T bean, Class<? extends T> beanType);
+    @NotNull <T> Optional<Object> lookupOf(Class<?> declaredInjectionType, A injectionAnnotation, T bean,
+                                           Class<? extends T> beanType);
     void destroy();
 
     @Override

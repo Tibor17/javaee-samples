@@ -63,10 +63,6 @@ final class Bean<T> {
 
     @Override
     public String toString() {
-        return "Bean{" +
-                "beanClass=" + beanClass.getSimpleName() +
-                ", delegate=" + delegate +
-                ", proxy=" + proxy +
-                '}';
+        return "Bean{" + "beanClass=" + beanClass.getSimpleName() + ", delegate=" + delegate + ", proxy=" + proxy + '}';
     }
 }

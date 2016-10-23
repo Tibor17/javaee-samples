@@ -27,7 +27,8 @@ import javax.naming.spi.InitialContextFactoryBuilder;
 import java.util.Hashtable;
 import java.util.Optional;
 
-import static java.util.Optional.*;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public final class ResourcePoint implements InjectionPoint<Resource>, InitialContextFactoryBuilder {
     private final Context ctx;
@@ -64,8 +65,8 @@ public final class ResourcePoint implements InjectionPoint<Resource>, InitialCon
         }
     }
 
-    private @SuppressWarnings("unchecked") <R>
-    Optional<R> lookupOptionally(Class<?> declaredInjectionType, String lookupName) {
+    @SuppressWarnings("unchecked")
+    private <R> Optional<R> lookupOptionally(Class<?> declaredInjectionType, String lookupName) {
         try {
             Object o = ctx.lookup(lookupName);
             return o != null && declaredInjectionType.isAssignableFrom(o.getClass()) ? of((R) o) : empty();
@@ -87,7 +88,7 @@ public final class ResourcePoint implements InjectionPoint<Resource>, InitialCon
         }
 
         @Override
-        public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
+        public Context getInitialContext(Hashtable<?, ?> env) throws NamingException {
             return new InitialContext(this.environment);
         }
     }

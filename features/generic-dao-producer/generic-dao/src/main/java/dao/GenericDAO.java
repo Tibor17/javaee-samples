@@ -18,10 +18,10 @@
  */
 package dao;
 
-import javax.persistence.*;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.LockModeType;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -36,7 +36,7 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
     @SuppressWarnings("unchecked")
     protected GenericDAO() {
         super(GenericDAO.class, true);
-        primaryKeyType = (Class<PK>) requireNonNull(optionalSecondGenericParameter);
+        primaryKeyType = (Class<PK>) requireNonNull(getOptionalSecondGenericParameter());
     }
 
     protected GenericDAO(Class<E> entityType, Class<PK> primaryKeyType) {
@@ -44,28 +44,28 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
         this.primaryKeyType = primaryKeyType;
     }
 
-    protected
     @NotNull
+    protected
     Class<PK> getPrimaryKeyType() {
         return primaryKeyType;
     }
 
     /**
-     * Behaves the same as {@link EntityManager#getReference EntityManager.getReference}.
+     * Behaves the same as {@link javax.persistence.EntityManager#getReference EntityManager.getReference}.
      */
     @Override
-    public
     @NotNull
+    public
     E fetchLazily(@NotNull PK id) {
         return em().getReference(getEntityType(), id);
     }
 
     /**
-     * @see PersistenceUnitUtil#getIdentifier(Object) ID of given entity
+     * @see javax.persistence.PersistenceUnitUtil#getIdentifier(Object) ID of given entity
      */
     @Override
-    public
     @NotNull
+    public
     PK getIdentifier(@NotNull E entityObject) {
         return primaryKeyType.cast(em().getEntityManagerFactory().getPersistenceUnitUtil()
                 .getIdentifier(entityObject));
@@ -83,8 +83,8 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      * The function {@link Function} consumes entity object which appears in the persistence context.
      */
     @Override
-    public
     @NotNull
+    public
     E update(@NotNull PK id, @NotNull Function<E, E> merge) {
         E old = load(id);
         E neW = merge.apply(old);
@@ -92,11 +92,11 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
     }
 
     /**
-     * @see EntityManager#getReference(Class, Object) load state lazily
+     * @see javax.persistence.EntityManager#getReference(Class, Object) load state lazily
      */
     @Override
-    public
     @NotNull
+    public
     E loadReference(@NotNull PK id) {
         return em().getReference(getEntityType(), id);
     }
@@ -127,8 +127,9 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      *                                  the entity manager factory has been closed
      */
     @Override
-    public
     @NotNull
+    @SuppressWarnings("checkstyle:innerassignment")
+    public
     E reload(@NotNull E entityObject) {
         final PK id;
         if (!hasId(entityObject) || (id = getIdentifier(entityObject)) == null) {
@@ -155,8 +156,8 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      *                                  the entity manager factory has been closed
      */
     @Override
-    public
     @NotNull
+    public
     E reloadIfDetached(@NotNull E entityObject) {
         return reloadIfDetached(e -> !hasId(e) || isAttached(e), entityObject);
     }
@@ -178,8 +179,8 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object)}
-     * @see {@link EntityManager#refresh(Object)}
+     * @throws javax.persistence.TransactionRequiredException see {@link javax.persistence.EntityManager#refresh(Object)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object)}
      */
     @Override
     public
@@ -202,14 +203,15 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see
+     * {@link javax.persistence.EntityManager#refresh(Object, LockModeType)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
-     * @see {@link EntityManager#refresh(Object, LockModeType)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType)}
      */
     @Override
     public
@@ -230,14 +232,15 @@ abstract class GenericDAO<E, PK extends Serializable & Comparable<PK>>
      *                                  or the entity object does not have id
      * @throws IllegalStateException    if the entity manager has been closed, or
      *                                  the entity manager factory has been closed
-     * @throws TransactionRequiredException see {@link EntityManager#refresh(Object, LockModeType, Map)}
-     * @throws PessimisticLockException if pessimistic locking fails
+     * @throws javax.persistence.TransactionRequiredException see
+     * {@link javax.persistence.EntityManager#refresh(Object, LockModeType, java.util.Map)}
+     * @throws javax.persistence.PessimisticLockException if pessimistic locking fails
      *         and the transaction is rolled back
-     * @throws LockTimeoutException if pessimistic locking fails and
+     * @throws javax.persistence.LockTimeoutException if pessimistic locking fails and
      *         only the statement is rolled back
-     * @throws PersistenceException if an unsupported lock call
+     * @throws javax.persistence.PersistenceException if an unsupported lock call
      *         is made
-     * @see {@link EntityManager#refresh(Object, LockModeType, Map)}
+     * @see {@link javax.persistence.EntityManager#refresh(Object, LockModeType, java.util.Map)}
      */
     @Override
     public

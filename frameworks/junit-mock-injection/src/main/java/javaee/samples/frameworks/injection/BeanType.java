@@ -41,7 +41,8 @@ final class BeanType {
         this.annotationQualifiers = annotationQualifiers.clone();
     }
 
-    BeanType(Class<?> type, Collection<Class<?>> genericTypes, String textQualifier, Collection<Annotation> annotationQualifiers) {
+    BeanType(Class<?> type, Collection<Class<?>> genericTypes, String textQualifier,
+             Collection<Annotation> annotationQualifiers) {
         this(type, genericTypes, textQualifier, annotationQualifiers.toArray(new Annotation[annotationQualifiers.size()]));
     }
 
@@ -65,7 +66,8 @@ final class BeanType {
                 }
             }
         }
-        return new BeanType(f.getType(), genericTypes, stringQualifier == null ? null : stringQualifier.value(), qualifierAnnotations);
+        return new BeanType(f.getType(), genericTypes, stringQualifier == null ? null : stringQualifier.value(),
+                qualifierAnnotations);
     }
 
     Class<?> getType() {
@@ -93,15 +95,22 @@ final class BeanType {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         BeanType beanType = (BeanType) o;
         return Objects.equals(type, beanType.type) && equalsWithoutType(beanType);
     }
 
     boolean equalsAsTyped(BeanType given) {
-        if (!equalsWithoutType(given))
+        if (!equalsWithoutType(given)) {
             return false;
+        }
 
         for (Class<?> t : type.getAnnotation(Typed.class).value()) {
             if (given.getType() == t) {
@@ -130,9 +139,9 @@ final class BeanType {
     }
 
     private boolean equalsWithoutType(BeanType given) {
-        return genericTypes.size() == given.genericTypes.size() &&
-                genericTypes.containsAll(given.genericTypes) &&
-                Objects.equals(textQualifier, given.textQualifier) &&
-                Arrays.equals(annotationQualifiers, given.annotationQualifiers);
+        return genericTypes.size() == given.genericTypes.size()
+                && genericTypes.containsAll(given.genericTypes)
+                && Objects.equals(textQualifier, given.textQualifier)
+                && Arrays.equals(annotationQualifiers, given.annotationQualifiers);
     }
 }

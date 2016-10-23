@@ -51,7 +51,7 @@ public class FunctionalIT {
     private static final Logger LOG = Logger.getGlobal();
 
     @PersistenceContext(unitName = "pu")
-    EntityManager em;
+    private EntityManager em;
 
     @Deployment(name = "FunctionalIT-shouldFindTimerTicks")
     @OverProtocol("Servlet 3.0")

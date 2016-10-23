@@ -27,7 +27,7 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class AuditListenerImpl implements AuditListener {
     @Inject
-    QueueTestStats stats;
+    private QueueTestStats stats;
 
     @Override
     public void onMessage(Audit audit) {

@@ -20,7 +20,7 @@ package javaee.samples.frameworks.injection;
 
 final class TransactionManager {
     private static class TransactionBarrier {
-        int barriers;
+        private int barriers;
     }
 
     private static final ThreadLocal<TransactionBarrier> CURRENT = new ThreadLocal<TransactionBarrier>() {

@@ -23,30 +23,30 @@ import org.h2.tools.Server;
 import java.sql.SQLException;
 
 public enum H2Server {
-  TCP;
+    TCP;
 
-  private final Server server;
+    private final Server server;
 
-  private H2Server() {
-    try {
-      server = Server.createTcpServer("-tcpAllowOthers");
-      server.start();
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        @Override
-        public void run() {
-          try {
-            server.stop();
-          } finally {
-            server.shutdown();
-          }
+    H2Server() {
+        try {
+            server = Server.createTcpServer("-tcpAllowOthers");
+            server.start();
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        server.stop();
+                    } finally {
+                        server.shutdown();
+                    }
+                }
+            });
+        } catch (SQLException e) {
+            throw new IllegalStateException(e.getLocalizedMessage(), e);
         }
-      });
-    } catch (SQLException e) {
-      throw new IllegalStateException(e.getLocalizedMessage(), e);
     }
-  }
 
-  public Server getServer() {
-    return server;
-  }
+    public Server getServer() {
+        return server;
+    }
 }
