@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<con:soapui-project id="5e95e22b-a6a5-4302-a5d0-6154c7af693a" activeEnvironment="Default" name="test" resourceRoot="${projectDir}" soapui-version="5.5.0" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="898f1783-e3bd-4233-a0c3-045c3330968a" wsaVersion="NONE" name="TestBinding" type="wsdl" bindingName="{http://tempuri.org/}TestBinding" soapVersion="1_2" anonymous="optional" definition="../../../../ServiceResources/src/main/resources/test.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:/home/stp/Documents/workspace-test/ServiceMock/ServiceResources/src/main/resources/test.wsdl"><con:part><con:url>file:/home/stp/Documents/workspace-test/ServiceMock/ServiceResources/src/main/resources/test.wsdl</con:url><con:content><![CDATA[<definitions name="TestService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://tempuri.org/" xmlns="http://schemas.xmlsoap.org/wsdl/">
+  <types>
+    <xsd:schema targetNamespace="http://tempuri.org/">
+      <xsd:element name="TestRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="TestResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="response" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </types>
+  <message name="TestRequestMessage">
+    <part name="TestRequestPart" element="tns:TestRequest"/>
+  </message>
+  <message name="TestResponseMessage">
+    <part name="TestResponsePart" element="tns:TestResponse"/>
+  </message>
+  <portType name="TestPortType">
+    <operation name="SendMessage">
+      <input name="TestInput" message="tns:TestRequestMessage"/>
+      <output name="TestOutput" message="tns:TestResponseMessage"/>
+    </operation>
+  </portType>
+  <binding name="TestBinding" type="tns:TestPortType">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <operation name="SendMessage">
+      <soap12:operation soapActionRequired="false"/>
+      <input name="TestInput">
+        <soap12:body use="literal"/>
+      </input>
+      <output name="TestOutput">
+        <soap12:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+  <service name="TestService">
+    <port name="TestPort" binding="tns:TestBinding">
+      <soap12:address location="http://tempuri.org/testservice"/>
+    </port>
+  </service>
+</definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://nova:8088/testservice</con:endpoint><con:endpoint>http://tempuri.org/testservice</con:endpoint></con:endpoints><con:operation id="299e3416-2135-48ff-bebf-25147ad8766a" isOneWay="false" action="" name="SendMessage" bindingOperationName="SendMessage" type="Request-Response" outputName="TestOutput" inputName="TestInput" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="346cb049-d93f-472f-bed2-d6d95957cd8a" name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8088/testservice</con:endpoint><con:request><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+   <soap:Header/>
+   <soap:Body>
+      <tem:TestRequest>
+         <message>hello</message>
+      </tem:TestRequest>
+   </soap:Body>
+</soap:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/TestPortType/TestInput"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:mockService id="b5e8b34d-c529-42c0-a118-f5d3a63b970a" port="8088" path="/testservice" host="nova" name="testmock"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.mock.WsdlMockService@require-soap-action">false</con:setting></con:settings><con:properties/><con:mockOperation name="SendMessage" id="5be55e5f-067a-4d9b-89fe-efa0076f65e5" interface="TestBinding" operation="SendMessage"><con:settings/><con:defaultResponse>Default response</con:defaultResponse><con:dispatchStyle>QUERY_MATCH</con:dispatchStyle><con:dispatchPath>//TestRequest/message</con:dispatchPath><con:response name="Triggered response" id="16d7f3b4-0d14-4db1-a35d-8b7463784145" httpResponseStatus="200" encoding="UTF-8"><con:settings/><con:responseContent><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+   <soap:Header/>
+   <soap:Body>
+      <tem:TestResponse>
+         <response>triggered</response>
+      </tem:TestResponse>
+   </soap:Body>
+</soap:Envelope>]]></con:responseContent><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/TestPortType/TestOutput"/></con:response><con:response name="Default response" id="4f3e9f3e-73bb-4d97-94f8-bc782acac1de" httpResponseStatus="200" encoding="UTF-8"><con:settings/><con:responseContent><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+   <soap:Header/>
+   <soap:Body>
+      <tem:TestResponse>
+         <response>Default</response>
+      </tem:TestResponse>
+   </soap:Body>
+</soap:Envelope>]]></con:responseContent><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/TestPortType/TestOutput"/></con:response><con:dispatchConfig xsi:type="con:MockOperationQueryMatchDispatch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:query><con:name>message</con:name><con:query>declare namespace tem="http://tempuri.org/"
+//tem:TestRequest[1]/message[1]</con:query><con:match>hello</con:match><con:response>Triggered response</con:response></con:query></con:dispatchConfig></con:mockOperation></con:mockService><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/><con:sensitiveInformation/></con:soapui-project>

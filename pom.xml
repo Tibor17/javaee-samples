@@ -32,6 +32,7 @@
         <module>utils</module>
         <module>features</module>
         <module>build-tools</module>
+        <module>features/testing/unit-soap</module>
     </modules>
 
     <properties>
@@ -184,6 +185,11 @@
                     <groupId>org.apache.rat</groupId>
                     <artifactId>apache-rat-plugin</artifactId>
                     <version>0.12</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/*.log</exclude>
+                        </excludes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>

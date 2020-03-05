@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<definitions name="TestService" 
+	targetNamespace="http://tempuri.org/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://tempuri.org/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+	<types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://tempuri.org/">
+
+			<xsd:element name="TestRequest">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="message" type="xsd:string" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+
+			<xsd:element name="TestResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="response" type="xsd:string" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</types>
+
+	<message name="TestRequestMessage">
+		<part name="TestRequestPart" element="tns:TestRequest" />
+	</message>
+	<message name="TestResponseMessage">
+		<part name="TestResponsePart" element="tns:TestResponse" />
+	</message>
+
+	<portType name="TestPortType">
+		<operation name="SendMessage">
+			<input name="TestInput" message="tns:TestRequestMessage" />
+			<output name="TestOutput" message="tns:TestResponseMessage" />
+		</operation>
+	</portType>
+
+	<binding name="TestBinding" type="tns:TestPortType">
+		<soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+		<operation name="SendMessage">
+			<soap12:operation soapActionRequired="false"/>
+			<input name="TestInput">
+				<soap12:body use="literal" />
+			</input>
+			<output name="TestOutput">
+				<soap12:body use="literal" />
+			</output>
+		</operation>
+	</binding>
+
+	<service name="TestService">
+		<port name="TestPort" binding="tns:TestBinding">
+			<soap12:address location="http://tempuri.org/testservice" />
+		</port>
+	</service>
+
+
+</definitions>
